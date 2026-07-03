@@ -8,13 +8,9 @@ namespace Domain.Enum
 {
     public enum RoleType
     {
-        Owner = 0,
-        Admin = 1,
-        User = 2,
-        Guest = 3,
+        SuperAdmin = 0,
+        User = 1,
 
-        Marchant = 4,
-        Parent = 5
 
     }
 

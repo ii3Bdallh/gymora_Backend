@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Application.Common.Interfaces;
-using Infrastructure.Identity;
+using Domain.Enum;
 using Microsoft.AspNetCore.Http;
 
 namespace Infrastructure.CurrentUser;
@@ -51,9 +51,11 @@ public sealed class CurrentUserService : ICurrentUserService
     {
         get
         {
-            return _httpContextAccessor.HttpContext?
-                .User?.FindFirstValue(ClaimTypes.Role) == RoleConstants.SuperAdmin;
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user is null)
+                return false;
+
+            return user.IsInRole(nameof(RoleType.SuperAdmin));
         }
     }
-
 }

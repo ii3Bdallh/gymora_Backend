@@ -1,4 +1,3 @@
-using Domain.Model.Auth;
 using Infrastructure.DependencyInjection;
 using Microsoft.AspNetCore.Mvc.Authorization;
 
@@ -61,8 +60,6 @@ public static class ApiDependencyInjection
                     .AllowCredentials();
             });
         });
-
-        services.AddScoped<CurrentUser>();
 
         return services;
     }

@@ -41,7 +41,7 @@ namespace Infrastructure.Repo.Base
         {
             return CurrentUser.IsSuperAdmin
                 ? DbSet
-                : DbSet.Where(x => x.CreatedById == CurrentUser.UserId);
+                : DbSet.Where(x => x.CreatedById == CurrentUser.UserId.GetValueOrDefault());
         }
 
 
@@ -67,7 +67,7 @@ namespace Infrastructure.Repo.Base
         /// </summary>
         public override async Task<T> UpdateAsync(T item, bool trackChanges = false, CancellationToken cancellationToken = default)
         {
-            if (!CurrentUser.IsSuperAdmin && item.CreatedById != CurrentUser.UserId)
+            if (!CurrentUser.IsSuperAdmin && item.CreatedById != CurrentUser.UserId.GetValueOrDefault())
                 throw new ForbiddenException("item not found");
 
             return await base.UpdateAsync(item, trackChanges, cancellationToken);

@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Application.Common.Interfaces;
 using Application.DTO;
 using Application.DTO.Base.Auditable;
 using Application.DTO.Pagintion;
 using Application.Interface.Repo;
 using AutoMapper;
-using Domain.Model.Auth;
 using Domain.Model.Base;
 
 namespace Application.Service.Base
@@ -18,8 +18,8 @@ namespace Application.Service.Base
         where CDTO : BaseAuditableCDTO
         where UDTO : BaseAuditableUDTO
     {
-        protected readonly CurrentUser currentUser;
-        protected BaseAuditableService(IBaseRepo<T> repo, IMapper mapper, CurrentUser currentUser) : base(repo, mapper)
+        protected readonly ICurrentUserService currentUser;
+        protected BaseAuditableService(IBaseRepo<T> repo, IMapper mapper, ICurrentUserService currentUser) : base(repo, mapper)
         {
             this.currentUser = currentUser;
         }
@@ -39,7 +39,8 @@ namespace Application.Service.Base
 
         public override async Task<RDTO> AddAsync(CDTO dto, CancellationToken cancellationToken = default)
         {
-            dto.CreatedById = currentUser.UserId;
+            dto.CreatedById = currentUser.UserId
+                ?? throw new InvalidOperationException("User must be authenticated to create an entity.");
             return await base.AddAsync(dto, cancellationToken);
         }
 

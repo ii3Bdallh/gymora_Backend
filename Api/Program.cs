@@ -1,6 +1,5 @@
 using Api.Extensions;
 using Api.Middalewares;
-using Api.Middlewares;
 using Application.DependencyInjection;
 using Domain.Model.Json;
 using Hangfire;
@@ -11,6 +10,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddSerilogLogging();
 
 #region Services
 
@@ -78,7 +79,7 @@ app.UseRouting();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
-app.UseMiddleware<CurrentUserMiddleware>();
+// app.UseMiddleware<CurrentUserMiddleware>();
 app.UseAuthorization();
 app.UseRateLimiter();
 
