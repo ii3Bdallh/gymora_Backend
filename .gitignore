@@ -1,0 +1,88 @@
+# Visual Studio
+.vs/
+.vscode/
+*.sln.DotSettings.user
+*.userprefs
+
+# Build results
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.user
+*.vcxproj.user
+.vs/*
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+*.lock.json
+.packages/
+
+# Entity Framework
+*.db
+*.db-shm
+*.db-wal
+Migrations/
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Environment & Configuration
+appsettings.Local.json
+appsettings.local.json
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Test Results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Rider
+.idea/
+*.sln.iml
+.idea_modules/
+
+# Local development
+node_modules/
+dist/
+.next/
+out/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Build artifacts
+artifacts/
+publish/
+PublishProfiles/
+
+# Package manager
+.paket/
+paket-files/
