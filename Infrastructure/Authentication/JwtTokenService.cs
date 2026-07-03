@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using Application.Common.Interfaces;
+using Domain.Interface;
 using Infrastructure.Identity;
 using Infrastructure.Options;
 using Microsoft.Extensions.Options;
@@ -17,13 +19,15 @@ public sealed class JwtTokenService : IJwtTokenService
         _options = options.Value;
     }
 
-    public string GenerateAccessToken(ApplicationUser user, IList<string> roles)
+    public string GenerateAccessToken(IUser user, IList<string> roles)
     {
+        var appUser = (ApplicationUser)user;
+
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Email, user.Email ?? string.Empty),
-            new(ClaimTypes.Name, user.PersonName)
+            new(ClaimTypes.NameIdentifier, appUser.Id.ToString()),
+            new(ClaimTypes.Email, appUser.Email ?? string.Empty),
+            new(ClaimTypes.Name, appUser.PersonName)
         };
 
         foreach (var role in roles)

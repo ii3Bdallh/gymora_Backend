@@ -1,9 +1,11 @@
+using Application.Common.Interfaces;
 using Application.DTO;
 using Application.Interface.Service;
 using Application.Interface.Service.Shared;
 using Application.Service.Shared;
 using Domain.Model.Json;
 using Infrastructure.Cache;
+using Infrastructure.CurrentUser;
 using Infrastructure.Hangfire;
 using Infrastructure.Identity;
 using Infrastructure.Persistence;
@@ -124,6 +126,13 @@ public static class InfrastructureDependencyInjection
             .AddDefaultTokenProviders();
 
         services.AddScoped<IdentitySeeder>();
+
+        services.AddHttpContextAccessor();
+
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        services.AddScoped<ICurrentGymService, CurrentGymService>();
+
 
         return services;
     }

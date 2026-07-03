@@ -13,6 +13,7 @@ using Infrastructure.Persistence;
 using Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Application.Common.Interfaces;
 
 namespace Infrastructure.Repo.Base
 {
@@ -21,26 +22,26 @@ namespace Infrastructure.Repo.Base
     IOwnershipRepo<T>
       where T : AuditableEntity
     {
-        protected readonly CurrentUser currentUser;
-
+        protected readonly ICurrentUserService CurrentUser;
         protected BaseOwnershipRepo(
             ApplicationDbContext context,
             ILogger logger,
-            CurrentUser currentUser,
+            ICurrentUserService CurrentUser,
             QueryCache queryCache)
             : base(context, logger, queryCache)
         {
-            this.currentUser = currentUser;
+            this.CurrentUser = CurrentUser;
         }
+
 
         /// <summary>
         /// Query مخصص للـ WRITE فقط (Update / Delete)
         /// </summary>
         protected virtual IQueryable<T> OwnedBaseQuery()
         {
-            return currentUser.IsAdmin
+            return CurrentUser.IsSuperAdmin
                 ? DbSet
-                : DbSet.Where(x => x.CreatedById == currentUser.UserId);
+                : DbSet.Where(x => x.CreatedById == CurrentUser.UserId);
         }
 
 
@@ -66,7 +67,7 @@ namespace Infrastructure.Repo.Base
         /// </summary>
         public override async Task<T> UpdateAsync(T item, bool trackChanges = false, CancellationToken cancellationToken = default)
         {
-            if (!currentUser.IsAdmin && item.CreatedById != currentUser.UserId)
+            if (!CurrentUser.IsSuperAdmin && item.CreatedById != CurrentUser.UserId)
                 throw new ForbiddenException("item not found");
 
             return await base.UpdateAsync(item, trackChanges, cancellationToken);
@@ -115,7 +116,7 @@ namespace Infrastructure.Repo.Base
             if (!string.IsNullOrEmpty(searchReq.SearchTerm))
                 query = query.Search(searchReq.SearchTerm, queryCache);
 
-     
+
 
             if (searchReq.Filters is not null)
                 query = query.ApplyFilters(searchReq.Filters, queryCache);
@@ -163,7 +164,7 @@ namespace Infrastructure.Repo.Base
             return item;
         }
 
-       
+
     }
 
 }
