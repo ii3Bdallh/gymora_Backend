@@ -4,8 +4,8 @@ using Application.Interface.Service.Shared;
 using Application.Service.Shared;
 using Domain.Model.Json;
 using Infrastructure.Cache;
-using Infrastructure.Data;
 using Infrastructure.Hangfire;
+using Infrastructure.Persistence;
 using Infrastructure.Options;
 using Infrastructure.Service;
 using Infrastructure.Utils;
@@ -83,9 +83,20 @@ public static class InfrastructureDependencyInjection
 
         services.AddAutoMapper(fg => { }, Assembly.GetAssembly(typeof(MapperConfig)));
 
-        services.AddDbContext<AppDbContext>(options =>
+        services.AddDbContext<ApplicationDbContext>(options =>
         {
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+            options.UseSqlServer(
+                configuration.GetConnectionString("SqlServer"),
+                sql =>
+                {
+                    sql.MigrationsAssembly(
+                        typeof(ApplicationDbContext).Assembly.FullName);
+
+                    sql.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorNumbersToAdd: null);
+                });
         });
 
         services.AddInfrastructureRepositories();

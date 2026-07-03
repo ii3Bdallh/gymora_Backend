@@ -3,7 +3,7 @@ using Application.Interface.Repo;
 using Domain.Enum;
 using Domain.Model;
 using Infrastructure.Cache;
-using Infrastructure.Data;
+using Infrastructure.Persistence;
 using Infrastructure.Repo.Base;
 using Microsoft.Extensions.Logging;
 
@@ -14,7 +14,7 @@ namespace Infrastructure.Repo
     /// </summary>
     public class TopicRepo : BaseRepo<Topic> , ITopicRepo
     {
-        public TopicRepo(AppDbContext context, ILogger logger, QueryCache queryCache)
+        public TopicRepo(ApplicationDbContext context, ILogger logger, QueryCache queryCache)
                   : base(context, logger, queryCache)
         {
         }

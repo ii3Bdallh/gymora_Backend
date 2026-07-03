@@ -2,7 +2,7 @@ using Application.DTO;
 using Application.DTO.Pagintion;
 using Application.Interface.Repo.Entity;
 using Domain.Model;
-using Infrastructure.Data;
+using Infrastructure.Persistence;
 using Infrastructure.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,9 +20,9 @@ namespace Infrastructure.Repo.Entity
     /// User repository implementation for managing AppUser entities and role assignments.
     /// Provides user management capabilities including role assignment and role-based queries.
     /// </summary>
-    public class UserRepo(AppDbContext context, ILogger logger, UserManager<AppUser> userManager, QueryCache queryCache) : IUserRepo
+    public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<AppUser> userManager, QueryCache queryCache) : IUserRepo
     {
-        protected readonly AppDbContext Context = context;
+        protected readonly ApplicationDbContext Context = context;
         protected readonly ILogger Logger = logger;
         protected readonly UserManager<AppUser> UserManager = userManager;
         protected readonly QueryCache QueryCache = queryCache;

@@ -1,6 +1,6 @@
 using Application.Interface;
 using Application.Interface.Repo.Shared;
-using Infrastructure.Data;
+using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 
@@ -8,10 +8,10 @@ namespace Infrastructure.Service;
 
 public class TransactionManager : ITransactionManager
 {
-    private readonly AppDbContext _context;
+    private readonly ApplicationDbContext _context;
     private Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? _transaction;
 
-    public TransactionManager(AppDbContext context)
+    public TransactionManager(ApplicationDbContext context)
     {
         _context = context;
     }

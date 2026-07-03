@@ -6,7 +6,7 @@ using Application.Interface.Repo;
 using Application.Interface.Service.Shared;
 using Domain.Enum;
 using Domain.Model;
-using Infrastructure.Data;
+using Infrastructure.Persistence;
 using Infrastructure.Utils;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +20,7 @@ namespace Infrastructure.Repo
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly JwtProvider _jwtProvider;
-        private readonly AppDbContext _context;
+        private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailSender;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthRepo> _logger;
@@ -29,7 +29,7 @@ namespace Infrastructure.Repo
         public AuthRepo(
             UserManager<AppUser> userManager,
             JwtProvider jwtProvider,
-            AppDbContext context,
+            ApplicationDbContext context,
             IEmailService emailSender,
             IConfiguration configuration,
             ILogger<AuthRepo> logger)

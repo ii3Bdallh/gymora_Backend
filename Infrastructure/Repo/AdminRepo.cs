@@ -2,7 +2,7 @@ using Application.Interface.Repo;
 using Application.Interface.Service;
 using Domain.Model;
 using Domain.Enum;
-using Infrastructure.Data;
+using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -12,13 +12,13 @@ namespace Infrastructure.Repo.Entity
 {
     public class AdminRepo : IAdminRepo
     {
-        private readonly AppDbContext _context;
+        private readonly ApplicationDbContext _context;
         private readonly UserManager<AppUser> _userManager;
         private readonly INotificationService _notificationService;
         private readonly ILogger<AdminRepo> _logger;
 
         public AdminRepo(
-            AppDbContext appDbContext,
+            ApplicationDbContext appDbContext,
             UserManager<AppUser> userManager,
             INotificationService notificationService,
             ILogger<AdminRepo> logger)

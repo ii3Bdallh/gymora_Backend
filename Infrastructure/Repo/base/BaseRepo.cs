@@ -5,7 +5,7 @@ using Application.Interface.Repo;
 using Domain.Model.Base;
 using Infrastructure.Cache;
 using Infrastructure.Extensions;
-using Infrastructure.Data;
+using Infrastructure.Persistence;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -15,11 +15,11 @@ namespace Infrastructure.Repo.Base
 {
     public abstract class BaseRepo<T> : IBaseRepo<T> where T : BaseEntity
     {
-        protected readonly AppDbContext context;
+        protected readonly ApplicationDbContext context;
         protected readonly ILogger logger;
         protected readonly QueryCache queryCache;
 
-        public BaseRepo(AppDbContext context, ILogger logger, QueryCache queryCache)
+        public BaseRepo(ApplicationDbContext context, ILogger logger, QueryCache queryCache)
         {
             this.context = context;
             this.logger = logger;

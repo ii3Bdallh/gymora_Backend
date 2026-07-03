@@ -9,7 +9,7 @@ using Application.Interface.Repo.Base;
 using Domain.Model.Auth;
 using Domain.Model.Base;
 using Infrastructure.Cache;
-using Infrastructure.Data;
+using Infrastructure.Persistence;
 using Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -24,7 +24,7 @@ namespace Infrastructure.Repo.Base
         protected readonly CurrentUser currentUser;
 
         protected BaseOwnershipRepo(
-            AppDbContext context,
+            ApplicationDbContext context,
             ILogger logger,
             CurrentUser currentUser,
             QueryCache queryCache)

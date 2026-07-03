@@ -1,10 +1,10 @@
-using Infrastructure.Data;
+using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Hangfire
 {
-    public class TokenCleanupJob(AppDbContext context, ILogger<TokenCleanupJob> logger)
+    public class TokenCleanupJob(ApplicationDbContext context, ILogger<TokenCleanupJob> logger)
     {
         public async Task CleanupExpiredTokensAsync()
         {

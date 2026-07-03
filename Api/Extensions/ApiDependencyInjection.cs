@@ -88,7 +88,7 @@ public static class ApiDependencyInjection
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
             options.Lockout.AllowedForNewUsers = true;
         })
-            .AddEntityFrameworkStores<Infrastructure.Data.AppDbContext>()
+            .AddEntityFrameworkStores<Infrastructure.Persistence.ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
         services.AddAuthentication(options =>
