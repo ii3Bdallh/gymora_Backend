@@ -1,7 +1,8 @@
 using Application.Interface.Repo;
 using Application.Interface.Service;
-using Domain.Model;
 using Domain.Enum;
+using Domain.Interface;
+using Infrastructure.Identity;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,13 +14,13 @@ namespace Infrastructure.Repo.Entity
     public class AdminRepo : IAdminRepo
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<AppUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly INotificationService _notificationService;
         private readonly ILogger<AdminRepo> _logger;
 
         public AdminRepo(
             ApplicationDbContext appDbContext,
-            UserManager<AppUser> userManager,
+            UserManager<ApplicationUser> userManager,
             INotificationService notificationService,
             ILogger<AdminRepo> logger)
         {
@@ -29,7 +30,7 @@ namespace Infrastructure.Repo.Entity
             _logger = logger;
         }
 
-        public async Task<List<AppUser>> GetAllAdminsWithDeviceTokensAsync(CancellationToken cancellationToken = default)
+        public async Task<List<IUser>> GetAllAdminsWithDeviceTokensAsync(CancellationToken cancellationToken = default)
         {
             var adminRoleIds = await _context.Roles
                 .Where(r => r.Name == nameof(RoleType.Owner) || r.Name == nameof(RoleType.Admin))
@@ -46,10 +47,10 @@ namespace Infrastructure.Repo.Entity
                 .Where(u => adminUserIds.Contains(u.Id))
                 .ToListAsync(cancellationToken);
 
-            return admins;
+            return admins.Cast<IUser>().ToList();
         }
 
-        public async Task<AppUser?> GetAdminByIdWithDeviceTokenAsync(int adminId, CancellationToken cancellationToken = default)
+        public async Task<IUser?> GetAdminByIdWithDeviceTokenAsync(int adminId, CancellationToken cancellationToken = default)
         {
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == adminId, cancellationToken);

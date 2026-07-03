@@ -5,7 +5,9 @@ using Application.DTO.Request;
 using Application.Interface.Repo;
 using Application.Interface.Service.Shared;
 using Domain.Enum;
+using Domain.Interface;
 using Domain.Model;
+using Infrastructure.Identity;
 using Infrastructure.Persistence;
 using Infrastructure.Utils;
 using Microsoft.AspNetCore.Identity;
@@ -18,7 +20,7 @@ namespace Infrastructure.Repo
 {
     public class AuthRepo : IAuthRepo
     {
-        private readonly UserManager<AppUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly JwtProvider _jwtProvider;
         private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailSender;
@@ -27,7 +29,7 @@ namespace Infrastructure.Repo
         private readonly int _refreshTokenDays;
 
         public AuthRepo(
-            UserManager<AppUser> userManager,
+            UserManager<ApplicationUser> userManager,
             JwtProvider jwtProvider,
             ApplicationDbContext context,
             IEmailService emailSender,
@@ -60,7 +62,7 @@ namespace Infrastructure.Repo
 
         public async Task RegisterAsync(RegisterReqDto registerReqDto, CancellationToken cancellationToken)
         {
-            AppUser user = new AppUser
+            ApplicationUser user = new ApplicationUser
             {
                 UserName = registerReqDto.Email,
                 PersonName = registerReqDto.UserName,
@@ -151,7 +153,7 @@ namespace Infrastructure.Repo
             if (userId is null)
                 throw new UnauthorizedException("Invalid access token");
 
-            AppUser? user = await _userManager.Users
+            ApplicationUser? user = await _userManager.Users
                 .Include(u => u.RefreshTokens)
                 .FirstOrDefaultAsync(u => u.Id == int.Parse(userId), cancellationToken);
 
@@ -393,15 +395,15 @@ namespace Infrastructure.Repo
             }
         }
 
-        public async Task<AppUser?> GetUserByEmailAsync(string email, CancellationToken cancellationToken)
+        public async Task<IUser?> GetUserByEmailAsync(string email, CancellationToken cancellationToken)
         {
             return await _userManager.FindByEmailAsync(email);
         }
 
-        public async Task<string> GenerateEmailConfirmationTokenAsync(AppUser user, CancellationToken cancellationToken = default)
+        public async Task<string> GenerateEmailConfirmationTokenAsync(IUser user, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            return await _userManager.GenerateEmailConfirmationTokenAsync((ApplicationUser)user);
         }
 
         public async Task<LoginResDto> LoginWithGoogle(GoogleLoginRequest googleLoginRequest, CancellationToken cancellationToken)
@@ -413,7 +415,7 @@ namespace Infrastructure.Repo
             var user = await _userManager.FindByEmailAsync(payload.Email);
             if (user is null)
             {
-                user = new AppUser
+                user = new ApplicationUser
                 {
                     UserName = payload.Email,
                     Email = payload.Email,
@@ -465,14 +467,15 @@ namespace Infrastructure.Repo
         }
 
         // ============ EMAIL CONFIRMATION OTP (جديد بالكامل) ============
-        public async Task<string> GenerateEmailConfirmationOtpAsync(AppUser user, CancellationToken cancellationToken = default)
+        public async Task<string> GenerateEmailConfirmationOtpAsync(IUser user, CancellationToken cancellationToken = default)
         {
-            string otp = RandomNumberGenerator.GetInt32(10000, 99999).ToString(); // 5 digits
+            var appUser = (ApplicationUser)user;
+            string otp = RandomNumberGenerator.GetInt32(10000, 99999).ToString();
 
-            user.EmailConfirmationOtp = HashOtp(otp);
-            user.EmailConfirmationOtpExpiry = DateTime.UtcNow.AddMinutes(10);
-            user.EmailConfirmationOtpAttempts = 0;
-            await _userManager.UpdateAsync(user);
+            appUser.EmailConfirmationOtp = HashOtp(otp);
+            appUser.EmailConfirmationOtpExpiry = DateTime.UtcNow.AddMinutes(10);
+            appUser.EmailConfirmationOtpAttempts = 0;
+            await _userManager.UpdateAsync(appUser);
 
             return otp;
         }

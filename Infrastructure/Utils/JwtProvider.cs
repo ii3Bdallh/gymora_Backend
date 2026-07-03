@@ -1,5 +1,5 @@
-using Domain.Model;
 using Domain.Model.Json;
+using Infrastructure.Identity;
 using Google.Apis.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -61,7 +61,7 @@ namespace Infrastructure.Utils
             }
         }
 
-        public (string token, int expireInMinutes) GenerateToken(AppUser appUser, IList<string> roles, int teacherId = 0)
+        public (string token, int expireInMinutes) GenerateToken(ApplicationUser appUser, IList<string> roles)
         {
             List<Claim> claims = [
                 new(JwtRegisteredClaimNames.Sub, appUser.Id.ToString()),

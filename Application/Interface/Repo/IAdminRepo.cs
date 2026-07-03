@@ -1,25 +1,10 @@
-using Application.DTO;
-using Domain.Model;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+using Domain.Interface;
 
-namespace Application.Interface.Repo
+namespace Application.Interface.Repo;
+
+public interface IAdminRepo
 {
-    public interface IAdminRepo
-    {
-        /// <summary>
-        /// Get all admins with device tokens
-        /// </summary>
-        Task<List<AppUser>> GetAllAdminsWithDeviceTokensAsync(CancellationToken cancellationToken = default);
+    Task<List<IUser>> GetAllAdminsWithDeviceTokensAsync(CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// Get admin by ID with device tokens
-        /// </summary>
-        Task<AppUser?> GetAdminByIdWithDeviceTokenAsync(int adminId, CancellationToken cancellationToken = default);
-
-
-
-
-    }
+    Task<IUser?> GetAdminByIdWithDeviceTokenAsync(int adminId, CancellationToken cancellationToken = default);
 }

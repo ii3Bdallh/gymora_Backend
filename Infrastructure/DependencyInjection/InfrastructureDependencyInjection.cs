@@ -5,10 +5,13 @@ using Application.Service.Shared;
 using Domain.Model.Json;
 using Infrastructure.Cache;
 using Infrastructure.Hangfire;
+using Infrastructure.Identity;
 using Infrastructure.Persistence;
 using Infrastructure.Options;
+using Infrastructure.Seed;
 using Infrastructure.Service;
 using Infrastructure.Utils;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -100,6 +103,27 @@ public static class InfrastructureDependencyInjection
         });
 
         services.AddInfrastructureRepositories();
+
+        services
+            .AddIdentity<ApplicationUser, ApplicationRole>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+
+                options.Password.RequiredLength = 8;
+                options.Password.RequireDigit = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireNonAlphanumeric = false;
+
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+
+                options.SignIn.RequireConfirmedEmail = false;
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
+
+        services.AddScoped<IdentitySeeder>();
 
         return services;
     }

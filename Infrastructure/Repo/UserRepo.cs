@@ -1,328 +1,310 @@
 using Application.DTO;
 using Application.DTO.Pagintion;
 using Application.Interface.Repo.Entity;
-using Domain.Model;
-using Infrastructure.Persistence;
+using Domain.Interface;
+using Infrastructure.Cache;
+using Infrastructure.Identity;
 using Infrastructure.Extensions;
+using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Infrastructure.Cache;
 
-namespace Infrastructure.Repo.Entity
+namespace Infrastructure.Repo.Entity;
+
+public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<ApplicationUser> userManager, QueryCache queryCache) : IUserRepo
 {
-    /// <summary>
-    /// User repository implementation for managing AppUser entities and role assignments.
-    /// Provides user management capabilities including role assignment and role-based queries.
-    /// </summary>
-    public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<AppUser> userManager, QueryCache queryCache) : IUserRepo
+    protected readonly ApplicationDbContext Context = context;
+    protected readonly ILogger Logger = logger;
+    protected readonly UserManager<ApplicationUser> UserManager = userManager;
+    protected readonly QueryCache QueryCache = queryCache;
+
+    public DbSet<ApplicationUser> DbSet => Context.Set<ApplicationUser>();
+
+    #region Read Methods
+    public async Task<IEnumerable<IUser>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        protected readonly ApplicationDbContext Context = context;
-        protected readonly ILogger Logger = logger;
-        protected readonly UserManager<AppUser> UserManager = userManager;
-        protected readonly QueryCache QueryCache = queryCache;
-
-        public DbSet<AppUser> DbSet => Context.Set<AppUser>();
-
-        #region Read Methods
-        public async Task<IEnumerable<AppUser>> GetAllAsync(CancellationToken cancellationToken = default)
+        try
         {
-            try
-            {
-                return await DbSet.AsNoTracking().ToListAsync(cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error getting all users");
-                throw;
-            }
+            return await DbSet.AsNoTracking().ToListAsync(cancellationToken);
         }
-
-        public virtual IQueryable<AppUser> GetAllQuery(
-            PaginatedSearchReq searchReq,
-            bool trackChanges = false)
+        catch (Exception ex)
         {
-            IQueryable<AppUser> query = DbSet;
+            Logger.LogError(ex, "Error getting all users");
+            throw;
+        }
+    }
+
+    public IQueryable<IUser> GetAllQuery(
+        PaginatedSearchReq searchReq,
+        bool trackChanges = false)
+    {
+        IQueryable<ApplicationUser> query = DbSet;
+
+        if (!string.IsNullOrEmpty(searchReq.SearchTerm))
+            query = query.Where(x =>
+                (x.PersonName != null && x.PersonName.Contains(searchReq.SearchTerm)) ||
+                (x.Email != null && x.Email.Contains(searchReq.SearchTerm)) ||
+                (x.UserName != null && x.UserName.Contains(searchReq.SearchTerm)));
+
+        else
+            query = query.OrderByDescending(x => x.Id);
+
+        var result = trackChanges ? query : query.AsNoTracking();
+        return result;
+    }
+
+    public virtual async Task<PaginatedRes<IUser>> GetPageAsync(
+        PaginatedSearchReq searchReq,
+        bool trackChanges = false,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var query = DbSet.AsQueryable();
 
             if (!string.IsNullOrEmpty(searchReq.SearchTerm))
                 query = query.Where(x =>
                     (x.PersonName != null && x.PersonName.Contains(searchReq.SearchTerm)) ||
                     (x.Email != null && x.Email.Contains(searchReq.SearchTerm)) ||
                     (x.UserName != null && x.UserName.Contains(searchReq.SearchTerm)));
-
             else
                 query = query.OrderByDescending(x => x.Id);
 
-            return trackChanges ? query : query.AsNoTracking();
-        }
+            if (!trackChanges)
+                query = query.AsNoTracking();
 
-        public virtual async Task<PaginatedRes<AppUser>> GetPageAsync(
-            PaginatedSearchReq searchReq,
-            bool trackChanges = false,
-            CancellationToken cancellationToken = default)
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            var items = await query
+                .Skip((searchReq.PageNumber - 1) * searchReq.PageSize)
+                .Take(searchReq.PageSize)
+                .ToListAsync(cancellationToken);
+
+            return new PaginatedRes<IUser>
+            {
+                PageNumber = searchReq.PageNumber,
+                PageSize = searchReq.PageSize,
+                TotalCount = totalCount,
+                Items = items
+            };
+        }
+        catch (Exception ex)
         {
-            try
-            {
-                var query = GetAllQuery(searchReq, trackChanges);
-                var totalCount = await query.CountAsync(cancellationToken);
-
-                var items = await query
-                    .Skip((searchReq.PageNumber - 1) * searchReq.PageSize)
-                    .Take(searchReq.PageSize)
-                    .ToListAsync(cancellationToken);
-
-                return new PaginatedRes<AppUser>
-                {
-                    PageNumber = searchReq.PageNumber,
-                    PageSize = searchReq.PageSize,
-                    TotalCount = totalCount,
-                    Items = items
-                };
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error getting paginated users");
-                throw;
-            }
+            Logger.LogError(ex, "Error getting paginated users");
+            throw;
         }
-
-        public async Task<AppUser?> GetByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var query = DbSet.Where(x => x.Id == id);
-                return trackChanges ?
-                    await query.FirstOrDefaultAsync(cancellationToken) :
-                    await query.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error getting user by ID {Id}", id);
-                throw;
-            }
-        }
-
-        public async Task<AppUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                return await DbSet
-                    .Where(x => x.Email == email)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error getting user by email");
-                throw;
-            }
-        }
-
-        public async Task<IEnumerable<AppUser>> GetByRoleAsync(string roleName, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var usersInRole = await UserManager.GetUsersInRoleAsync(roleName);
-                return usersInRole;
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error getting users by role {RoleName}", roleName);
-                throw;
-            }
-        }
-
-        public async Task<PaginatedRes<AppUser>> GetByRolePagedAsync(
-            string roleName,
-            PaginatedSearchReq searchReq,
-            CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var allUsersInRole = await UserManager.GetUsersInRoleAsync(roleName);
-                var query = allUsersInRole.AsQueryable();
-
-                if (!string.IsNullOrEmpty(searchReq.SearchTerm))
-                    query = query.Where(x =>
-                        x.PersonName.Contains(searchReq.SearchTerm) ||
-                        (x.Email != null && x.Email.Contains(searchReq.SearchTerm)));
-
-                var totalCount = query.Count();
-                var items = query
-                    .Skip((searchReq.PageNumber - 1) * searchReq.PageSize)
-                    .Take(searchReq.PageSize)
-                    .ToList();
-
-                return new PaginatedRes<AppUser>
-                {
-                    PageNumber = searchReq.PageNumber,
-                    PageSize = searchReq.PageSize,
-                    TotalCount = totalCount,
-                    Items = items
-                };
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error getting paginated users by role {RoleName}", roleName);
-                throw;
-            }
-        }
-
-        public async Task<bool> UserHasRoleAsync(int userId, string roleName, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var user = await UserManager.FindByIdAsync(userId.ToString());
-                if (user == null)
-                    return false;
-
-                return await UserManager.IsInRoleAsync(user, roleName);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error checking user role for user {UserId} and role {RoleName}", userId, roleName);
-                throw;
-            }
-        }
-
-        public async Task<IEnumerable<string>> GetUserRolesAsync(int userId, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var user = await UserManager.FindByIdAsync(userId.ToString());
-                if (user == null)
-                    return Enumerable.Empty<string>();
-
-                return await UserManager.GetRolesAsync(user);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error getting user roles for user {UserId}", userId);
-                throw;
-            }
-        }
-        #endregion
-
-        #region Write Methods
-        public async Task AssignRoleAsync(int userId, string roleName, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var user = await UserManager.FindByIdAsync(userId.ToString());
-                if (user == null)
-                    throw new InvalidOperationException($"User with ID {userId} not found");
-
-                var hasRole = await UserManager.IsInRoleAsync(user, roleName);
-                if (!hasRole)
-                {
-                    var result = await UserManager.AddToRoleAsync(user, roleName);
-                    if (!result.Succeeded)
-                        throw new InvalidOperationException($"Failed to assign role {roleName} to user {userId}");
-                }
-
-                Logger.LogInformation("Role {RoleName} assigned to user {UserId}", roleName, userId);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error assigning role {RoleName} to user {UserId}", roleName, userId);
-                throw;
-            }
-        }
-
-        public async Task AssignRolesAsync(int userId, IEnumerable<string> roleNames, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var user = await UserManager.FindByIdAsync(userId.ToString());
-                if (user == null)
-                    throw new InvalidOperationException($"User with ID {userId} not found");
-
-                var userRoles = await UserManager.GetRolesAsync(user);
-                var rolesToAdd = roleNames.Except(userRoles).ToList();
-
-                if (rolesToAdd.Any())
-                {
-                    var result = await UserManager.AddToRolesAsync(user, rolesToAdd);
-                    if (!result.Succeeded)
-                        throw new InvalidOperationException($"Failed to assign roles to user {userId}");
-                }
-
-                Logger.LogInformation("Roles assigned to user {UserId}", userId);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error assigning roles to user {UserId}", userId);
-                throw;
-            }
-        }
-
-        public async Task RemoveRoleAsync(int userId, string roleName, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var user = await UserManager.FindByIdAsync(userId.ToString());
-                if (user == null)
-                    throw new InvalidOperationException($"User with ID {userId} not found");
-
-                var hasRole = await UserManager.IsInRoleAsync(user, roleName);
-                if (hasRole)
-                {
-                    var result = await UserManager.RemoveFromRoleAsync(user, roleName);
-                    if (!result.Succeeded)
-                        throw new InvalidOperationException($"Failed to remove role {roleName} from user {userId}");
-                }
-
-                Logger.LogInformation("Role {RoleName} removed from user {UserId}", roleName, userId);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error removing role {RoleName} from user {UserId}", roleName, userId);
-                throw;
-            }
-        }
-
-        public async Task<AppUser> UpdateAsync(AppUser entity, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var result = await UserManager.UpdateAsync(entity);
-                if (!result.Succeeded)
-                    throw new InvalidOperationException($"Failed to update user {entity.Id}");
-
-                await Context.SaveChangesAsync(cancellationToken);
-                return entity;
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error updating user {UserId}", entity.Id);
-                throw;
-            }
-        }
-
-        public async Task<AppUser> DeleteAsync(AppUser entity, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var result = await UserManager.DeleteAsync(entity);
-                if (!result.Succeeded)
-                    throw new InvalidOperationException($"Failed to delete user {entity.Id}");
-
-                await Context.SaveChangesAsync(cancellationToken);
-                return entity;
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Error deleting user {UserId}", entity.Id);
-                throw;
-            }
-        }
-
-
-        #endregion
     }
+
+    public async Task<IUser?> GetByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var query = DbSet.Where(x => x.Id == id);
+            return trackChanges
+                ? await query.FirstOrDefaultAsync(cancellationToken)
+                : await query.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error getting user by id");
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<IUser>> GetByRoleAsync(string roleName, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var usersInRole = await UserManager.GetUsersInRoleAsync(roleName);
+            return usersInRole;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error getting users by role");
+            throw;
+        }
+    }
+
+    public async Task<PaginatedRes<IUser>> GetByRolePagedAsync(
+        string roleName,
+        PaginatedSearchReq searchReq,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var usersInRole = await UserManager.GetUsersInRoleAsync(roleName);
+            var query = usersInRole.AsQueryable();
+
+            var totalCount = query.Count();
+
+            var items = query
+                .Skip((searchReq.PageNumber - 1) * searchReq.PageSize)
+                .Take(searchReq.PageSize)
+                .ToList();
+
+            return new PaginatedRes<IUser>
+            {
+                PageNumber = searchReq.PageNumber,
+                PageSize = searchReq.PageSize,
+                TotalCount = totalCount,
+                Items = items
+            };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error getting users by role paged");
+            throw;
+        }
+    }
+
+    public async Task<bool> UserHasRoleAsync(int userId, string roleName, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = await DbSet.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+            if (user is null) return false;
+            return await UserManager.IsInRoleAsync(user, roleName);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error checking user role");
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<string>> GetUserRolesAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = await DbSet.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+            if (user is null) return Enumerable.Empty<string>();
+            return await UserManager.GetRolesAsync(user);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error getting user roles");
+            throw;
+        }
+    }
+
+    public async Task<IUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await DbSet.FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error getting user by email");
+            throw;
+        }
+    }
+    #endregion
+
+    #region Write Methods
+
+    public async Task AssignRoleAsync(int userId, string roleName, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = await DbSet.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+            if (user is null) throw new Exception("User not found");
+
+            var result = await UserManager.AddToRoleAsync(user, roleName);
+            if (!result.Succeeded)
+            {
+                string errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new Exception(errors);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error assigning role to user");
+            throw;
+        }
+    }
+
+    public async Task RemoveRoleAsync(int userId, string roleName, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = await DbSet.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+            if (user is null) throw new Exception("User not found");
+
+            var result = await UserManager.RemoveFromRoleAsync(user, roleName);
+            if (!result.Succeeded)
+            {
+                string errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new Exception(errors);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error removing role from user");
+            throw;
+        }
+    }
+
+    public async Task AssignRolesAsync(int userId, IEnumerable<string> roleNames, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = await DbSet.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+            if (user is null) throw new Exception("User not found");
+
+            var result = await UserManager.AddToRolesAsync(user, roleNames);
+            if (!result.Succeeded)
+            {
+                string errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new Exception(errors);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error assigning roles to user");
+            throw;
+        }
+    }
+
+    public async Task<IUser> UpdateAsync(IUser entity, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = (ApplicationUser)entity;
+            var result = await UserManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                string errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new Exception(errors);
+            }
+            return user;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating user");
+            throw;
+        }
+    }
+
+    public async Task<IUser> DeleteAsync(IUser entity, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = (ApplicationUser)entity;
+            var result = await UserManager.DeleteAsync(user);
+            if (!result.Succeeded)
+            {
+                string errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new Exception(errors);
+            }
+            return user;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error deleting user");
+            throw;
+        }
+    }
+    #endregion
 }
