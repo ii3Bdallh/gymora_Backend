@@ -1,6 +1,5 @@
 using Application.DTO;
 using Application.Interface.Service;
-using Domain.Model;
 using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
@@ -10,8 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace Application.Service
 {
     public class NotificationService : INotificationService
-    {
-        private readonly FirebaseApp _app;
+    {        private readonly FirebaseApp _app;
         private readonly ILogger<NotificationService> _logger;
 
         public NotificationService(IConfiguration configuration, ILogger<NotificationService> logger)
@@ -19,26 +17,17 @@ namespace Application.Service
             _logger = logger;
             var path = configuration["FirebaseConfig:CredentialFilePath"];
 
-
-
-
-
-
             if (string.IsNullOrWhiteSpace(path))
                 throw new InvalidOperationException("Firebase credential file path is not configured.");
 
             if (!File.Exists(path))
                 throw new InvalidOperationException($"Firebase credential file not found at: {path}");
 
-            var credential = CredentialFactory.FromFile(
-                path,
-                JsonCredentialParameters.ServiceAccountCredentialType);
-
             if (FirebaseApp.DefaultInstance == null)
             {
                 _app = FirebaseApp.Create(new AppOptions()
                 {
-                    Credential = credential
+                    Credential = GoogleCredential.FromFile(path)
                 });
             }
             else
@@ -55,13 +44,14 @@ namespace Application.Service
             {
                 var message = new Message()
                 {
-                    Token = $"token_for_user_{userId}", // Replace with actual token retrieval logic
+                    Token = $"token_for_user_{userId}",
                     Notification = new Notification()
                     {
                         Title = notification.Title,
                         Body = notification.Body
                     },
-                    Data = notification.ConvertDataToDictionary()
+                    Data = notification.ConvertDataToDictionary(),
+                    Topic = "test_topic"
                 };
                 return await FirebaseMessaging.DefaultInstance.SendAsync(message);
             }
@@ -80,7 +70,7 @@ namespace Application.Service
             {
                 var message = new MulticastMessage()
                 {
-                    Tokens = userIds.Select(id => $"token_for_user_{id}").ToList(), // Replace with actual token retrieval logic
+                    Tokens = userIds.Select(id => $"token_for_user_{id}").ToList(),
                     Notification = new Notification()
                     {
                         Title = notification.Title,
@@ -120,5 +110,36 @@ namespace Application.Service
                 throw new InvalidOperationException("Firebase topic notification failed.", ex);
             }
         }
+
+        public async Task SendAsync(int userId, string title, string body)
+        {
+            await SendNotificationAsync(
+                userId,
+                new NotificationDTO { Title = title, Body = body });
+        }
+
+        public async Task<string> SendNotificationTestAsync(NotificationDTO notification)
+        {
+            try
+            {
+                var message = new Message()
+                {
+                    Notification = new Notification()
+                    {
+                        Title = notification.Title,
+                        Body = notification.Body
+                    },
+                    Data = notification.ConvertDataToDictionary(),
+                    Topic = "test_topic"
+                };
+                return await FirebaseMessaging.DefaultInstance.SendAsync(message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Firebase notification failed for user ");
+                throw new InvalidOperationException("Firebase notification failed.", ex);
+            }
+        }
+
     }
 }

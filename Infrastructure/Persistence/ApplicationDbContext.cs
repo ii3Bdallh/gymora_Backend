@@ -13,7 +13,17 @@ public sealed class ApplicationDbContext
 {
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
+    public DbSet<OutboxMessage> OutboxMessages
+        => Set<OutboxMessage>();
 
+    public DbSet<Domain.Model.Notification> Notifications
+        => Set<Domain.Model.Notification>();
+
+    public DbSet<UserDevice> UserDevices
+        => Set<UserDevice>();
+
+    public DbSet<TestEntity> Tests
+        => Set<TestEntity>();
 
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options)

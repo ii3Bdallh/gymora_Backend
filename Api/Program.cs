@@ -1,11 +1,14 @@
 using Api.Extensions;
 using Api.Middalewares;
 using Application.DependencyInjection;
+using Application.EventHandlers;
+using Domain.Events;
 using Domain.Options;
 using Hangfire;
 using Infrastructure.DependencyInjection;
 using Infrastructure.Hangfire;
 using Infrastructure.Seed;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -20,6 +23,12 @@ builder.Services
     .AddApplication()
     .AddInfrastructure(builder.Configuration)
     .AddApi();
+
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(
+        typeof(NotificationHandler).Assembly);
+});
 
 
 #endregion

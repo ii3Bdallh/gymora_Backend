@@ -7,6 +7,7 @@ using Domain.Options;
 using Infrastructure.Cache;
 using Infrastructure.Hangfire;
 using Infrastructure.Persistence;
+using Infrastructure.Persistence.Interceptors;
 using Infrastructure.Seed;
 using Infrastructure.Service;
 using Infrastructure.Utils;
@@ -59,10 +60,6 @@ sp.GetRequiredService<IOptions<GoogleDriveOptions>>().Value);
         services.AddSingleton(sp =>
 sp.GetRequiredService<IOptions<MailOptions>>().Value);
 
-        services.Configure<FirebaseOptions>(
-            configuration.GetSection(FirebaseOptions.SectionName));
-        services.AddSingleton(sp =>
-sp.GetRequiredService<IOptions<FirebaseOptions>>().Value);
 
         services.Configure<HangfireOptions>(
             configuration.GetSection(HangfireOptions.SectionName));
@@ -79,6 +76,8 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
             .Get<JwtOptions>()
             ?? throw new InvalidOperationException("Jwt configuration is missing.");
 
+
+        services.AddSingleton<OutboxInterceptor>();
 
         services.AddHangfireConfiguration(configuration);
 
@@ -101,9 +100,13 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
 
         services.AddScoped<TokenCleanupJob>();
 
+        services.AddScoped<OutboxWorker>();
+
+        services.AddScoped<TestRepository>();
+
         services.AddAutoMapper(fg => { }, Assembly.GetAssembly(typeof(MapperConfig)));
 
-        services.AddDbContext<ApplicationDbContext>(options =>
+        services.AddDbContext<ApplicationDbContext>((sp, options) =>
         {
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"),
@@ -117,6 +120,9 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
                         maxRetryDelay: TimeSpan.FromSeconds(30),
                         errorNumbersToAdd: null);
                 });
+
+            options.AddInterceptors(
+                sp.GetRequiredService<OutboxInterceptor>());
         });
 
         services.AddInfrastructureRepositories();
