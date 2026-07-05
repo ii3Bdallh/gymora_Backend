@@ -23,13 +23,7 @@ namespace Application.DTO
                 
 
 
-            CreateMap<Topic, TopicCDTO>().ReverseMap();
-            CreateMap<Topic, TopicUDTO>()
-                .ReverseMap();
-          
 
-            CreateMap<Topic, TopicRDTO>()
-                .ReverseMap();
 
 
         }

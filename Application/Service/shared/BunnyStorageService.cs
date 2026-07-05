@@ -11,11 +11,11 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Domain.Model.Json;
+using Domain.Options;
 
 namespace Application.Service.Shared
 {
-    public class BunnyStorageService(BunnyConfig bunnyConfig, HttpClient httpClient, ILogger<BunnyStorageService> logger) : IBunnyStorageService
+    public class BunnyStorageService(BunnyOptions bunnyConfig, HttpClient httpClient, ILogger<BunnyStorageService> logger) : IBunnyStorageService
     {
 
 
@@ -73,7 +73,7 @@ namespace Application.Service.Shared
         /// </summary>
         private string GenerateSecureUrlForBasicCdn(string fileName, string? ipAddress = null)
         {
-            string securityKey = bunnyConfig.CDNSignature;
+            string securityKey = bunnyConfig.CdnSignature;
             string pullZoneUrl = bunnyConfig.PullZoneUrl;
             string storageName = bunnyConfig.StorageName;
             long expiresUnix = DateTimeOffset.UtcNow.AddMinutes(bunnyConfig.GenerateWatchUrlExpirationInMinutes).ToUnixTimeSeconds();

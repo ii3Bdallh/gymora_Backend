@@ -1,5 +1,3 @@
-using Domain.Model.Json;
-using Infrastructure.Identity;
 using Google.Apis.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -7,6 +5,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Domain.Options;
+using Domain.Model.Auth;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Utils
 {
@@ -32,9 +33,9 @@ namespace Infrastructure.Utils
                 handler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuer = _jwtOptions.issuer,
+                    ValidIssuer = _jwtOptions.Issuer,
                     ValidateAudience = true,
-                    ValidAudience = _jwtOptions.audience,
+                    ValidAudience = _jwtOptions.Audience,
                     ValidateLifetime = validateLifetime,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = symmeticeSecurityKey
@@ -64,11 +65,9 @@ namespace Infrastructure.Utils
         public (string token, int expireInMinutes) GenerateToken(ApplicationUser appUser, IList<string> roles)
         {
             List<Claim> claims = [
-                new(JwtRegisteredClaimNames.Sub, appUser.Id.ToString()),
-                new(ClaimTypes.NameIdentifier, appUser.Id.ToString()),
-                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new(JwtRegisteredClaimNames.Email, appUser.Email!),
-                new(JwtRegisteredClaimNames.Name, appUser.PersonName!),
+            new(ClaimTypes.NameIdentifier, appUser.Id.ToString()),
+            new(ClaimTypes.Email, appUser.Email ?? string.Empty),
+            new(ClaimTypes.Name, appUser.PersonName)
             ];
             foreach (var role in roles)
             {
@@ -80,16 +79,16 @@ namespace Infrastructure.Utils
             var credentials = new SigningCredentials(symmeticeSecurityKey, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: _jwtOptions.issuer,
-                audience: _jwtOptions.audience,
+                issuer: _jwtOptions.Issuer,
+                audience: _jwtOptions.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_jwtOptions.TokenExpirationInMinutes),
+                expires: DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
                 signingCredentials: credentials
             );
 
             return (
                 token: new JwtSecurityTokenHandler().WriteToken(token),
-                expireInMinutes: _jwtOptions.TokenExpirationInMinutes
+                expireInMinutes: _jwtOptions.AccessTokenExpirationMinutes
             );
         }
 

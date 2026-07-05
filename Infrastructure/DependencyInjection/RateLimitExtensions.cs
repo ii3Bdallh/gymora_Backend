@@ -15,7 +15,7 @@ public static class RateLimitExtensions
               {
                   options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-                  options.AddPolicy("login", context =>
+                  options.AddPolicy("Ip_5Limit_1Min", context => // Login
                       RateLimitPartition.GetFixedWindowLimiter(
                           partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                           factory: _ => new FixedWindowRateLimiterOptions
@@ -25,7 +25,7 @@ public static class RateLimitExtensions
                               QueueLimit = 0
                           }));
 
-                  options.AddPolicy("otp-sensitive", context =>
+                  options.AddPolicy("Ip_3Limit_5Min", context => // OTP sensitive endpoints
                       RateLimitPartition.GetFixedWindowLimiter(
                           partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                           factory: _ => new FixedWindowRateLimiterOptions
@@ -35,7 +35,7 @@ public static class RateLimitExtensions
                               QueueLimit = 0
                           }));
 
-                  options.AddPolicy("otp-verify", context =>
+                  options.AddPolicy("Ip_10Limit_1Min", context => // OTP verify endpoints
                       RateLimitPartition.GetFixedWindowLimiter(
                           partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                           factory: _ => new FixedWindowRateLimiterOptions

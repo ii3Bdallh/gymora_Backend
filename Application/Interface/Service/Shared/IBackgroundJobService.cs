@@ -1,4 +1,4 @@
-namespace Application.Common.Interfaces;
+namespace Application.Interface.Service.Shared;
 
 public interface IBackgroundJobService
 {

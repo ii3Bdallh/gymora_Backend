@@ -1,14 +1,13 @@
 using Application.DTO;
 using Application.DTO.Pagintion;
-using Application.Interface.Repo.Entity;
-using Domain.Interface;
 using Infrastructure.Cache;
-using Infrastructure.Identity;
 using Infrastructure.Extensions;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Application.Interface.Repo.Shared;
+using Domain.Model.Auth;
 
 namespace Infrastructure.Repo.Entity;
 
@@ -22,7 +21,7 @@ public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<
     public DbSet<ApplicationUser> DbSet => Context.Set<ApplicationUser>();
 
     #region Read Methods
-    public async Task<IEnumerable<IUser>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ApplicationUser>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -35,7 +34,7 @@ public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<
         }
     }
 
-    public IQueryable<IUser> GetAllQuery(
+    public IQueryable<ApplicationUser> GetAllQuery(
         PaginatedSearchReq searchReq,
         bool trackChanges = false)
     {
@@ -54,7 +53,7 @@ public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<
         return result;
     }
 
-    public virtual async Task<PaginatedRes<IUser>> GetPageAsync(
+    public virtual async Task<PaginatedRes<ApplicationUser>> GetPageAsync(
         PaginatedSearchReq searchReq,
         bool trackChanges = false,
         CancellationToken cancellationToken = default)
@@ -81,7 +80,7 @@ public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<
                 .Take(searchReq.PageSize)
                 .ToListAsync(cancellationToken);
 
-            return new PaginatedRes<IUser>
+            return new PaginatedRes<ApplicationUser>
             {
                 PageNumber = searchReq.PageNumber,
                 PageSize = searchReq.PageSize,
@@ -96,7 +95,7 @@ public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<
         }
     }
 
-    public async Task<IUser?> GetByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default)
+    public async Task<ApplicationUser?> GetByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -112,7 +111,7 @@ public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<
         }
     }
 
-    public async Task<IEnumerable<IUser>> GetByRoleAsync(string roleName, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ApplicationUser>> GetByRoleAsync(string roleName, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -126,7 +125,7 @@ public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<
         }
     }
 
-    public async Task<PaginatedRes<IUser>> GetByRolePagedAsync(
+    public async Task<PaginatedRes<ApplicationUser>> GetByRolePagedAsync(
         string roleName,
         PaginatedSearchReq searchReq,
         CancellationToken cancellationToken = default)
@@ -143,7 +142,7 @@ public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<
                 .Take(searchReq.PageSize)
                 .ToList();
 
-            return new PaginatedRes<IUser>
+            return new PaginatedRes<ApplicationUser>
             {
                 PageNumber = searchReq.PageNumber,
                 PageSize = searchReq.PageSize,
@@ -188,7 +187,7 @@ public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<
         }
     }
 
-    public async Task<IUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+    public async Task<ApplicationUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -267,7 +266,7 @@ public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<
         }
     }
 
-    public async Task<IUser> UpdateAsync(IUser entity, CancellationToken cancellationToken = default)
+    public async Task<ApplicationUser> UpdateAsync(ApplicationUser entity, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -287,7 +286,7 @@ public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<
         }
     }
 
-    public async Task<IUser> DeleteAsync(IUser entity, CancellationToken cancellationToken = default)
+    public async Task<ApplicationUser> DeleteAsync(ApplicationUser entity, CancellationToken cancellationToken = default)
     {
         try
         {

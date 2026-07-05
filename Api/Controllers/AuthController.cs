@@ -35,7 +35,7 @@ namespace Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("resend-confirmation-email")]
-        [EnableRateLimiting("otp-sensitive")]
+        [EnableRateLimiting("Ip_3Limit_5Min")]
         public async Task<IActionResult> ResendConfirmationEmail([FromBody] ResendConfirmationRequest dto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
@@ -58,7 +58,7 @@ namespace Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        [EnableRateLimiting("login")]
+        [EnableRateLimiting("Ip_5Limit_1Min")]
         public async Task<IActionResult> Login([FromBody] LoginReqDto loginReqDto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
@@ -95,7 +95,7 @@ namespace Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("forgot-password")]
-        [EnableRateLimiting("otp-sensitive")]
+        [EnableRateLimiting("Ip_3Limit_5Min")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest dto, CancellationToken cancellationToken)
         {
             var res = await authService.ForgotPasswordAsync(dto, cancellationToken);
@@ -104,7 +104,7 @@ namespace Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("verify-otp")]
-        [EnableRateLimiting("otp-verify")]
+        [EnableRateLimiting("Ip_10Limit_1Min")]
         public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest dto, CancellationToken cancellationToken)
         {
             var res = await authService.VerifyOtpAsync(dto, cancellationToken);
@@ -113,7 +113,7 @@ namespace Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("reset-password")]
-        [EnableRateLimiting("otp-verify")]
+        [EnableRateLimiting("Ip_10Limit_1Min")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest dto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
@@ -125,7 +125,7 @@ namespace Api.Controllers
 
         [AllowAnonymous]
         [HttpGet("confirm-email")]
-        [EnableRateLimiting("otp-verify")]
+        [EnableRateLimiting("Ip_10Limit_1Min")]
         public async Task<IActionResult> ConfirmEmail(string userId, string code)
         {
             if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(code))

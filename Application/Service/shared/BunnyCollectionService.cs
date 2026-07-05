@@ -1,7 +1,7 @@
 using Application.DTO.Bunny;
 using Application.Interface.Service.Shared;
 using Application.utils;
-using Domain.Model.Json;
+using Domain.Options;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ namespace Application.Service.Shared
     /// <summary>
     /// Service for managing Bunny Stream Collections (CRUD operations)
     /// </summary>
-    public class BunnyCollectionService(BunnyConfig settings, HttpClient httpClient, ILogger<BunnyCollectionService> logger) : IBunnyCollectionService
+    public class BunnyCollectionService(BunnyOptions settings, HttpClient httpClient, ILogger<BunnyCollectionService> logger) : IBunnyCollectionService
     {
 
         // {{baseUrl}}/library/:libraryId/collections

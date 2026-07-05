@@ -1,10 +1,9 @@
-using Domain.Interface;
 using Domain.Model;
 using Microsoft.AspNetCore.Identity;
 
-namespace Infrastructure.Identity;
+namespace Domain.Model.Auth;
 
-public sealed class ApplicationUser : IdentityUser<int>, IUser
+public sealed class ApplicationUser : IdentityUser<int>
 {
     public string PersonName { get; set; } = string.Empty;
 

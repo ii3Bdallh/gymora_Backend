@@ -19,17 +19,26 @@ namespace Application.Service
             _logger = logger;
             var path = configuration["FirebaseConfig:CredentialFilePath"];
 
+
+
+
+
+
             if (string.IsNullOrWhiteSpace(path))
                 throw new InvalidOperationException("Firebase credential file path is not configured.");
 
             if (!File.Exists(path))
                 throw new InvalidOperationException($"Firebase credential file not found at: {path}");
 
+            var credential = CredentialFactory.FromFile(
+                path,
+                JsonCredentialParameters.ServiceAccountCredentialType);
+
             if (FirebaseApp.DefaultInstance == null)
             {
                 _app = FirebaseApp.Create(new AppOptions()
                 {
-                    Credential = GoogleCredential.FromFile(path)
+                    Credential = credential
                 });
             }
             else

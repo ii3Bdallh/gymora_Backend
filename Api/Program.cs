@@ -1,7 +1,7 @@
 using Api.Extensions;
 using Api.Middalewares;
 using Application.DependencyInjection;
-using Domain.Model.Json;
+using Domain.Options;
 using Hangfire;
 using Infrastructure.DependencyInjection;
 using Infrastructure.Hangfire;
@@ -11,7 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddSerilogLogging();
+// builder.AddSerilogLogging();
+
 
 #region Services
 
@@ -20,32 +21,6 @@ builder.Services
     .AddInfrastructure(builder.Configuration)
     .AddApi();
 
-Domain.Model.Json.JwtOptions jwtOptions = builder.Configuration
-    .GetSection("JWT").Get<Domain.Model.Json.JwtOptions>() ?? new Domain.Model.Json.JwtOptions();
-
-if (string.IsNullOrWhiteSpace(jwtOptions?.SecretKey) || jwtOptions.SecretKey.Length < 32)
-    throw new InvalidOperationException("JWT SecretKey is not configured or too short (min 32 characters). Set it in appsettings.json or environment variables.");
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-
-}).AddJwtBearer(options =>
-{
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters()
-    {
-        ValidateIssuer = true,
-        ValidIssuer = jwtOptions.issuer,
-        ValidateAudience = true,
-        ValidAudience = jwtOptions.audience,
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero,
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtOptions.SecretKey ?? ""))
-    };
-});
 
 #endregion
 

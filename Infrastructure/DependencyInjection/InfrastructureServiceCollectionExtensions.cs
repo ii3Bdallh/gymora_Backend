@@ -1,6 +1,5 @@
 using Application.Interface;
 using Application.Interface.Repo;
-using Application.Interface.Repo.Entity;
 using Application.Interface.Repo.Shared;
 
 using Infrastructure.Repo;
@@ -18,7 +17,6 @@ public static class InfrastructureServiceCollectionExtensions
     {
         services.AddScoped<IAuthRepo, AuthRepo>();
         services.AddScoped<IUserRepo, UserRepo>();
-        services.AddScoped<IAdminRepo, AdminRepo>();
 
         services.AddScoped<ITransactionManager, TransactionManager>();
 
@@ -26,7 +24,6 @@ public static class InfrastructureServiceCollectionExtensions
             sp.GetRequiredService<ILoggerFactory>().CreateLogger("App"));
 
         // Add After Here DependencyInjectionRepo 
-        services.AddScoped<ITopicRepo, TopicRepo>();
 
 
         return services;

@@ -3,7 +3,7 @@ using Application.DTO.Bunny;
 using Application.Interface.Service.Shared;
 using Application.utils;
 using Domain.Model;
-using Domain.Model.Json;
+using Domain.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace Application.Service.Shared
 {
-    public class BunnyStreamService(BunnyConfig settings, HttpClient httpClient, ILogger<BunnyStreamService> logger) : IBunnyStreamService
+    public class BunnyStreamService(BunnyOptions settings, HttpClient httpClient, ILogger<BunnyStreamService> logger) : IBunnyStreamService
     {
 
         public async Task<BunnyCreateResponse> GetVideoDetails(String VideoId , string? LibraryId, CancellationToken cancellationToken)

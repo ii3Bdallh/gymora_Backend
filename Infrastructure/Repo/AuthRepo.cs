@@ -3,11 +3,11 @@ using Application.DTO.Auth;
 using Application.DTO.Exceptions;
 using Application.DTO.Request;
 using Application.Interface.Repo;
+using Application.Interface.Repo.Shared;
 using Application.Interface.Service.Shared;
 using Domain.Enum;
-using Domain.Interface;
 using Domain.Model;
-using Infrastructure.Identity;
+using Domain.Model.Auth;
 using Infrastructure.Persistence;
 using Infrastructure.Utils;
 using Microsoft.AspNetCore.Identity;
@@ -395,12 +395,12 @@ namespace Infrastructure.Repo
             }
         }
 
-        public async Task<IUser?> GetUserByEmailAsync(string email, CancellationToken cancellationToken)
+        public async Task<ApplicationUser?> GetUserByEmailAsync(string email, CancellationToken cancellationToken)
         {
             return await _userManager.FindByEmailAsync(email);
         }
 
-        public async Task<string> GenerateEmailConfirmationTokenAsync(IUser user, CancellationToken cancellationToken = default)
+        public async Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return await _userManager.GenerateEmailConfirmationTokenAsync((ApplicationUser)user);
@@ -467,7 +467,7 @@ namespace Infrastructure.Repo
         }
 
         // ============ EMAIL CONFIRMATION OTP (جديد بالكامل) ============
-        public async Task<string> GenerateEmailConfirmationOtpAsync(IUser user, CancellationToken cancellationToken = default)
+        public async Task<string> GenerateEmailConfirmationOtpAsync(ApplicationUser user, CancellationToken cancellationToken = default)
         {
             var appUser = (ApplicationUser)user;
             string otp = RandomNumberGenerator.GetInt32(10000, 99999).ToString();

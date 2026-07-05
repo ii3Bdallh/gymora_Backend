@@ -13,7 +13,7 @@ using Infrastructure.Persistence;
 using Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Application.Common.Interfaces;
+using Application.Interface.Service.Shared;
 
 namespace Infrastructure.Repo.Base
 {

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace Infrastructure.Identity;
+namespace Domain.Model.Auth;
 
 public sealed class ApplicationRole : IdentityRole<int>
 {

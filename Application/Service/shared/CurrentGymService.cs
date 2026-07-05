@@ -1,6 +1,6 @@
-using Application.Common.Interfaces;
+using Application.Interface.Service.Shared;
 
-namespace Infrastructure.CurrentUser;
+namespace Application.Service.Shared;
 
 public sealed class CurrentGymService : ICurrentGymService
 {

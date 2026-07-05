@@ -1,4 +1,4 @@
-using Infrastructure.Identity;
+using Domain.Model.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

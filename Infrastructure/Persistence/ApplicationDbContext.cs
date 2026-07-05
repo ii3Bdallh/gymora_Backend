@@ -1,5 +1,5 @@
 using Domain.Model;
-using Infrastructure.Identity;
+using Domain.Model.Auth;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +12,8 @@ public sealed class ApplicationDbContext
         int>
 {
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+
+
 
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options)

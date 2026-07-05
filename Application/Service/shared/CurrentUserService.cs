@@ -1,9 +1,9 @@
 using System.Security.Claims;
-using Application.Common.Interfaces;
+using Application.Interface.Service.Shared;
 using Domain.Enum;
 using Microsoft.AspNetCore.Http;
 
-namespace Infrastructure.CurrentUser;
+namespace Application.Service.Shared;
 
 public sealed class CurrentUserService : ICurrentUserService
 {

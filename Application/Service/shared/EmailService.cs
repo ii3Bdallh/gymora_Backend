@@ -1,11 +1,11 @@
 using Application.Interface.Service.Shared;
-using Domain.Model.Json;
+using Domain.Options;
 using Microsoft.Extensions.Configuration;
 using System.Net.Mail;
 
 namespace Application.Service.shared
 {
-    public class EmailService(EmailOptions emailOptions) : IEmailService
+    public class EmailService(MailOptions emailOptions) : IEmailService
     {
     
 

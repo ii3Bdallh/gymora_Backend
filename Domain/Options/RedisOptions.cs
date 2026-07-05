@@ -1,4 +1,4 @@
-namespace Infrastructure.Options;
+namespace Domain.Options;
 
 public sealed class RedisOptions
 {

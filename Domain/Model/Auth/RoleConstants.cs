@@ -1,4 +1,4 @@
-namespace Infrastructure.Identity;
+namespace Domain.Model.Auth;
 
 public static class RoleConstants
 {

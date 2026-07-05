@@ -1,25 +1,26 @@
 using Application.DTO;
 using Application.DTO.Pagintion;
-using Domain.Interface;
+using Domain.Model.Auth;
 
-namespace Application.Interface.Repo.Entity;
+
+namespace Application.Interface.Repo.Shared;
 
 public interface IUserRepo
 {
-    Task<IEnumerable<IUser>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<ApplicationUser>> GetAllAsync(CancellationToken cancellationToken = default);
 
-    IQueryable<IUser> GetAllQuery(PaginatedSearchReq searchReq, bool trackChanges = false);
+    IQueryable<ApplicationUser> GetAllQuery(PaginatedSearchReq searchReq, bool trackChanges = false);
 
-    Task<PaginatedRes<IUser>> GetPageAsync(
+    Task<PaginatedRes<ApplicationUser>> GetPageAsync(
         PaginatedSearchReq searchReq,
         bool trackChanges = false,
         CancellationToken cancellationToken = default);
 
-    Task<IUser?> GetByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default);
+    Task<ApplicationUser?> GetByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<IUser>> GetByRoleAsync(string roleName, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ApplicationUser>> GetByRoleAsync(string roleName, CancellationToken cancellationToken = default);
 
-    Task<PaginatedRes<IUser>> GetByRolePagedAsync(
+    Task<PaginatedRes<ApplicationUser>> GetByRolePagedAsync(
         string roleName,
         PaginatedSearchReq searchReq,
         CancellationToken cancellationToken = default);
@@ -28,7 +29,7 @@ public interface IUserRepo
 
     Task<IEnumerable<string>> GetUserRolesAsync(int userId, CancellationToken cancellationToken = default);
 
-    Task<IUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<ApplicationUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
 
     Task AssignRoleAsync(int userId, string roleName, CancellationToken cancellationToken = default);
 
@@ -36,7 +37,7 @@ public interface IUserRepo
 
     Task AssignRolesAsync(int userId, IEnumerable<string> roleNames, CancellationToken cancellationToken = default);
 
-    Task<IUser> UpdateAsync(IUser entity, CancellationToken cancellationToken = default);
+    Task<ApplicationUser> UpdateAsync(ApplicationUser entity, CancellationToken cancellationToken = default);
 
-    Task<IUser> DeleteAsync(IUser entity, CancellationToken cancellationToken = default);
+    Task<ApplicationUser> DeleteAsync(ApplicationUser entity, CancellationToken cancellationToken = default);
 }
