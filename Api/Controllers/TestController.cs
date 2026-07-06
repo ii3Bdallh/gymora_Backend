@@ -22,15 +22,25 @@ public class TestController : ControllerBase
         _notificationService = notificationService;
     }
 
-    [HttpPost]
-    [AllowAnonymous]
-    public async Task<IActionResult> Test()
-    {
-        await _repository.TestEvent(
-            1,
-            "Hello From Event");
 
-        return Ok();
+
+
+
+    // Endpoint لتجربة السيناريو بالكامل
+    [HttpPost("{parentId}/add-child")]
+    [AllowAnonymous]
+    public async Task<IActionResult> AddChild(int parentId, string childName)
+    {
+        try
+        {
+            await _repository.AddChildAndUpdateCountAsync(parentId, childName);
+
+            return Ok(new { Message = "تم إضافة الابن، وتحديث العداد، وحفظ الـ Event في الـ Outbox!" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Error = ex.Message });
+        }
     }
 
     [HttpPost("send-notification")]

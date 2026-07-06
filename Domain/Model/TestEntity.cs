@@ -2,11 +2,19 @@ using Domain.Model.Base;
 
 namespace Domain.Model;
 
-public class TestEntity : EventEntity
+
+// جدول الأب
+public class Parent
 {
     public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int NumberOfChildren { get; set; } // العداد اللي هيتحدث فوراً
+}
 
-    public int UserId { get; set; }
-
-    public string Message { get; set; } = default!;
+// جدول الابن
+public class Child
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int ParentId { get; set; }
 }

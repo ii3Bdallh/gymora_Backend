@@ -1,4 +1,5 @@
-using Application.DTO;
+﻿using Application.DTO;
+using Application.EventConsumer;
 using Application.Interface.Service;
 using Application.Interface.Service.Shared;
 using Application.Service.Shared;
@@ -7,10 +8,10 @@ using Domain.Options;
 using Infrastructure.Cache;
 using Infrastructure.Hangfire;
 using Infrastructure.Persistence;
-using Infrastructure.Persistence.Interceptors;
 using Infrastructure.Seed;
 using Infrastructure.Service;
 using Infrastructure.Utils;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -77,7 +78,6 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
             ?? throw new InvalidOperationException("Jwt configuration is missing.");
 
 
-        services.AddSingleton<OutboxInterceptor>();
 
         services.AddHangfireConfiguration(configuration);
 
@@ -100,7 +100,6 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
 
         services.AddScoped<TokenCleanupJob>();
 
-        services.AddScoped<OutboxWorker>();
 
         services.AddScoped<TestRepository>();
 
@@ -121,8 +120,7 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
                         errorNumbersToAdd: null);
                 });
 
-            options.AddInterceptors(
-                sp.GetRequiredService<OutboxInterceptor>());
+
         });
 
         services.AddInfrastructureRepositories();
@@ -167,6 +165,30 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
                 IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtOptions.SecretKey ?? ""))
             };
         });
+
+        services.AddMassTransit(x =>
+   {
+       // 1. تسجيل الـ Consumers
+       x.AddConsumer<NotificationConsumer>();
+       x.AddConsumer<EmailConsumer>();
+
+       // 2. تهيئة الـ Entity Framework Outbox
+       x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
+       {
+           o.UseSqlServer(); // تحديد أننا نستخدم SQL Server للـ Outbox
+           o.UseBusOutbox(); // تفعيل الـ Outbox للـ Service Bus الداخلي
+
+           // 💡 تعديل الحل: بدلاً من o.UseHangfire()، بنستخدم دالة إدارة الخلفية الافتراضية للـ Outbox:
+           o.DisableInboxCleanupService(); // اختياري لو مش عاوز الـ cleanup التلقائي
+       });
+
+       // 3. ربط الـ Outbox بـ Hangfire بيتم تلقائياً بمجرد استدعاء الـ Job يدوياً أو ترك MassTransit تدير الـ Background Hosted Service
+       // وإذا كنت تريد تشغيل الـ Outbox Delivery عبر جهاز الـ Background Worker الافتراضي (وهو الأفضل والموصى به للـ Monolith):
+       x.UsingInMemory((context, cfg) =>
+       {
+           cfg.ConfigureEndpoints(context);
+       });
+   });
 
         services.AddScoped<IdentitySeeder>();
 

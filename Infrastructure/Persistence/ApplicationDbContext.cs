@@ -2,6 +2,7 @@ using Domain.Model;
 using Domain.Model.Auth;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using MassTransit;
 
 namespace Infrastructure.Persistence;
 
@@ -13,8 +14,6 @@ public sealed class ApplicationDbContext
 {
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
-    public DbSet<OutboxMessage> OutboxMessages
-        => Set<OutboxMessage>();
 
     public DbSet<Domain.Model.Notification> Notifications
         => Set<Domain.Model.Notification>();
@@ -22,13 +21,16 @@ public sealed class ApplicationDbContext
     public DbSet<UserDevice> UserDevices
         => Set<UserDevice>();
 
-    public DbSet<TestEntity> Tests
-        => Set<TestEntity>();
+    public DbSet<Parent> Parents { get; set; }
+    public DbSet<Child> Children { get; set; }
+
+
 
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
+
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -37,5 +39,10 @@ public sealed class ApplicationDbContext
 
         builder.ApplyConfigurationsFromAssembly(
             typeof(ApplicationDbContext).Assembly);
+
+
+        // 🔥 السطر السحري: MassTransit بتبني هنا جداول الـ Outbox والـ InboxState 
+        // لتتبع حالة الـ Consumers ومنع تكرار الـ Notification لو الـ Email فشل
+        builder.AddTransactionalOutboxEntities();
     }
 }

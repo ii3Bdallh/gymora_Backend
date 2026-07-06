@@ -1,8 +1,6 @@
-using MediatR;
 
 namespace Domain.Events;
 
-public sealed record TestEvent(
-    int UserId,
-    string Email,
-    string Message) : INotification;
+
+// الـ Event اللي هيتبعت في الخلفية بعد إضافة الابن بنجاح
+public record ChildAddedEvent(int ParentId, string ChildName, string ParentEmail);

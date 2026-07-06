@@ -7,11 +7,7 @@ namespace Infrastructure.Hangfire
     {
         public static void Register()
         {
-            RecurringJob.AddOrUpdate<OutboxWorker>(
-                "process-outbox-messages",
-                job => job.ProcessOutboxMessagesAsync(),
-                Cron.Minutely);
-
+       
             RecurringJob.AddOrUpdate<TokenCleanupJob>(
                 "cleanup-expired-tokens",
                 job => job.CleanupExpiredTokensAsync(),
