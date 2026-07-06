@@ -1,6 +1,5 @@
 using Application.Interface;
 using Application.Interface.Repo;
-using Application.Interface.Repo.Entity;
 using Application.Interface.Repo.Shared;
 
 using Infrastructure.Repo;
