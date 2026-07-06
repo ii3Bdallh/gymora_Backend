@@ -12,6 +12,9 @@ public sealed class ApplicationDbContext
         ApplicationRole,
         int>
 {
+
+    // Script will Add After Here DbSet<Entity>
+    
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
 

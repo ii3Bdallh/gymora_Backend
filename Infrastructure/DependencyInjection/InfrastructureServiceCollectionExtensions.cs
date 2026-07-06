@@ -1,5 +1,6 @@
 using Application.Interface;
 using Application.Interface.Repo;
+using Application.Interface.Repo.Entity;
 using Application.Interface.Repo.Shared;
 
 using Infrastructure.Repo;
@@ -23,7 +24,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<ILogger>(sp =>
             sp.GetRequiredService<ILoggerFactory>().CreateLogger("App"));
 
-        // Add After Here DependencyInjectionRepo 
+        // Script will Add After Here DependencyInjectionRepo
 
 
         return services;

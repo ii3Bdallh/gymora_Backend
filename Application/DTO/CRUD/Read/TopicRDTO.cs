@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.DTO.Read
+namespace Application.DTO.CRUD.Read
 {
     public record TopicRDTO : BaseRDTO
     {

@@ -53,7 +53,8 @@ namespace Api.Middalewares
                 _logger.LogError(ex, "An unexpected error occurred");
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 httpContext.Response.ContentType = "application/json";
-                await httpContext.Response.WriteAsJsonAsync(Result<object>.Failure("INTERNAL_ERROR", "An unexpected error occurred. Please try again later."));
+                //await httpContext.Response.WriteAsJsonAsync(Result<object>.Failure("INTERNAL_ERROR", "An unexpected error occurred. Please try again later."));
+                await httpContext.Response.WriteAsJsonAsync(Result<object>.Failure("INTERNAL_ERROR", ex.Message));
             }
         }
     }

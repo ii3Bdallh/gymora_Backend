@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Application.DTO.Base;
 using Application.DTO.Base.Auditable;
 
-namespace Application.DTO.Update
+namespace Application.DTO.CRUD.Update
 {
     public record TopicUDTO : BaseUDTO
     {

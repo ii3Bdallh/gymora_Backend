@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.DTO.Create
+namespace Application.DTO.CRUD.Create
 {
     public record TopicCDTO : BaseCDTO
     {

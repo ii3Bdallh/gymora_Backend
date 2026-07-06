@@ -8,6 +8,7 @@ namespace Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[AllowAnonymous]
 public class TestController : ControllerBase
 {
     private readonly TestRepository _repository;
@@ -28,7 +29,7 @@ public class TestController : ControllerBase
 
     // Endpoint لتجربة السيناريو بالكامل
     [HttpPost("{parentId}/add-child")]
-    [AllowAnonymous]
+
     public async Task<IActionResult> AddChild(int parentId, string childName)
     {
         try
@@ -44,7 +45,6 @@ public class TestController : ControllerBase
     }
 
     [HttpPost("send-notification")]
-    [AllowAnonymous]
     public async Task<IActionResult> TestSendNotification()
     {
         string result = await _notificationService.SendNotificationTestAsync(
@@ -58,7 +58,6 @@ public class TestController : ControllerBase
     }
 
     [HttpPost("send-email")]
-    [AllowAnonymous]
     public async Task<IActionResult> TestSendEmail()
     {
         await _emailService.SendEmailTestAsync(

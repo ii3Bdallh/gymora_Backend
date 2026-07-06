@@ -12,7 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.AddSerilogLogging();
+ builder.AddSerilogLogging();
 
 
 #region Services

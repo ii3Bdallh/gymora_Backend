@@ -1,6 +1,8 @@
 using Application.Interface.Service;
+using Application.Interface.Service.Entity;
 using Application.Interface.Service.Shared;
 using Application.Service;
+using Application.Service.Entity;
 using Application.Service.shared;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,10 +20,10 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<IEmailService, EmailService>();
 
 
-        
 
 
-        // Add After Here DependencyInjectionService
+
+        // Script will Add After Here DependencyInjectionService
 
         return services;
     }
