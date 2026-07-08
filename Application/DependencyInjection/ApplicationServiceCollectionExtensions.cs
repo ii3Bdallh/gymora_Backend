@@ -24,6 +24,7 @@ public static class ApplicationServiceCollectionExtensions
 
 
         // Script will Add After Here DependencyInjectionService
+services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
 
         return services;
     }

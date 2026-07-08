@@ -14,6 +14,8 @@ public sealed class ApplicationDbContext
 {
 
     // Script will Add After Here DbSet<Entity>
+public DbSet<SubscriptionPlan> SubscriptionPlan { get; set; }
+public DbSet<PlanPrice> PlanPrice { get; set; }
     
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 

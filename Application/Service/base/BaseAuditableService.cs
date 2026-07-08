@@ -19,7 +19,7 @@ namespace Application.Service.Base
         where UDTO : BaseAuditableUDTO
     {
         protected readonly ICurrentUserService currentUser;
-        protected BaseAuditableService(IBaseRepo<T> repo, IMapper mapper, ICurrentUserService currentUser) : base(repo, mapper)
+        protected BaseAuditableService(IBaseRepo<T> repo, IMapper mapper, ICurrentUserService currentUser) : base(repo,  mapper)
         {
             this.currentUser = currentUser;
         }

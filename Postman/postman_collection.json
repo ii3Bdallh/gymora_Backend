@@ -2,13 +2,13 @@
   "info": {
     "_postman_id": "b7a1c2d3-e4f5-6789-abcd-ef0123456789",
     "name": "Gymora API",
-    "description": "# Gymora API Postman Collection\n\n## Overview\n\nComplete Postman collection for the Gymora ASP.NET Core 9.0 REST API.\n\n## Authentication\n\nThis API uses **JWT Bearer Token** authentication.\n\n1. Call `POST /api/Auth/login` with valid credentials.\n2. The `accessToken` and `refreshToken` are automatically saved as collection variables.\n3. All protected endpoints automatically include the `Authorization: Bearer {{accessToken}}` header.\n\n## Rate Limiting\n\n| Policy | Limit | Window | Endpoints |\n|--------|-------|--------|-----------|\n| `login` | 5 requests | 1 minute | POST /api/Auth/login |\n| `otp-sensitive` | 3 requests | 5 minutes | POST resend-confirmation-email, POST forgot-password |\n| `otp-verify` | 10 requests | 1 minute | POST verify-otp, POST reset-password, GET confirm-email |\n\n## Error Response Format\n\n```json\n{\n  \"isSuccess\": false,\n  \"error\": {\n    \"code\": \"ERROR_CODE\",\n    \"message\": \"Human-readable error message\"\n  }\n}\n```\n\n### Error Codes\n\n| Status | Code | Description |\n|--------|------|-------------|\n| 400 | `BAD_REQUEST` | Invalid input / validation failure |\n| 400 | `VALIDATION_ERROR` | Model state validation failed |\n| 401 | `UNAUTHORIZED` | Missing or invalid authentication |\n| 403 | `FORBIDDEN` | Insufficient role/permission |\n| 404 | `NOT_FOUND` | Resource not found |\n| 429 | `RATE_LIMIT_EXCEEDED` | Too many requests |\n| 500 | `INTERNAL_ERROR` | Unexpected server error |\n\n## Success Response Format\n\n```json\n{\n  \"isSuccess\": true,\n  \"data\": { ... }\n}\n```\n\n## Roles\n\n| Role | Value | Description |\n|------|-------|-------------|\n| Owner | 0 | Full system access |\n| Admin | 1 | Administrative access |\n| User | 2 | Standard authenticated user |\n| Guest | 3 | Limited guest access |\n| Marchant | 4 | Merchant role |\n| Parent | 5 | Parent role |\n\n## Collection Variables\n\n| Variable | Description |\n|----------|-------------|\n| `baseUrl` | API base URL |\n| `accessToken` | JWT access token (auto-saved on login) |\n| `refreshToken` | Refresh token (auto-saved on login) |\n| `currentUserId` | ID of the currently authenticated user |\n| `createdEntityId` | ID of the last created Topic |\n\n---\n\n## Workflow: Authentication Flow\n\n1. `Register` - Create a new user account\n2. `Login` - Authenticate (saves tokens automatically)\n3. `Get User Profile` - View profile\n4. `Change Password` - Update password\n5. `Refresh Token` - Get new tokens\n6. `Logout` - Invalidate tokens\n\n## Workflow: Password Reset Flow\n\n1. `Forgot Password` - Request OTP\n2. `Verify OTP` - Verify the OTP\n3. `Reset Password` - Set new password\n\n## Workflow: Topics CRUD\n\n1. `Create Topic` - Create a new topic (requires User/Admin/Owner)\n2. `Get Topics (Paged)` - List topics with pagination\n3. `Get Topic by ID` - Get single topic\n4. `Update Topic` - Modify a topic\n5. `Delete Topic` - Remove a topic (requires Admin/Owner)",
+    "description": "# Gymora API Postman Collection\n\n## Overview\n\nComplete Postman collection for the Gymora ASP.NET Core 9.0 REST API.\n\n## Architecture\n\n- **Authentication:** JWT Bearer Token with Refresh Tokens\n- **Identity:** ASP.NET Core Identity with `ApplicationUser` (int PK)\n- **Roles:** `SuperAdmin`, `User`\n- **Rate Limiting:** IP-based fixed window policies\n- **Global Exception Handling:** Custom middleware returning `Result<T>` envelope\n- **ORM:** Entity Framework Core with SQL Server\n- **Background Jobs:** Hangfire + MassTransit InMemory + EF Outbox\n- **File Storage:** Bunny.net (Stream + Storage)\n- **Payment:** Paymob integration\n- **Validation:** DataAnnotations\n\n## Authentication Flow\n\n1. `POST /api/Auth/register` — Creates account + sends confirmation OTP\n2. `POST /api/Auth/confirm-email` — Confirms with OTP (or use GET variant)\n3. `POST /api/Auth/login` — Returns JWT + Refresh Token\n4. All protected requests automatically use `Authorization: Bearer {{accessToken}}`\n5. `POST /api/Auth/refresh-token` — When access token expires\n6. `POST /api/Auth/logout` — Revokes refresh token\n\n## Rate Limiting Policies\n\n| Policy Name | Limit | Window | Endpoints |\n|------------|-------|--------|-----------|\n| `Ip_5Limit_1Min` | 5 requests | 1 minute | POST /api/Auth/login |\n| `Ip_3Limit_5Min` | 3 requests | 5 minutes | POST resend-confirmation-email, POST forgot-password |\n| `Ip_10Limit_1Min` | 10 requests | 1 minute | POST verify-otp, POST reset-password, GET confirm-email |\n\n## Standard Response Envelope\n\n### Success\n```json\n{\n  \"isSuccess\": true,\n  \"data\": { ... }\n}\n```\n\n### Error\n```json\n{\n  \"isSuccess\": false,\n  \"error\": {\n    \"code\": \"ERROR_CODE\",\n    \"message\": \"Description\"\n  }\n}\n```\n\n### Error Codes\n\n| HTTP Status | Code | Description |\n|------------|------|-------------|\n| 400 | `BAD_REQUEST` | Invalid input / business rule violation |\n| 400 | `VALIDATION_ERROR` | Model state validation failure |\n| 401 | `UNAUTHORIZED` | Missing or invalid authentication |\n| 403 | `FORBIDDEN` | Insufficient role permissions |\n| 404 | `NOT_FOUND` | Resource not found |\n| 429 | `RATE_LIMIT_EXCEEDED` | Rate limit triggered |\n| 500 | `INTERNAL_ERROR` | Unexpected server error |\n\n## Roles\n\n| Role | Description |\n|------|-------------|\n| `SuperAdmin` | Full system access (value: 0) |\n| `User` | Standard authenticated user (value: 1) |\n\n## Enums\n\n### FileType\n| Value | Name |\n|-------|------|\n| 0 | Video |\n| 1 | PDF |\n| 2 | Audio |\n| 3 | Document |\n| 4 | Image |\n| 5 | Other |\n\n### BunnyUploadStatus\n| Value | Name |\n|-------|------|\n| 0 | Queued |\n| 1 | Processing |\n| 2 | Encoding |\n| 3 | Finished |\n| 4 | ResolutionFinished |\n| 5 | Failed |\n| 6 | PresignedUploadStarted |\n| 7 | PresignedUploadFinished |\n| 8 | PresignedUploadFailed |\n| 9 | CaptionsGenerated |\n| 10 | TitleOrDescriptionGenerated |\n\n## Dependencies\n\n- **Email:** SMTP via Gmail (`MailOptions`)\n- **Firebase:** Cloud Messaging for push notifications\n- **Bunny.net:** Video streaming + file storage\n- **Redis:** Caching (optional, configured per environment)\n- **Hangfire:** Background job processing\n- **MassTransit:** InMemory message bus with EF Outbox\n\n## Collection Variables\n\n| Variable | Auto-Set By | Description |\n|----------|------------|-------------|\n| `baseUrl` | — | API base URL (set per environment) |\n| `accessToken` | Login, LoginGoogle, RefreshToken | JWT Bearer token |\n| `refreshToken` | Login, LoginGoogle, RefreshToken | Refresh token |\n| `currentUserId` | Login, LoginGoogle | Authenticated user ID |\n| `createdEntityId` | Create SubscriptionPlan | Created entity ID for chaining |\n| `createdPlanPriceId` | Create PlanPrice | Created plan price ID |",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
       "name": "01 Authentication",
-      "description": "Authentication endpoints including registration, login, email confirmation, password management, and profile operations.",
+      "description": "Authentication and account management endpoints. Includes registration, login, email confirmation, password management, profile access, and Google sign-in.",
       "item": [
         {
           "name": "Register",
@@ -24,7 +24,7 @@
                   "pm.test(\"Response is success\", () => {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.isSuccess).to.be.true;",
-                  "    pm.expect(json.data).to.be.a.string;",
+                  "    pm.expect(json.data).to.be.a('string');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -48,7 +48,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "Auth", "register"]
             },
-            "description": "Register a new user account.\n\nAfter registration, a confirmation OTP is sent to the provided email address. The user must confirm their email before they can log in (depending on the application logic).\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n| `userName` | Required, 3-100 characters |\n| `password` | Required, 8-100 characters. Must contain: uppercase, lowercase, digit, and special character |\n| `phoneNumber` | Optional, max 50 characters |\n\n### Rate Limiting\n\nThis endpoint does NOT have rate limiting."
+            "description": "Register a new user account.\n\nAfter registration, a confirmation OTP is sent to the provided email address. The user must confirm their email before they can log in.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n| `userName` | Required, 3-100 characters |\n| `password` | Required, 8-100 characters. Must contain: uppercase, lowercase, digit, and special character |\n| `phoneNumber` | Optional, max 50 characters |\n\n### Rate Limiting\n\nNone."
           }
         },
         {
@@ -89,7 +89,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "Auth", "confirm-email"]
             },
-            "description": "Confirm email address using the OTP code sent during registration.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n| `otp` | Required, exactly 5 digits |"
+            "description": "Confirm email address using the OTP code sent during registration.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n| `otp` | Required, exactly 5 digits |\n\n### Rate Limiting\n\nNone."
           }
         },
         {
@@ -129,7 +129,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "Auth", "resend-confirmation-email"]
             },
-            "description": "Resend the email confirmation OTP.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n\n### Rate Limiting\n\nThis endpoint uses `otp-sensitive` policy: **3 requests per 5 minutes** per IP."
+            "description": "Resend the email confirmation OTP.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n\n### Rate Limiting\n\n`Ip_3Limit_5Min`: **3 requests per 5 minutes** per IP."
           }
         },
         {
@@ -192,7 +192,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "Auth", "login"]
             },
-            "description": "Authenticate with email and password.\n\nOn success, the **accessToken** and **refreshToken** are automatically saved as collection variables. All subsequent requests will use these tokens.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required |\n| `password` | Required |\n\n## Response Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | number | User ID |\n| `email` | string | User email |\n| `personName` | string | Display name |\n| `token` | string | JWT access token |\n| `expiresIn` | number | Token expiration in seconds |\n| `refreshtoken` | string | Refresh token |\n| `roles` | string[] | Assigned roles |\n| `refreshTokenExpirationDate` | string | Refresh token expiry (ISO-8601) |\n\n### Rate Limiting\n\nThis endpoint uses `login` policy: **5 requests per 1 minute** per IP."
+            "description": "Authenticate with email and password.\n\nOn success, **accessToken** and **refreshToken** are automatically saved as collection variables.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required |\n| `password` | Required |\n\n## Response Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | number | User ID |\n| `email` | string | User email |\n| `personName` | string | Display name |\n| `token` | string | JWT access token |\n| `expiresIn` | number | Token expiration in seconds |\n| `refreshtoken` | string | Refresh token |\n| `roles` | string[] | Assigned roles |\n| `refreshTokenExpirationDate` | string | Refresh token expiry (ISO-8601) |\n\n### Rate Limiting\n\n`Ip_5Limit_1Min`: **5 requests per 1 minute** per IP."
           },
           "response": [
             {
@@ -252,336 +252,6 @@
           ]
         },
         {
-          "name": "Refresh Token",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", () => {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Response is success\", () => {",
-                  "    var json = pm.response.json();",
-                  "    pm.expect(json.isSuccess).to.be.true;",
-                  "});",
-                  "",
-                  "pm.test(\"Refresh token response has token fields\", () => {",
-                  "    var data = pm.response.json().data;",
-                  "    pm.expect(data.token).to.be.a('string');",
-                  "    pm.expect(data.refreshtoken).to.be.a('string');",
-                  "});",
-                  "",
-                  "if (pm.response.code === 200 && pm.response.json().isSuccess) {",
-                  "    var data = pm.response.json().data;",
-                  "    pm.collectionVariables.set(\"accessToken\", data.token);",
-                  "    pm.collectionVariables.set(\"refreshToken\", data.refreshtoken);",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"accessToken\": \"{{accessToken}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/Auth/refresh-token",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "refresh-token"]
-            },
-            "description": "Refresh an expired JWT access token using a valid refresh token.\n\nBoth the current `accessToken` (expired or valid) and `refreshToken` must be provided. On success, new tokens are automatically saved.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `refreshToken` | Required |\n| `accessToken` | Required |"
-          }
-        },
-        {
-          "name": "Logout",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", () => {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Response is success\", () => {",
-                  "    var json = pm.response.json();",
-                  "    pm.expect(json.isSuccess).to.be.true;",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"logoutFromAllDevices\": false\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/Auth/logout",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "logout"]
-            },
-            "description": "Logout and invalidate the refresh token.\n\n- Set `logoutFromAllDevices` to `true` to invalidate ALL refresh tokens for the user.\n- Set to `false` (or omit) to only invalidate the provided refresh token.\n\nThe `UserId` is automatically extracted from the JWT claims, so it does not need to be provided in the body.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `refreshToken` | string | No | The refresh token to invalidate |\n| `logoutFromAllDevices` | bool | No | Invalidate all tokens (default: false) |\n\n### Requires Authentication: Yes"
-          }
-        },
-        {
-          "name": "Forgot Password",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", () => {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Response is success\", () => {",
-                  "    var json = pm.response.json();",
-                  "    pm.expect(json.isSuccess).to.be.true;",
-                  "    pm.expect(json.data.success).to.be.true;",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"ahmed.mohamed@example.com\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/Auth/forgot-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "forgot-password"]
-            },
-            "description": "Request a password reset OTP sent to the provided email address.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n\n### Rate Limiting\n\nThis endpoint uses `otp-sensitive` policy: **3 requests per 5 minutes** per IP."
-          }
-        },
-        {
-          "name": "Verify OTP",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", () => {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Response is success\", () => {",
-                  "    var json = pm.response.json();",
-                  "    pm.expect(json.isSuccess).to.be.true;",
-                  "    pm.expect(json.data.isValid).to.be.true;",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"ahmed.mohamed@example.com\",\n  \"otp\": \"123456\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/Auth/verify-otp",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "verify-otp"]
-            },
-            "description": "Verify the OTP code sent via the Forgot Password flow.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n| `otp` | Required, max 6 characters |\n\n### Rate Limiting\n\nThis endpoint uses `otp-verify` policy: **10 requests per 1 minute** per IP."
-          }
-        },
-        {
-          "name": "Reset Password",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", () => {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Response is success\", () => {",
-                  "    var json = pm.response.json();",
-                  "    pm.expect(json.isSuccess).to.be.true;",
-                  "    pm.expect(json.data.success).to.be.true;",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"ahmed.mohamed@example.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewP@ssw0rd456\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/Auth/reset-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "reset-password"]
-            },
-            "description": "Reset the password using the verified OTP.\n\nThis endpoint verifies the OTP internally before resetting the password.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n| `otp` | Required, max 6 characters |\n| `newPassword` | Required, 8-100 characters. Must contain: uppercase, lowercase, digit, and special character |\n\n### Rate Limiting\n\nThis endpoint uses `otp-verify` policy: **10 requests per 1 minute** per IP."
-          }
-        },
-        {
-          "name": "Confirm Email (GET - HTML Page)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", () => {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Response is HTML\", () => {",
-                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/Auth/confirm-email?userId=1&code=testconfirmationcode",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "confirm-email"],
-              "query": [
-                {
-                  "key": "userId",
-                  "value": "1"
-                },
-                {
-                  "key": "code",
-                  "value": "testconfirmationcode"
-                }
-              ]
-            },
-            "description": "Confirm email using the traditional Identity token (not OTP).\n\nThis endpoint returns an HTML confirmation page (not JSON).\n\n## Query Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `userId` | string | Yes | User ID (from Identity) |\n| `code` | string | Yes | Email confirmation token |\n\n### Rate Limiting\n\nThis endpoint uses `otp-verify` policy: **10 requests per 1 minute** per IP."
-          }
-        },
-        {
-          "name": "Change Password",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", () => {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Response is success\", () => {",
-                  "    var json = pm.response.json();",
-                  "    pm.expect(json.isSuccess).to.be.true;",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"P@ssw0rd123\",\n  \"newPassword\": \"NewP@ssw0rd456\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/Auth/change-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "change-password"]
-            },
-            "description": "Change password for the currently authenticated user.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `currentPassword` | Required |\n| `newPassword` | Required, min 8 characters |\n\n### Requires Authentication: Yes"
-          }
-        },
-        {
           "name": "Login with Google",
           "event": [
             {
@@ -628,7 +298,308 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "Auth", "login-google"]
             },
-            "description": "Authenticate using a Google ID token.\n\nOn success, **accessToken** and **refreshToken** are automatically saved.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `idToken` | Required |\n\n## Prerequisites\n\n- A valid Google ID token obtained from the Google Sign-In SDK on the client side.\n- The backend is configured with `Authentication:Google:ClientId` and `Authentication:Google:FlutterClientId`."
+            "description": "Authenticate using a Google ID token.\n\nOn success, **accessToken** and **refreshToken** are automatically saved.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `idToken` | Required |\n\n## Prerequisites\n\n- A valid Google ID token obtained from the Google Sign-In SDK on the client side.\n- Backend must be configured with `Authentication:Google:ClientId` in appsettings.json."
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200 && pm.response.json().isSuccess) {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.collectionVariables.set(\"accessToken\", data.token);",
+                  "    pm.collectionVariables.set(\"refreshToken\", data.refreshtoken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"accessToken\": \"{{accessToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Auth", "refresh-token"]
+            },
+            "description": "Refresh an expired JWT access token using a valid refresh token.\n\nBoth the current `accessToken` (expired or valid) and `refreshToken` must be provided. On success, new tokens are automatically saved.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `refreshToken` | Required |\n| `accessToken` | Required |\n\n### Rate Limiting\n\nNone."
+          }
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"logoutFromAllDevices\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Auth", "logout"]
+            },
+            "description": "Logout and invalidate the refresh token.\n\n- Set `logoutFromAllDevices` to `true` to invalidate ALL refresh tokens for the user.\n- Set to `false` (or omit) to only invalidate the provided refresh token.\n\nThe `UserId` is automatically extracted from the JWT claims, so it does not need to be provided in the body.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `refreshToken` | string | No | The refresh token to invalidate |\n| `logoutFromAllDevices` | bool | No | Invalidate all tokens (default: false) |\n\n### Requires Authentication: Yes\n\n### Rate Limiting\n\nNone."
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "    pm.expect(json.data.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ahmed.mohamed@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Auth", "forgot-password"]
+            },
+            "description": "Request a password reset OTP sent to the provided email address.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n\n### Rate Limiting\n\n`Ip_3Limit_5Min`: **3 requests per 5 minutes** per IP."
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "    pm.expect(json.data.isValid).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ahmed.mohamed@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Auth/verify-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Auth", "verify-otp"]
+            },
+            "description": "Verify the OTP code sent via the Forgot Password flow.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n| `otp` | Required, max 6 characters |\n\n### Rate Limiting\n\n`Ip_10Limit_1Min`: **10 requests per 1 minute** per IP."
+          }
+        },
+        {
+          "name": "Reset Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "    pm.expect(json.data.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ahmed.mohamed@example.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewP@ssw0rd456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Auth", "reset-password"]
+            },
+            "description": "Reset the password using the verified OTP.\n\nThis endpoint verifies the OTP internally before resetting the password.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n| `otp` | Required, max 6 characters |\n| `newPassword` | Required, 8-100 characters. Must contain: uppercase, lowercase, digit, and special character |\n\n### Rate Limiting\n\n`Ip_10Limit_1Min`: **10 requests per 1 minute** per IP."
+          }
+        },
+        {
+          "name": "Confirm Email (GET - HTML Page)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is HTML\", () => {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Auth/confirm-email?userId=1&code=testconfirmationcode",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Auth", "confirm-email"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "1"
+                },
+                {
+                  "key": "code",
+                  "value": "testconfirmationcode"
+                }
+              ]
+            },
+            "description": "Confirm email using the traditional Identity token (not OTP).\n\nThis endpoint returns an HTML confirmation page (not JSON).\n\n## Query Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `userId` | string | Yes | User ID (from Identity) |\n| `code` | string | Yes | Email confirmation token |\n\n### Rate Limiting\n\n`Ip_10Limit_1Min`: **10 requests per 1 minute** per IP."
+          }
+        },
+        {
+          "name": "Change Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"P@ssw0rd123\",\n  \"newPassword\": \"NewP@ssw0rd456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Auth", "change-password"]
+            },
+            "description": "Change password for the currently authenticated user.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `currentPassword` | Required |\n| `newPassword` | Required, min 8 characters |\n\n### Requires Authentication: Yes\n\n### Rate Limiting\n\nNone."
           }
         },
         {
@@ -655,6 +626,7 @@
                   "    if (data.phoneNumber !== null && data.phoneNumber !== undefined) {",
                   "        pm.expect(data.phoneNumber).to.be.a('string');",
                   "    }",
+                  "    if (data.roles) pm.expect(data.roles).to.be.an('array');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -662,16 +634,6 @@
             }
           ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "GET",
             "header": [],
             "url": {
@@ -685,11 +647,11 @@
       ]
     },
     {
-      "name": "02 Topics",
-      "description": "Topic management endpoints with full CRUD operations and pagination.",
+      "name": "02 Subscription Plans",
+      "description": "Subscription Plan management with full CRUD operations, pagination, and related PlanPrice management.",
       "item": [
         {
-          "name": "Get Topics (Paged)",
+          "name": "Get Subscription Plans (Paged)",
           "event": [
             {
               "listen": "test",
@@ -722,14 +684,7 @@
           ],
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "POST",
             "header": [
@@ -743,15 +698,15 @@
               "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": null,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"createdById\": null,\n  \"filters\": null\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/Topic",
+              "raw": "{{baseUrl}}/api/SubscriptionPlan",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "Topic"]
+              "path": ["api", "SubscriptionPlan"]
             },
-            "description": "Get a paginated list of topics with optional search, sorting, and filtering.\n\n## Request Body Fields\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `pageNumber` | int | 1 | Page number (1-based) |\n| `pageSize` | int | 10 | Page size (max 50) |\n| `searchTerm` | string | null | Search term (max 100 chars) |\n| `orderBy` | string | \"Id\" | Property to order by |\n| `orderDirection` | string | \"asc\" | Sort direction: \"asc\" or \"desc\" |\n| `isActive` | bool | true | Filter by active status |\n| `createdById` | int | null | Filter by creator |\n| `filters` | object | null | Advanced filtering (BetweenFilters, ExactFilters) |\n\n## Pagination Response\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `totalCount` | number | Total items matching the query |\n| `pageSize` | number | Items per page |\n| `pageNumber` | number | Current page |\n| `totalPages` | number | Total number of pages |\n| `hasPrevious` | boolean | Whether a previous page exists |\n| `hasNext` | boolean | Whether a next page exists |\n| `items` | array | Topic items for current page |\n\n### Requires Roles: User, Admin, Owner, or Guest"
+            "description": "Get a paginated list of subscription plans with optional search, sorting, and filtering.\n\n## Request Body Fields\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `pageNumber` | int | 1 | Page number (1-based) |\n| `pageSize` | int | 10 | Page size (max 50) |\n| `searchTerm` | string | null | Search term (max 100 chars) |\n| `orderBy` | string | \"Id\" | Property to order by |\n| `orderDirection` | string | \"asc\" | Sort direction: \"asc\" or \"desc\" |\n| `isActive` | bool | true | Filter by active status |\n| `createdById` | int | null | Filter by creator |\n| `filters` | object | null | Advanced filtering (BetweenFilters, ExactFilters) |\n\n## Pagination Response\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `totalCount` | number | Total items matching the query |\n| `pageSize` | number | Items per page |\n| `pageNumber` | number | Current page |\n| `totalPages` | number | Total number of pages |\n| `hasPrevious` | boolean | Whether a previous page exists |\n| `hasNext` | boolean | Whether a next page exists |\n| `items` | array | SubscriptionPlan items for current page |\n\n### Requires Authentication: No (AllowAnonymous)"
           }
         },
         {
-          "name": "Get Topic by ID",
+          "name": "Get Subscription Plan by ID",
           "event": [
             {
               "listen": "test",
@@ -766,12 +721,15 @@
                   "    pm.expect(json.isSuccess).to.be.true;",
                   "});",
                   "",
-                  "pm.test(\"Topic has required fields\", () => {",
+                  "pm.test(\"Plan has required fields\", () => {",
                   "    var data = pm.response.json().data;",
                   "    pm.expect(data).to.be.an('object');",
                   "    pm.expect(data.id).to.be.a('number');",
                   "    pm.expect(data.name).to.be.a('string');",
-                  "    pm.expect(data.subjectId).to.be.a('number');",
+                  "    pm.expect(data.maxOwnedGyms).to.be.a('number');",
+                  "    pm.expect(data.maxCoachesPerGym).to.be.a('number');",
+                  "    pm.expect(data.maxMembersPerGym).to.be.a('number');",
+                  "    pm.expect(data.isActive).to.be.a('boolean');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -780,27 +738,20 @@
           ],
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/Topic/{{createdEntityId}}",
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/{{createdEntityId}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "Topic", "{{createdEntityId}}"]
+              "path": ["api", "SubscriptionPlan", "{{createdEntityId}}"]
             },
-            "description": "Get a single topic by its ID.\n\n## Route Parameters\n\n| Parameter | Type | Description |\n|-----------|------|-------------|\n| `id` | int | Topic ID |\n\n## Response Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | number | Topic ID |\n| `name` | string | Topic name |\n| `description` | string | Topic description |\n| `subjectId` | number | Related subject ID |\n\n### Requires Roles: User, Admin, Owner, or Guest"
+            "description": "Get a single subscription plan by its ID.\n\n## Route Parameters\n\n| Parameter | Type | Description |\n|-----------|------|-------------|\n| `id` | int | Subscription Plan ID |\n\n## Response Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | number | Plan ID |\n| `name` | string | Plan name |\n| `description` | string | Plan description |\n| `maxOwnedGyms` | number | Max owned gyms allowed |\n| `maxCoachesPerGym` | number | Max coaches per gym |\n| `maxMembersPerGym` | number | Max members per gym |\n| `featuresJson` | string | JSON string of features |\n| `isActive` | boolean | Whether the plan is active |\n| `createdOn` | string | Creation timestamp |\n| `prices` | array | Plan prices (PlanPriceRDTO) |\n\n### Requires Authentication: No (AllowAnonymous)"
           }
         },
         {
-          "name": "Create Topic",
+          "name": "Create Subscription Plan",
           "event": [
             {
               "listen": "test",
@@ -815,7 +766,7 @@
                   "    pm.expect(json.isSuccess).to.be.true;",
                   "});",
                   "",
-                  "pm.test(\"Created topic has an ID\", () => {",
+                  "pm.test(\"Created plan has an ID\", () => {",
                   "    var data = pm.response.json().data;",
                   "    pm.expect(data.id).to.be.a('number');",
                   "    pm.collectionVariables.set(\"createdEntityId\", data.id.toString());",
@@ -826,16 +777,6 @@
             }
           ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "POST",
             "header": [
               {
@@ -845,18 +786,18 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Machine Learning Fundamentals\",\n  \"description\": \"Introduction to machine learning concepts, algorithms, and practical applications\",\n  \"subjectId\": 1\n}"
+              "raw": "{\n  \"name\": \"Premium Gym Plan\",\n  \"description\": \"Complete gym management solution with unlimited members and coaches\",\n  \"maxOwnedGyms\": 5,\n  \"maxCoachesPerGym\": 20,\n  \"maxMembersPerGym\": 500,\n  \"featuresJson\": \"[\\\"analytics\\\",\\\"staff-management\\\",\\\"member-app\\\",\\\"payment-processing\\\"]\",\n  \"prices\": [\n    {\n      \"planId\": 0,\n      \"countryCode\": \"EG\",\n      \"currencyCode\": \"EGP\",\n      \"durationMonths\": 1,\n      \"amount\": 999.99\n    },\n    {\n      \"planId\": 0,\n      \"countryCode\": \"EG\",\n      \"currencyCode\": \"EGP\",\n      \"durationMonths\": 12,\n      \"amount\": 9999.99\n    }\n  ]\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/Topic/Create",
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/Create",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "Topic", "Create"]
+              "path": ["api", "SubscriptionPlan", "Create"]
             },
-            "description": "Create a new topic.\n\nOn success, the **createdEntityId** collection variable is automatically set to the new topic's ID.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `name` | Required, max 255 characters |\n| `description` | Optional, max 1000 characters |\n| `subjectId` | Required |\n\n### Requires Roles: Owner, Admin, or User"
+            "description": "Create a new subscription plan with optional prices.\n\nOn success, the **createdEntityId** collection variable is automatically set to the new plan's ID.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `name` | string | Yes | Plan name |\n| `description` | string | No | Plan description |\n| `maxOwnedGyms` | int | Yes | Maximum gyms allowed |\n| `maxCoachesPerGym` | int | Yes | Maximum coaches per gym |\n| `maxMembersPerGym` | int | Yes | Maximum members per gym |\n| `featuresJson` | string | No | JSON array of feature names |\n| `prices` | array | No | Array of PlanPriceCDTO objects |\n\n### Requires Roles: SuperAdmin"
           }
         },
         {
-          "name": "Update Topic",
+          "name": "Update Subscription Plan",
           "event": [
             {
               "listen": "test",
@@ -871,9 +812,9 @@
                   "    pm.expect(json.isSuccess).to.be.true;",
                   "});",
                   "",
-                  "pm.test(\"Updated topic has modified name\", () => {",
+                  "pm.test(\"Updated plan has modified fields\", () => {",
                   "    var data = pm.response.json().data;",
-                  "    pm.expect(data.name).to.eql(\"Advanced Machine Learning\");",
+                  "    pm.expect(data.name).to.eql(\"Enterprise Gym Plan\");",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -881,16 +822,6 @@
             }
           ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "PUT",
             "header": [
               {
@@ -900,18 +831,18 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Advanced Machine Learning\",\n  \"description\": \"Advanced machine learning topics including deep learning, reinforcement learning, and NLP\",\n  \"subjectId\": 1\n}"
+              "raw": "{\n  \"name\": \"Enterprise Gym Plan\",\n  \"description\": \"Enterprise-grade gym management with unlimited resources\",\n  \"maxOwnedGyms\": 50,\n  \"maxCoachesPerGym\": 100,\n  \"maxMembersPerGym\": 10000,\n  \"featuresJson\": \"[\\\"analytics\\\",\\\"staff-management\\\",\\\"member-app\\\",\\\"payment-processing\\\",\\\"api-access\\\",\\\"white-label\\\"]\",\n  \"isActive\": true,\n  \"prices\": []\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/Topic/{{createdEntityId}}",
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/{{createdEntityId}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "Topic", "{{createdEntityId}}"]
+              "path": ["api", "SubscriptionPlan", "{{createdEntityId}}"]
             },
-            "description": "Update an existing topic.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `name` | Required, max 255 characters |\n| `description` | Optional, max 1000 characters |\n| `subjectId` | Required |\n\n### Requires Roles: Admin, Owner, or User"
+            "description": "Update an existing subscription plan.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `name` | string | Yes | Plan name |\n| `description` | string | No | Plan description |\n| `maxOwnedGyms` | int | Yes | Maximum gyms allowed |\n| `maxCoachesPerGym` | int | Yes | Maximum coaches per gym |\n| `maxMembersPerGym` | int | Yes | Maximum members per gym |\n| `featuresJson` | string | No | JSON array of feature names |\n| `isActive` | bool | Yes | Whether the plan is active |\n| `prices` | array | No | Array of PlanPriceUDTO objects |\n\n### Requires Roles: SuperAdmin"
           }
         },
         {
-          "name": "Delete Topic",
+          "name": "Delete Subscription Plan",
           "event": [
             {
               "listen": "test",
@@ -931,31 +862,207 @@
             }
           ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/Topic/{{createdEntityId}}",
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/{{createdEntityId}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "Topic", "{{createdEntityId}}"]
+              "path": ["api", "SubscriptionPlan", "{{createdEntityId}}"]
             },
-            "description": "Delete a topic by its ID.\n\n### Requires Roles: Admin or Owner"
+            "description": "Soft-delete a subscription plan by its ID.\n\n### Requires Roles: SuperAdmin"
+          }
+        },
+        {
+          "name": "Create Plan Price",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Created plan price has an ID\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data.id).to.be.a('number');",
+                  "    pm.collectionVariables.set(\"createdPlanPriceId\", data.id.toString());",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": {{createdEntityId}},\n  \"countryCode\": \"US\",\n  \"currencyCode\": \"USD\",\n  \"durationMonths\": 3,\n  \"amount\": 299.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/PlanPrices/Create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "SubscriptionPlan", "PlanPrices", "Create"]
+            },
+            "description": "Create a new plan price for a subscription plan.\n\nOn success, the **createdPlanPriceId** collection variable is automatically set.\n\n## Request Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `planId` | int | Subscription Plan ID |\n| `countryCode` | string | ISO country code (e.g., \"EG\", \"US\") |\n| `currencyCode` | string | ISO currency code (e.g., \"EGP\", \"USD\") |\n| `durationMonths` | int | Duration in months |\n| `amount` | decimal | Price amount |\n\n### Requires Roles: SuperAdmin"
+          }
+        },
+        {
+          "name": "Delete Plan Price",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/PlanPrices/{{createdPlanPriceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "SubscriptionPlan", "PlanPrices", "{{createdPlanPriceId}}"]
+            },
+            "description": "Soft-delete a plan price by its ID.\n\n### Requires Roles: SuperAdmin"
           }
         }
       ]
     },
     {
-      "name": "03 Negative Test Cases",
-      "description": "Negative test scenarios to verify API error handling, validation, and authorization.",
+      "name": "03 Test & Utilities",
+      "description": "Test endpoints for development and debugging purposes. These endpoints are intended for development use only.",
+      "item": [
+        {
+          "name": "Add Child (Test Transaction)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has message\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.message).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Test/1/add-child?childName=TestChild",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Test", "1", "add-child"],
+              "query": [
+                {
+                  "key": "childName",
+                  "value": "TestChild"
+                }
+              ]
+            },
+            "description": "Test endpoint to demonstrate transactional behavior with EF Core outbox pattern.\n\nAdds a child entity, updates the parent counter, and saves an outbox event in a single transaction.\n\n## Route Parameters\n\n| Parameter | Type | Description |\n|-----------|------|-------------|\n| `parentId` | int | Parent entity ID |\n\n## Query Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `childName` | string | Yes | Name of the child |\n\n### Requires Authentication: No (AllowAnonymous)"
+          }
+        },
+        {
+          "name": "Test Send Notification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has result\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Test/send-notification",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Test", "send-notification"]
+            },
+            "description": "Test endpoint to send a Firebase Cloud Messaging push notification.\n\nRequires Firebase configuration to be set up.\n\n### Requires Authentication: No (AllowAnonymous)"
+          }
+        },
+        {
+          "name": "Test Send Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Test/send-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Test", "send-email"]
+            },
+            "description": "Test endpoint to send an email via SMTP.\n\nSends a test email to the configured address. Requires MailOptions configuration.\n\n### Requires Authentication: No (AllowAnonymous)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Negative Test Cases",
+      "description": "Negative test scenarios to verify API error handling, validation, authorization, and rate limiting.",
       "item": [
         {
           "name": "Unauthorized - No Token",
@@ -968,9 +1075,9 @@
                   "    pm.response.to.have.status(401);",
                   "});",
                   "",
-                  "pm.test(\"Response contains error\", () => {",
+                  "pm.test(\"Response contains error detail\", () => {",
                   "    var json = pm.response.json();",
-                  "    pm.expect(json).to.have.property('detail');",
+                  "    pm.expect(json).to.have.property('detail').or.have.property('type');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -992,7 +1099,7 @@
           }
         },
         {
-          "name": "Forbidden - Insufficient Role",
+          "name": "Forbidden - User Cannot Create Plan",
           "event": [
             {
               "listen": "test",
@@ -1002,7 +1109,7 @@
                   "    pm.response.to.have.status(403);",
                   "});",
                   "",
-                  "pm.test(\"Response is failure\", () => {",
+                  "pm.test(\"Response is failure with FORBIDDEN code\", () => {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.isSuccess).to.be.false;",
                   "    pm.expect(json.error.code).to.eql(\"FORBIDDEN\");",
@@ -1013,24 +1120,23 @@
             }
           ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Unauthorized Plan\",\n  \"maxOwnedGyms\": 1,\n  \"maxCoachesPerGym\": 5,\n  \"maxMembersPerGym\": 50\n}"
             },
-            "method": "DELETE",
-            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/Topic/999",
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/Create",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "Topic", "999"]
+              "path": ["api", "SubscriptionPlan", "Create"]
             },
-            "description": "Attempt to delete a topic without having Admin or Owner role.\n\n**Expected Result:** HTTP 403 Forbidden with `FORBIDDEN` error code.\n\n**Note:** This test will only trigger 403 if the current user does NOT have Admin or Owner role. If the user has these roles, the request may return 404 (topic not found) instead."
+            "description": "Attempt to create a subscription plan without the SuperAdmin role.\n\n**Expected Result:** HTTP 403 Forbidden with `FORBIDDEN` error code.\n\n**Note:** This test will only trigger 403 if the current user does NOT have the SuperAdmin role. If the user is SuperAdmin, the request may succeed."
           }
         },
         {
@@ -1120,7 +1226,7 @@
           }
         },
         {
-          "name": "Not Found - Invalid Topic ID",
+          "name": "Not Found - Invalid Plan ID",
           "event": [
             {
               "listen": "test",
@@ -1130,7 +1236,7 @@
                   "    pm.response.to.have.status(404);",
                   "});",
                   "",
-                  "pm.test(\"Response is failure\", () => {",
+                  "pm.test(\"Response is failure with NOT_FOUND code\", () => {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.isSuccess).to.be.false;",
                   "    pm.expect(json.error.code).to.eql(\"NOT_FOUND\");",
@@ -1142,23 +1248,16 @@
           ],
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/Topic/99999",
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/99999",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "Topic", "99999"]
+              "path": ["api", "SubscriptionPlan", "99999"]
             },
-            "description": "Attempt to get a topic that does not exist.\n\n**Expected Result:** HTTP 404 Not Found with `NOT_FOUND` error code."
+            "description": "Attempt to get a subscription plan that does not exist.\n\n**Expected Result:** HTTP 404 Not Found with `NOT_FOUND` error code."
           }
         },
         {
@@ -1203,6 +1302,49 @@
             },
             "description": "Attempt to refresh tokens with invalid values.\n\n**Expected Result:** HTTP 400 Bad Request with `BAD_REQUEST` error code."
           }
+        },
+        {
+          "name": "Weak Password Validation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", () => {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is failure\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"userName\": \"test\",\n  \"password\": \"weak\",\n  \"phoneNumber\": \"+201001234567\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Auth", "register"]
+            },
+            "description": "Attempt to register with a weak password that does not meet complexity requirements.\n\n**Expected Result:** HTTP 400 Bad Request with `VALIDATION_ERROR` error code.\n\nPassword must be: 8-100 characters, with uppercase, lowercase, digit, and special character."
+          }
         }
       ]
     }
@@ -1230,6 +1372,11 @@
     },
     {
       "key": "createdEntityId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "createdPlanPriceId",
       "value": "",
       "type": "string"
     }

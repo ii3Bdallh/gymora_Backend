@@ -24,7 +24,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<ILogger>(sp =>
             sp.GetRequiredService<ILoggerFactory>().CreateLogger("App"));
 
-        // Script will Add After Here DependencyInjectionRepo
+           // Script will Add After Here DependencyInjectionRepo
+    services.AddScoped<ISubscriptionPlanRepo, SubscriptionPlanRepo>();
 
 
         return services;

@@ -1,26 +1,53 @@
+using System.Linq.Expressions;
 using Application.DTO;
 using Application.DTO.Pagintion;
-using Domain.Enum;
 using Domain.Model.Base;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Interface.Repo
 {
     public interface IBaseRepo<T> where T : BaseEntity
     {
-        public DbSet<T> DbSet { get; }
-        public Task<IEnumerable<T?>> GetAllAsync(CancellationToken cancellationToken = default);
-        public IQueryable<T> GetAllQuery(PaginatedSearchReq searchReq, bool IsActive = true, bool trackChanges = false, CancellationToken cancellationToken = default);
-        public Task<PaginatedRes<T>> GetPageAsync(PaginatedSearchReq searchReq, bool IsActive = true, bool trackChanges = false, CancellationToken cancellationToken = default);
-        public Task<T> GetByIdAsync(int id, bool IsActive = true, bool trackChanges = false, CancellationToken cancellationToken = default);
-        public Task<T> UpdateAsync(T item, bool trackChanges = false, CancellationToken cancellationToken = default);
-        public Task<T> AddAsync(T item, bool trackChanges = false, CancellationToken cancellationToken = default);
-        public Task<T> DeleteAsync(int id, CancellationToken cancellationToken = default);
+        // جلب كل العناصر (للقوائم الصغيرة)
+        Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default);
+
+        // بناء الـ Query الأساسية مع الفلاتر والسيرش والـ Includes
+        IQueryable<T> GetAllQuery(
+            PaginatedSearchReq searchReq,
+            bool isActive = true,
+            bool trackChanges = false,
+            CancellationToken cancellationToken = default,
+            params Expression<Func<T, object>>[] includes);
+
+        // جلب صفحة معينة (Pagination) ودعم الـ Includes للـ Children
+        Task<PaginatedRes<T>> GetPageAsync(
+            PaginatedSearchReq searchReq,
+            bool isActive = true,
+            bool trackChanges = false,
+            CancellationToken cancellationToken = default,
+            params Expression<Func<T, object>>[] includes);
+
+        // جلب عنصر واحد بـ ID مع الـ Includes بتوعه
+        Task<T?> GetByIdAsync(
+            int id,
+            bool isActive = true,
+            bool trackChanges = false,
+            CancellationToken cancellationToken = default,
+            params Expression<Func<T, object>>[] includes);
+
+        // عمليات التعديل جوه الـ Memory (بدون SaveChanges)
+        Task<T> AddAsync(T item, CancellationToken cancellationToken = default);
+        Task<T> UpdateAsync(T item, CancellationToken cancellationToken = default);
+
+        // تحديث الـ Parent ومزامنة الـ Children بتوعه (إضافة/تعديل/مسح للـ Children)
+        // Task UpdateWithChildrenAsync<TChild>(T parentItem, Expression<Func<T, IEnumerable<TChild>>> childCollectionExpression) where TChild : class;
+
+        // الحذف المؤقت (IsActive = false)
+        Task<T> DeleteAsync(T item, CancellationToken cancellationToken = default);
+
+        // الحذف المؤقت للـ Parent وكل الـ Children المحددين معاه
+        // Task<T?> DeleteWithChildrenAsync(int id, CancellationToken cancellationToken = default, params Expression<Func<T, IEnumerable<object>>>[] childCollections);
+
+        // الحذف النهائي من الداتا بيز
+        Task<T> HardDeleteAsync(T item, CancellationToken cancellationToken = default);
     }
 }
-

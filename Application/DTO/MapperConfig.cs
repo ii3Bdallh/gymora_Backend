@@ -18,6 +18,20 @@ namespace Application.DTO
         {
 
             // Script will Add After Here MapperConfig
+            CreateMap<SubscriptionPlan, SubscriptionPlanCDTO>()
+                .ReverseMap();
+            CreateMap<SubscriptionPlan, SubscriptionPlanUDTO>()
+                .ReverseMap();
+            CreateMap<SubscriptionPlan, SubscriptionPlanRDTO>()
+                .ReverseMap();
+                
+            CreateMap<PlanPrice, PlanPriceCDTO>()
+                .ReverseMap();
+            CreateMap<PlanPrice, PlanPriceUDTO>()
+                .ReverseMap();
+            CreateMap<PlanPrice, PlanPriceRDTO>()
+                .ReverseMap();
+                
 
                 
 
