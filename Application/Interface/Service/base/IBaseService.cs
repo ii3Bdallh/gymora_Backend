@@ -1,15 +1,22 @@
-using Application.DTO;
-using Application.DTO.Pagintion;
+using Application.DTO.Base;
+using Domain.Model.Base;
 
 namespace Application.Interface.Service
 {
-    public interface IBaseService<T, RDTO, CDTO, UDTO>
+    /// <summary>
+    /// Full CRUD contract. Extends IBaseReadService, so anything that
+    /// can write can also read — but not the other way around.
+    /// </summary>
+    public interface IBaseService<T, RDTO, CDTO, UDTO> : IBaseReadService<T, RDTO>
+        where T : BaseEntity
+        where RDTO : BaseRDTO
+        where CDTO : BaseCDTO
+        where UDTO : BaseUDTO
     {
-        Task<IEnumerable<RDTO>> GetAllAsync(CancellationToken cancellationToken = default);
-        Task<PaginatedRes<RDTO>> GetPageAsync(PaginatedSearchReq searchReq, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default);
-        Task<RDTO> GetByIdAsync(int id, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default);
         Task<RDTO> AddAsync(CDTO dto, CancellationToken cancellationToken = default);
+
         Task<RDTO> UpdateAsync(int id, UDTO dto, CancellationToken cancellationToken = default);
+
         Task<RDTO> DeleteAsync(int id, CancellationToken cancellationToken = default);
     }
 }

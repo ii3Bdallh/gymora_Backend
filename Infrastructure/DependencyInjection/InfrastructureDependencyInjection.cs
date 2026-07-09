@@ -62,6 +62,11 @@ sp.GetRequiredService<IOptions<GoogleDriveOptions>>().Value);
 sp.GetRequiredService<IOptions<MailOptions>>().Value);
 
 
+        services.Configure<CacheOptions>(
+            configuration.GetSection(CacheOptions.SectionName));
+        services.AddSingleton(sp =>
+sp.GetRequiredService<IOptions<CacheOptions>>().Value);
+
         services.Configure<HangfireOptions>(
             configuration.GetSection(HangfireOptions.SectionName));
         services.AddSingleton(sp =>
@@ -169,8 +174,9 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
         services.AddMassTransit(x =>
    {
        // 1. تسجيل الـ Consumers
-       x.AddConsumer<NotificationConsumer>();
-       x.AddConsumer<EmailConsumer>();
+        x.AddConsumer<NotificationConsumer>();
+        x.AddConsumer<EmailConsumer>();
+        x.AddConsumer<CacheInvalidationConsumer>();
 
        // 2. تهيئة الـ Entity Framework Outbox
        x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
@@ -193,6 +199,9 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
         services.AddScoped<IdentitySeeder>();
 
         services.AddHttpContextAccessor();
+
+        services.AddMemoryCache();
+        services.AddScoped<ICacheService, CacheService>();
 
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 

@@ -1,3 +1,4 @@
+// Infrastructure/Utils/JwtProvider.cs
 using Google.Apis.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -17,66 +18,48 @@ namespace Infrastructure.Utils
         private readonly IConfiguration _configuration;
         private readonly ILogger<JwtProvider> _logger;
 
-        public JwtProvider(JwtOptions jwtOptions, IConfiguration configuration, ILogger<JwtProvider> logger)
+        public JwtProvider(
+            JwtOptions jwtOptions,
+            IConfiguration configuration,
+            ILogger<JwtProvider> logger)
         {
             _jwtOptions = jwtOptions;
             _configuration = configuration;
             _logger = logger;
         }
 
-        public string? GetUserIdByToken(string token, bool validateLifetime = true)
+        public (string token, int expireInMinutes) GenerateToken(
+            ApplicationUser appUser,
+            IList<string> roles,
+            int? currentGymId = null,
+            string? gymRole = null)
         {
-            var handler = new JwtSecurityTokenHandler();
-            var symmeticeSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey!));
-            try
+            var claims = new List<Claim>
             {
-                handler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = _jwtOptions.Issuer,
-                    ValidateAudience = true,
-                    ValidAudience = _jwtOptions.Audience,
-                    ValidateLifetime = validateLifetime,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = symmeticeSecurityKey
-                }, out SecurityToken validatedToken);
+                new Claim(ClaimTypes.NameIdentifier, appUser.Id.ToString()),
+                new Claim(ClaimTypes.Email, appUser.Email ?? string.Empty),
+                new Claim("UserId", appUser.Id.ToString()),
+            };
 
-                var jwtSecurityToken = validatedToken as JwtSecurityToken;
-                if (jwtSecurityToken == null) return null;
-                return jwtSecurityToken.Subject;
-            }
-            catch (SecurityTokenExpiredException)
-            {
-                _logger.LogWarning("Token expired");
-                return null;
-            }
-            catch (SecurityTokenException ex)
-            {
-                _logger.LogWarning(ex, "Token validation failed");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error validating token");
-                return null;
-            }
-        }
-
-        public (string token, int expireInMinutes) GenerateToken(ApplicationUser appUser, IList<string> roles)
-        {
-            List<Claim> claims = [
-            new(ClaimTypes.NameIdentifier, appUser.Id.ToString()),
-            new(ClaimTypes.Email, appUser.Email ?? string.Empty),
-            new(ClaimTypes.Name, appUser.PersonName)
-            ];
+            // App Roles (SuperAdmin, PlatformAdmin, ...)
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            var symmeticeSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey!));
+            // Gym Specific Claims
+            if (currentGymId.HasValue)
+            {
+                claims.Add(new Claim("CurrentGymId", currentGymId.Value.ToString()));
+            }
 
-            var credentials = new SigningCredentials(symmeticeSecurityKey, SecurityAlgorithms.HmacSha256);
+            if (!string.IsNullOrEmpty(gymRole))
+            {
+                claims.Add(new Claim("GymRole", gymRole));
+            }
+
+            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey!));
+            var credentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
                 issuer: _jwtOptions.Issuer,
@@ -92,32 +75,65 @@ namespace Infrastructure.Utils
             );
         }
 
+        // Generate Token after Switch Gym
+        public (string token, int expireInMinutes) GenerateTokenWithGym(
+            ApplicationUser appUser,
+            IList<string> roles,
+            int currentGymId,
+            string gymRole)
+        {
+            return GenerateToken(appUser, roles, currentGymId, gymRole);
+        }
+
+        public string? GetUserIdByToken(string token, bool validateLifetime = true)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey!));
+
+            try
+            {
+                handler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = _jwtOptions.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = _jwtOptions.Audience,
+                    ValidateLifetime = validateLifetime,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = symmetricSecurityKey
+                }, out SecurityToken validatedToken);
+
+                var jwtToken = validatedToken as JwtSecurityToken;
+                return jwtToken?.Subject;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Token validation failed");
+                return null;
+            }
+        }
+
         public async Task<GoogleJsonWebSignature.Payload?> VerifyGoogleToken(string googleIdToken)
         {
             string? googleClientId = _configuration["Authentication:Google:FlutterClientId"];
-            if (googleClientId is null)
+            if (string.IsNullOrEmpty(googleClientId))
             {
                 _logger.LogError("Google Client Id is not configured");
                 throw new Exception("Google Client Id is not configured");
             }
+
             try
             {
-                var settings = new GoogleJsonWebSignature.ValidationSettings()
+                var settings = new GoogleJsonWebSignature.ValidationSettings
                 {
                     Audience = new[] { googleClientId }
                 };
 
-                var payload = await GoogleJsonWebSignature.ValidateAsync(googleIdToken, settings);
-                return payload;
-            }
-            catch (InvalidJwtException ex)
-            {
-                _logger.LogWarning(ex, "Invalid Google token");
-                return null;
+                return await GoogleJsonWebSignature.ValidateAsync(googleIdToken, settings);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Google token verification failed");
+                _logger.LogWarning(ex, "Invalid Google token");
                 return null;
             }
         }

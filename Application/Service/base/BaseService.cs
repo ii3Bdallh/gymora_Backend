@@ -1,67 +1,43 @@
-using Application.DTO;
+using Application.Cache;
 using Application.DTO.Base;
 using Application.DTO.Exceptions;
-using Application.DTO.Pagintion;
 using Application.Interface.Repo;
 using Application.Interface.Service;
+using Application.Interface.Service.Shared;
+using Application.Model;
 using AutoMapper;
+using Domain.Events;
 using Domain.Model.Base;
+using MassTransit;
 
 namespace Application.Service
 {
-    public abstract class BaseService<T, RDTO, CDTO, UDTO> : IBaseService<T, RDTO, CDTO, UDTO>
-     where T : BaseEntity
-     where RDTO : BaseRDTO
-     where CDTO : BaseCDTO
-     where UDTO : BaseUDTO
+    /// <summary>
+    /// Adds Add/Update/Delete on top of BaseReadService. Because it
+    /// inherits from BaseReadService, it automatically has GetAll/GetById/
+    /// GetPage too — a write-capable service is always read-capable first.
+    /// </summary>
+    public abstract class BaseService<T, RDTO, CDTO, UDTO>
+        : BaseReadService<T, RDTO>, IBaseService<T, RDTO, CDTO, UDTO>
+        where T : BaseEntity
+        where RDTO : BaseRDTO
+        where CDTO : BaseCDTO
+        where UDTO : BaseUDTO
     {
-        protected readonly IBaseRepo<T> _repo;
-        protected readonly IUnitOfWork _unitOfWork; // 👈 إضافة الـ UnitOfWork هنا
-        protected readonly IMapper _mapper;
+        protected readonly IUnitOfWork _unitOfWork;
+        protected readonly IPublishEndpoint _publishEndpoint;
 
-        protected BaseService(IBaseRepo<T> repo, IUnitOfWork unitOfWork, IMapper mapper)
+        protected BaseService(
+            IBaseRepo<T> repo,
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            ICacheService cacheService,
+            IPublishEndpoint publishEndpoint,
+            CurrentUser currentUser)
+            : base(repo, mapper, cacheService, currentUser)
         {
-            _repo = repo;
-            _unitOfWork = unitOfWork;a
-            _mapper = mapper;
-        }
-
-        public virtual async Task<IEnumerable<RDTO>> GetAllAsync(CancellationToken cancellationToken = default)
-        {
-            var models = await _repo.GetAllAsync(cancellationToken);
-            return _mapper.Map<IEnumerable<RDTO>>(models);
-        }
-
-        public virtual async Task<PaginatedRes<RDTO>> GetPageAsync(
-            PaginatedSearchReq searchReq,
-            bool isActive = true,
-            bool trackChanges = false,
-            CancellationToken cancellationToken = default)
-        {
-            var page = await _repo.GetPageAsync(searchReq, isActive, trackChanges, cancellationToken);
-
-            return new PaginatedRes<RDTO>
-            {
-                PageNumber = page.PageNumber,
-                PageSize = page.PageSize,
-                TotalCount = page.TotalCount,
-                Items = _mapper.Map<IEnumerable<RDTO>>(page.Items)
-            };
-        }
-
-        public virtual async Task<RDTO> GetByIdAsync(
-            int id,
-            bool isActive = true,
-            bool trackChanges = false,
-            CancellationToken cancellationToken = default)
-        {
-            T? entity = await _repo.GetByIdAsync(id, isActive, trackChanges, cancellationToken);
-
-            // 👈 التحقق هنا مكانه الصحيح هندسياً
-            if (entity is null)
-                throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
-
-            return _mapper.Map<RDTO>(entity);
+            _unitOfWork = unitOfWork;
+            _publishEndpoint = publishEndpoint;
         }
 
         public virtual async Task<RDTO> AddAsync(CDTO dto, CancellationToken cancellationToken = default)
@@ -69,16 +45,17 @@ namespace Application.Service
             T entity = _mapper.Map<T>(dto);
 
             T added = await _repo.AddAsync(entity, cancellationToken);
-
-            // 👈 حفظ التغييرات بعد استجابة الـ Repo في الـ Memory
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            await _publishEndpoint.Publish(
+                new EntityChangedEvent(CacheEntityNames.ForType<T>(), added.Id, CurrentGymId),
+                cancellationToken);
 
             return _mapper.Map<RDTO>(added);
         }
 
         public virtual async Task<RDTO> UpdateAsync(int id, UDTO dto, CancellationToken cancellationToken = default)
         {
-            // بنجيبه بـ trackChanges = true عشان الـ EF Core يلاحظ التعديلات علطول
             T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: true, cancellationToken: cancellationToken);
 
             if (entity is null)
@@ -87,9 +64,11 @@ namespace Application.Service
             _mapper.Map(dto, entity);
 
             T updated = await _repo.UpdateAsync(entity, cancellationToken);
-
-            // 👈 حفظ التعديل مركزياً
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            await _publishEndpoint.Publish(
+                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId),
+                cancellationToken);
 
             return _mapper.Map<RDTO>(updated);
         }
@@ -98,15 +77,15 @@ namespace Application.Service
         {
             T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: true, cancellationToken: cancellationToken);
 
-
             if (entity is null)
                 throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
 
             await _repo.DeleteAsync(entity, cancellationToken);
-
-
-            // 👈 حفظ الـ Soft Delete
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            await _publishEndpoint.Publish(
+                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId),
+                cancellationToken);
 
             return _mapper.Map<RDTO>(entity);
         }

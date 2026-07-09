@@ -1,5 +1,6 @@
 using Api.Extensions;
 using Api.Middalewares;
+using Api.Middlewares;
 using Application.DependencyInjection;
 using Domain.Events;
 using Domain.Options;
@@ -57,7 +58,7 @@ app.UseRouting();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
-// app.UseMiddleware<CurrentUserMiddleware>();
+app.UseMiddleware<CurrentUserMiddleware>();
 app.UseAuthorization();
 app.UseRateLimiter();
 
