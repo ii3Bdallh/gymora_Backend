@@ -22,6 +22,9 @@ using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Extensions.Http;
 using System.Reflection;
+using Application.Interface.Service.Shared;
+using Application.Interface.Service.Shared.Application.Interface.Service.Shared;
+
 
 namespace Infrastructure.DependencyInjection;
 
@@ -41,10 +44,10 @@ sp.GetRequiredService<IOptions<JwtOptions>>().Value);
         services.AddSingleton(sp =>
 sp.GetRequiredService<IOptions<RedisOptions>>().Value);
 
-        services.Configure<StorageOptions>(
-            configuration.GetSection(StorageOptions.SectionName));
+        services.Configure<FirebaseStorageOptions>(
+            configuration.GetSection(FirebaseStorageOptions.SectionName));
         services.AddSingleton(sp =>
-sp.GetRequiredService<IOptions<StorageOptions>>().Value);
+sp.GetRequiredService<IOptions<FirebaseStorageOptions>>().Value);
 
         services.Configure<BunnyOptions>(
             configuration.GetSection(BunnyOptions.SectionName));
@@ -90,8 +93,14 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
             .HandleTransientHttpError()
             .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 
-        services.AddHttpClient<IBunnyStorageService, BunnyStorageService>()
-            .AddPolicyHandler(retryPolicy);
+
+        // Bunny كـ Keyed Service (بيستخدم HttpClient factory بس مسجل باسم مختلف عشان الـ Client نفسه)
+        // services.AddHttpClient<IStorageService, BunnyStorageService>().AddPolicyHandler(retryPolicy);
+
+        // Firebase كـ Keyed Service كمان
+        services.AddScoped<IStorageService, FirebaseStorageService>();
+
+        // باقي الـ Bunny-specific services (لسه Typed HttpClient عادي، مش IStorageService)
         services.AddHttpClient<IBunnyCollectionService, BunnyCollectionService>()
             .AddPolicyHandler(retryPolicy);
         services.AddHttpClient<IBunnyStreamService, BunnyStreamService>()
@@ -174,9 +183,9 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
         services.AddMassTransit(x =>
    {
        // 1. تسجيل الـ Consumers
-        x.AddConsumer<NotificationConsumer>();
-        x.AddConsumer<EmailConsumer>();
-        x.AddConsumer<CacheInvalidationConsumer>();
+       x.AddConsumer<NotificationConsumer>();
+       x.AddConsumer<EmailConsumer>();
+       x.AddConsumer<CacheInvalidationConsumer>();
 
        // 2. تهيئة الـ Entity Framework Outbox
        x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
@@ -203,9 +212,6 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
         services.AddMemoryCache();
         services.AddScoped<ICacheService, CacheService>();
 
-        services.AddScoped<ICurrentUserService, CurrentUserService>();
-
-        services.AddScoped<ICurrentGymService, CurrentGymService>();
 
 
         return services;

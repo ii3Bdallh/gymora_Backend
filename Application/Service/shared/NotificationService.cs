@@ -1,50 +1,31 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Application.DTO;
 using Application.Interface.Service;
-using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
-using Google.Apis.Auth.OAuth2;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Service
 {
     public class NotificationService : INotificationService
-    {        private readonly FirebaseApp _app;
+    {
         private readonly ILogger<NotificationService> _logger;
 
-        public NotificationService(IConfiguration configuration, ILogger<NotificationService> logger)
+        // الـ Constructor الآن بسيط ومباشر لأن الـ FirebaseApp تم تهيئته مركزيًا عند إقلاع المشروع
+        public NotificationService(ILogger<NotificationService> logger)
         {
             _logger = logger;
-            var path = configuration["FirebaseConfig:CredentialFilePath"];
-
-            if (string.IsNullOrWhiteSpace(path))
-                throw new InvalidOperationException("Firebase credential file path is not configured.");
-
-            if (!File.Exists(path))
-                throw new InvalidOperationException($"Firebase credential file not found at: {path}");
-
-            if (FirebaseApp.DefaultInstance == null)
-            {
-                _app = FirebaseApp.Create(new AppOptions()
-                {
-                    Credential = GoogleCredential.FromFile(path)
-                });
-            }
-            else
-            {
-                _app = FirebaseApp.DefaultInstance;
-            }
         }
 
-        public async Task<string> SendNotificationAsync(
-            int userId,
-            NotificationDTO notification)
+        public async Task<string> SendNotificationAsync(int userId, NotificationDTO notification)
         {
             try
             {
                 var message = new Message()
                 {
-                    Token = $"token_for_user_{userId}",
+                    Token = $"token_for_user_{userId}", // هنا يفضل مستقبلاً جلب الـ Token الحقيقي للمستخدم من قاعدة البيانات
                     Notification = new Notification()
                     {
                         Title = notification.Title,
@@ -53,6 +34,7 @@ namespace Application.Service
                     Data = notification.ConvertDataToDictionary(),
                     Topic = "test_topic"
                 };
+                
                 return await FirebaseMessaging.DefaultInstance.SendAsync(message);
             }
             catch (Exception ex)
@@ -62,9 +44,7 @@ namespace Application.Service
             }
         }
 
-        public async Task<string> SendNotificationListAsync(
-            List<int> userIds,
-            NotificationDTO notification)
+        public async Task<string> SendNotificationListAsync(List<int> userIds, NotificationDTO notification)
         {
             try
             {
@@ -78,6 +58,7 @@ namespace Application.Service
                     },
                     Data = notification.ConvertDataToDictionary()
                 };
+                
                 var response = await FirebaseMessaging.DefaultInstance.SendEachForMulticastAsync(message);
                 return $"Success: {response.SuccessCount} | Failed: {response.FailureCount}";
             }
@@ -113,9 +94,7 @@ namespace Application.Service
 
         public async Task SendAsync(int userId, string title, string body)
         {
-            await SendNotificationAsync(
-                userId,
-                new NotificationDTO { Title = title, Body = body });
+            await SendNotificationAsync(userId, new NotificationDTO { Title = title, Body = body });
         }
 
         public async Task<string> SendNotificationTestAsync(NotificationDTO notification)
@@ -136,10 +115,9 @@ namespace Application.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Firebase notification failed for user ");
+                _logger.LogError(ex, "Firebase test notification failed.");
                 throw new InvalidOperationException("Firebase notification failed.", ex);
             }
         }
-
     }
 }

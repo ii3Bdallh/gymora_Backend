@@ -1,8 +1,10 @@
+// Application/Service/Base/BaseAuditableFileService.cs
 using Application.Cache;
 using Application.DTO.Base.Auditable;
 using Application.DTO.Exceptions;
 using Application.Interface.Repo;
 using Application.Interface.Service.Shared;
+using Application.Interface.Service.Shared.Application.Interface.Service.Shared;
 using Application.Model;
 using AutoMapper;
 using Domain.Events;
@@ -11,6 +13,12 @@ using MassTransit;
 
 namespace Application.Service.Base
 {
+    /// <summary>
+    /// نفس فكرة BaseAuditableService، بس للـ Entities اللي فيها ملف.
+    /// بيرفع الملف على الـ Storage بعد التحقق منه في الـ DTO (عن طريق
+    /// [AllowedFileTypes])، وبيحافظ على منطق الـ CreatedById/CanModify
+    /// الموروث من BaseAuditableService.
+    /// </summary>
     public abstract class BaseAuditableFileService<T, RDTO, CDTO, UDTO>
         : BaseAuditableService<T, RDTO, CDTO, UDTO>
         where T : BaseAuditableFileEntity
@@ -18,7 +26,7 @@ namespace Application.Service.Base
         where CDTO : BaseAuditableFCDTO
         where UDTO : BaseAuditableFUDTO
     {
-        protected readonly IBunnyStorageService _bunnyStorageService;
+        protected readonly IStorageService _storageService;
 
         protected BaseAuditableFileService(
             IBaseRepo<T> repo,
@@ -27,21 +35,22 @@ namespace Application.Service.Base
             ICacheService cacheService,
             IPublishEndpoint publishEndpoint,
             CurrentUser currentUser,
-            IBunnyStorageService bunnyStorageService)
+            IStorageService storageService)
             : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser)
         {
-            _bunnyStorageService = bunnyStorageService;
+            _storageService = storageService;
         }
 
         public override async Task<RDTO> AddAsync(CDTO dto, CancellationToken cancellationToken = default)
         {
             dto.CreatedById = CurrentUserId;
 
-            string fileUrl = await _bunnyStorageService.UploadFileToBunnyStorageAsync(dto.File, cancellationToken);
+            string storedFileName = await _storageService.UploadFileToStorageAsync(dto.File, cancellationToken);
+            string fileUrl = _storageService.GenerateUrlToAccessFileAsync(storedFileName, cancellationToken);
 
             T entity = _mapper.Map<T>(dto);
             entity.FileUrl = fileUrl;
-            entity.StoredFileName = dto.File.FileName;
+            entity.StoredFileName = storedFileName;
 
             T added = await _repo.AddAsync(entity, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -59,20 +68,22 @@ namespace Application.Service.Base
             if (entity is null || !CanModify(entity))
                 throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
 
-            dto.CreatedById = entity.CreatedById;
+            dto.CreatedById = entity.CreatedById; // Preserve the original CreatedById
 
             if (dto.File is not null)
             {
                 string oldStoredFileName = entity.StoredFileName;
 
-                string newFileUrl = await _bunnyStorageService.UploadFileToBunnyStorageAsync(dto.File, cancellationToken);
+                string newStoredFileName = await _storageService.UploadFileToStorageAsync(dto.File, cancellationToken);
+                string newFileUrl = _storageService.GenerateUrlToAccessFileAsync(newStoredFileName, cancellationToken);
 
                 _mapper.Map(dto, entity);
                 entity.FileUrl = newFileUrl;
-                entity.StoredFileName = dto.File.FileName;
+                entity.StoredFileName = newStoredFileName;
 
+                // نمسح القديم بعد ما الجديد اترفع بنجاح
                 if (!string.IsNullOrWhiteSpace(oldStoredFileName))
-                    await _bunnyStorageService.DeleteFileFromBunnyStorageAsync(oldStoredFileName, cancellationToken);
+                    await _storageService.DeleteFileFromStorageAsync(oldStoredFileName, cancellationToken);
             }
             else
             {
@@ -102,7 +113,7 @@ namespace Application.Service.Base
                 cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(deleted.StoredFileName))
-                await _bunnyStorageService.DeleteFileFromBunnyStorageAsync(deleted.StoredFileName, cancellationToken);
+                await _storageService.DeleteFileFromStorageAsync(deleted.StoredFileName, cancellationToken);
 
             return _mapper.Map<RDTO>(deleted);
         }
