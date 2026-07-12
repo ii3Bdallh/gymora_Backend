@@ -56,7 +56,6 @@ namespace Application.DependencyInjection
             services.AddScoped<INotificationService, NotificationService>();
 
             // Trainer Certificate
-            services.AddScoped<ITrainerCertificateService, TrainerCertificateService>();
             services.AddScoped<CurrentUser>();
 
 

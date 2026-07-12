@@ -1,116 +1,142 @@
 using Application.Interface.Service.Shared;
 using Application.utils;
-using Domain.Model;
-using Domain.Enum;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Domain.Options;
-
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using System.Net.Http.Headers;
 
 namespace Application.Service.Shared
 {
-    public class BunnyStorageService(BunnyOptions bunnyConfig, HttpClient httpClient, ILogger<BunnyStorageService> logger)
-        : IStorageService
+    public class BunnyStorageService : IStorageService
     {
-        // StorageName
-        // StorageApiKey
-        // CDnSignature
-        // PullZoneUrl
-        
-        /// <summary>
-        /// Upload a file to Bunny Storage
-        /// </summary>
-        public async Task<string> UploadFileToStorageAsync(IFormFile file, CancellationToken cancellationToken = default)
+        private readonly BunnyOptions _bunny;
+        private readonly HttpClient _httpClient;
+        private readonly ILogger<BunnyStorageService> _logger;
+
+        public BunnyStorageService(
+            BunnyOptions bunnyConfig,
+            HttpClient httpClient,
+            ILogger<BunnyStorageService> logger)
+        {
+            _bunny = bunnyConfig;
+            _httpClient = httpClient;
+            _logger = logger;
+        }
+
+        public async Task<string> UploadFileToStorageAsync(
+            IFormFile file,
+            bool isPublic,
+            string entityType,
+            CancellationToken cancellationToken = default)
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File cannot be null or empty");
 
-            var maxSizeBytes = bunnyConfig.BunnyStorageOptions.StorageMaxUploadSizeMB * 1024 * 1024;
-            if (file.Length > maxSizeBytes)
-                throw new ArgumentException($"File size exceeds maximum allowed size of {bunnyConfig.BunnyStorageOptions.StorageMaxUploadSizeMB}MB. Current file size: {Math.Round(file.Length / (1024.0 * 1024.0), 2)}MB");
+            // التحقق من الحجم
+            var maxSize = _bunny.BunnyStorageOptions.StorageMaxUploadSizeMB * 1024 * 1024;
+            if (file.Length > maxSize)
+                throw new ArgumentException($"File size exceeds maximum allowed size of {_bunny.BunnyStorageOptions.StorageMaxUploadSizeMB}MB");
 
-            var finalFileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var fileName = $"{Guid.NewGuid()}{extension}";
 
-            var request = new HttpRequestMessage(HttpMethod.Put, $"{bunnyConfig.BunnyStorageOptions.StorageZoneRegionEndpoint}/{finalFileName}");
-            request.Headers.Add("AccessKey", bunnyConfig.BunnyStorageOptions.Password);
+            // تحديد المجلد بشكل آمن (لا نسمح للـ DTO بتحديد المسار)
+            string folder = isPublic ? "public" : "private";
+            string subFolder = entityType.ToLowerInvariant() switch
+            {
+                "gym" or "gyms" => "gyms",
+                "exercise" or "exercises" => "exercises",
+                "member" or "members" => "members",
+                "receipt" or "payment" or "proof" => "receipts",
+                "logo" => "logos",
+                _ => "others"
+            };
+
+            var storagePath = $"{folder}/{subFolder}/{fileName}";
+
+            // رفع الملف
+            var request = new HttpRequestMessage(HttpMethod.Put,
+                $"{_bunny.BunnyStorageOptions.StorageZoneRegionEndpoint}/{storagePath}");
+
+            request.Headers.Add("AccessKey", _bunny.BunnyStorageOptions.Password);
 
             using var stream = file.OpenReadStream();
-            var content = new StreamContent(stream);
-            content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse(file.ContentType ?? "application/octet-stream");
-            request.Content = content;
-
-            var response = await httpClient.SendAsync(request, cancellationToken);
-
-            if (response.IsSuccessStatusCode)
+            request.Content = new StreamContent(stream)
             {
-                logger.LogInformation("File uploaded successfully to Bunny Storage: {FileName}", finalFileName);
-                return finalFileName;
+                Headers = { ContentType = MediaTypeHeaderValue.Parse(file.ContentType ?? "application/octet-stream") }
+            };
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogError("Failed to upload to Bunny: {Status} - {Error}", response.StatusCode, error);
+                throw new Exception("Failed to upload file to storage.");
             }
 
-            throw new Exception("Failed to upload file. Please try again.");
+            _logger.LogInformation("File uploaded successfully: {Path} (Public: {IsPublic})", storagePath, isPublic);
+            return storagePath;
         }
 
-        /// <summary>
-        /// Generate secure access URL for a file from Bunny Storage
-        /// </summary>
-        public string GenerateUrlToAccessFileAsync(string fileName, CancellationToken cancellationToken = default)
+        public string GetFileAccessUrl(string storedFileName, bool isPublic)
         {
-            return GenerateSecureUrlForBasicCdn(fileName);
+            if (string.IsNullOrWhiteSpace(storedFileName))
+                return string.Empty;
+
+            if (isPublic)
+            {
+                // رابط مباشر دائم
+                return $"{_bunny.PullZoneOptions.PullZoneUrl}/{storedFileName}";
+            }
+            else
+            {
+                // Signed URL جديد
+                return GenerateSecureSignedUrl(storedFileName);
+            }
         }
 
-        /// <summary>
-        /// Generates a secure CDN URL with MD5-based token authentication.
-        /// Per BunnyCDN documentation: token = Base64(MD5(security_key + path + expiration))
-        /// </summary>
-        private string GenerateSecureUrlForBasicCdn(string fileName, string? ipAddress = null)
+        private string GenerateSecureSignedUrl(string filePath)
         {
-            string securityKey = bunnyConfig.PullZoneOptions.CdnSignature;
-            string pullZoneUrl = bunnyConfig.PullZoneOptions.PullZoneUrl;
-            long expiresUnix = DateTimeOffset.UtcNow.AddMinutes(bunnyConfig.PullZoneOptions.GenerateWatchUrlExpirationInMinutes).ToUnixTimeSeconds();
+            string securityKey = _bunny.PullZoneOptions.CdnSignature;
+            string pullZoneUrl = _bunny.PullZoneOptions.PullZoneUrl;
+            long expires = DateTimeOffset.UtcNow
+                .AddMinutes(_bunny.PullZoneOptions.GenerateWatchUrlExpirationInMinutes)
+                .ToUnixTimeSeconds();
 
-            string filePath = fileName.StartsWith("/") ? fileName : $"/{fileName}";
+            string path = filePath.StartsWith("/") ? filePath : $"/{filePath}";
+            string hashable = securityKey + path + expires;
+            string token = HashingService.GenerateMD5Token(hashable);
 
-            string hashableString = securityKey + filePath + expiresUnix + ipAddress;
-            string token = HashingService.GenerateMD5Token(hashableString);
-
-            string secureUrl = $"{pullZoneUrl}{filePath}?token={token}&expires={expiresUnix}";
-
-            logger.LogInformation("Generated secure CDN URL for file: {FileName} with expiration timestamp: {Expires}",
-                fileName, expiresUnix);
-
-            return secureUrl;
+            return $"{pullZoneUrl}{path}?token={token}&expires={expires}";
         }
 
-        public async Task<bool> DeleteFileFromStorageAsync(string fileName, CancellationToken cancellationToken = default)
+        public async Task<bool> DeleteFileFromStorageAsync(string storedFileName, CancellationToken cancellationToken = default)
         {
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"{bunnyConfig.BunnyStorageOptions.StorageZoneRegionEndpoint}/{fileName}");
-            request.Headers.Add("AccessKey", bunnyConfig.BunnyStorageOptions.Password);
+            if (string.IsNullOrWhiteSpace(storedFileName))
+                return false;
 
-            var response = await httpClient.SendAsync(request, cancellationToken);
+            var request = new HttpRequestMessage(HttpMethod.Delete,
+                $"{_bunny.BunnyStorageOptions.StorageZoneRegionEndpoint}/{storedFileName}");
+
+            request.Headers.Add("AccessKey", _bunny.BunnyStorageOptions.Password);
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+
             if (response.IsSuccessStatusCode)
             {
-                logger.LogInformation("File deleted successfully from Bunny Storage: {FileName}", fileName);
+                _logger.LogInformation("File deleted: {Path}", storedFileName);
                 return true;
             }
 
-            logger.LogError("Failed to delete file from Bunny Storage: {FileName}, Status: {Status}", fileName, response.StatusCode);
+            _logger.LogWarning("Failed to delete file: {Path} - Status: {Status}", storedFileName, response.StatusCode);
             return false;
         }
 
         public Task<bool> DeleteCollectionFromStorageAsync(string collectionPath, CancellationToken cancellationToken = default)
         {
-            // Bunny Storage API مفيهاش endpoint لمسح فولدر كامل دفعة واحدة بنفس منطق الملف الواحد،
-            // فهنا لو محتاج فعليًا تمسح فولدر لازم تستخدم List + Loop زي اللي عملناه في Firebase تحت.
+            // حالياً نحذف ملف واحد فقط، يمكن توسيعه لاحقاً
             return DeleteFileFromStorageAsync(collectionPath, cancellationToken);
         }
     }
 }
-
-

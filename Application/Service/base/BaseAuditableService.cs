@@ -13,6 +13,7 @@ using Application.Interface.Service.Shared;
 using Application.Model;
 using Application.DTO.Base.Auditable;
 using Domain.Events;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Service.Base
 {
@@ -33,25 +34,17 @@ namespace Application.Service.Base
             IMapper mapper,
             ICacheService cacheService,
             IPublishEndpoint publishEndpoint,
-            CurrentUser currentUser)
-            : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser)
+            CurrentUser currentUser,
+            ILogger logger)
+            : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser, logger)
         {
         }
 
         // Read Operations: متاحة للكل داخل الجيم
-        public override async Task<RDTO> GetByIdAsync(int id, bool isActive = true, bool trackChanges = false, CancellationToken ct = default)
-        {
-            return await base.GetByIdAsync(id, isActive, trackChanges, ct);
-        }
-
-        public override async Task<PaginatedRes<RDTO>> GetPageAsync(PaginatedSearchReq searchReq, bool isActive = true, bool trackChanges = false, CancellationToken ct = default)
-        {
-            return await base.GetPageAsync(searchReq, isActive, trackChanges, ct);
-        }
 
         public override async Task<RDTO> AddAsync(CDTO dto, CancellationToken cancellationToken = default)
         {
-
+            _logger.LogInformation("Adding auditable {EntityType} by user {UserId}", typeof(T).Name, CurrentUserId);
             dto.CreatedById = CurrentUserId;
 
             return await base.AddAsync(dto, cancellationToken);
@@ -59,12 +52,17 @@ namespace Application.Service.Base
 
         public override async Task<RDTO> UpdateAsync(int id, UDTO dto, CancellationToken cancellationToken = default)
         {
+             dto.CreatedById = CurrentUserId;
 
             T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: true, cancellationToken);
 
             if (entity == null || !CanModify(entity))
+            {
+                _logger.LogWarning("Unauthorized or failed attempt to update {EntityType} with ID {Id} by user {UserId}", typeof(T).Name, id, CurrentUserId);
                 throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
+            }
 
+            _logger.LogInformation("Updating auditable {EntityType} with ID {Id} by user {UserId}", typeof(T).Name, id, CurrentUserId);
             dto.CreatedById = entity.CreatedById; // Preserve the original CreatedById
 
             _mapper.Map(dto, entity);
@@ -76,6 +74,7 @@ namespace Application.Service.Base
                 new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId),
                 cancellationToken);
 
+            _logger.LogInformation("{EntityType} with ID {Id} updated successfully", typeof(T).Name, id);
             return _mapper.Map<RDTO>(updated);
 
         }
@@ -85,8 +84,12 @@ namespace Application.Service.Base
             T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: true, cancellationToken);
 
             if (entity == null || !CanModify(entity))
+            {
+                _logger.LogWarning("Unauthorized or failed attempt to delete {EntityType} with ID {Id} by user {UserId}", typeof(T).Name, id, CurrentUserId);
                 throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
+            }
 
+            _logger.LogInformation("Deleting auditable {EntityType} with ID {Id} by user {UserId}", typeof(T).Name, id, CurrentUserId);
             T deleted = await _repo.DeleteAsync(entity, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -94,6 +97,7 @@ namespace Application.Service.Base
                 new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId),
                 cancellationToken);
 
+            _logger.LogInformation("{EntityType} with ID {Id} deleted successfully", typeof(T).Name, id);
             return _mapper.Map<RDTO>(deleted);
         }
 

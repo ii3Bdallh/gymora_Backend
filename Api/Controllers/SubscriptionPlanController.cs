@@ -94,8 +94,8 @@ namespace Api.Controllers
 
         #region PlanPrice
 
-        [HttpPost("PlanPrices/Create")]
-        public async Task<ActionResult<PlanPrice>> CreatePlanPriceAsync([FromBody] PlanPrice planPrice)
+        [HttpPost("SubscriptionPlan/{PlanId}/PlanPrices")]
+        public async Task<ActionResult<PlanPrice>> CreatePlanPriceAsync(int PlanId, [FromBody] PlanPrice planPrice)
         {
             if (!ModelState.IsValid)
             {
@@ -105,7 +105,7 @@ namespace Api.Controllers
 
             logger.LogInformation("Creating a new PlanPrice: {@PlanPrice}", planPrice);
 
-            var createdPlanPrice = await service.AddPlanPriceAsync(planPrice);
+            var createdPlanPrice = await service.AddPlanPriceAsync(planPrice, PlanId);
 
             return Ok(Result<PlanPrice>.Success(createdPlanPrice));
         }

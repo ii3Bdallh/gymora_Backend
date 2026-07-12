@@ -13,41 +13,45 @@ using Application.Service.Base;
 using AutoMapper;
 using Domain.Model;
 using MassTransit;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Service.Entity
 {
     public class SubscriptionPlanService : BaseService<SubscriptionPlan, SubscriptionPlanRDTO, SubscriptionPlanCDTO, SubscriptionPlanUDTO>, ISubscriptionPlanService
     {
+        private readonly ISubscriptionPlanRepo _subscriptionPlanRepo;
         public SubscriptionPlanService(
             ISubscriptionPlanRepo repo,
             IUnitOfWork unitOfWork,
             IMapper mapper,
             ICacheService cacheService,
             IPublishEndpoint publishEndpoint,
-            CurrentUser currentUser)
-            : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser)
+            CurrentUser currentUser,
+            ILogger<SubscriptionPlanService> logger)
+            : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser, logger)
         {
+            _subscriptionPlanRepo = repo;
         }
 
-        public async Task<PlanPrice> AddPlanPriceAsync(PlanPrice planPrice, CancellationToken cancellationToken = default)
+        public async Task<PlanPrice> AddPlanPriceAsync(PlanPrice planPrice, int PlanId, CancellationToken cancellationToken = default)
         {
-            SubscriptionPlan? entity = await _repo.GetByIdAsync(planPrice.PlanId, isActive: true, trackChanges: false, cancellationToken: cancellationToken);
+            SubscriptionPlan? entity = await _subscriptionPlanRepo.GetByIdAsync(PlanId, isActive: true, trackChanges: false, cancellationToken: cancellationToken);
 
             if (entity is null)
-                throw new NotFoundException($"{typeof(SubscriptionPlan).Name} with ID {planPrice.PlanId} was not found.");
+                throw new NotFoundException($"{typeof(SubscriptionPlan).Name} with ID {PlanId} was not found.");
 
-            await ((ISubscriptionPlanRepo)_repo).AddPlanPriceAsync(planPrice, cancellationToken);
+            await _subscriptionPlanRepo.AddPlanPriceAsync(planPrice, cancellationToken);
             return planPrice;
         }
 
         public async Task<PlanPrice> DeletePlanPriceAsync(int id, CancellationToken cancellationToken = default)
         {
-            PlanPrice? entity = await ((ISubscriptionPlanRepo)_repo).GetPlanPriceByIdAsync(id, isActive: true, trackChanges: true, cancellationToken: cancellationToken);
+            PlanPrice? entity = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(id, isActive: true, trackChanges: true, cancellationToken: cancellationToken);
 
             if (entity is null)
                 throw new NotFoundException($"{typeof(PlanPrice).Name} with ID {id} was not found.");
 
-            await ((ISubscriptionPlanRepo)_repo).DeletePlanPriceAsync(entity, cancellationToken);
+            await _subscriptionPlanRepo.DeletePlanPriceAsync(entity, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -56,7 +60,7 @@ namespace Application.Service.Entity
 
         public async Task<PlanPrice?> GetPlanPriceByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            PlanPrice? entity = await ((ISubscriptionPlanRepo)_repo).GetPlanPriceByIdAsync(id, isActive: true, trackChanges: false, cancellationToken: cancellationToken);
+            PlanPrice? entity = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(id, isActive: true, trackChanges: false, cancellationToken: cancellationToken);
 
             if (entity is null)
                 throw new NotFoundException($"{typeof(PlanPrice).Name} with ID {id} was not found.");

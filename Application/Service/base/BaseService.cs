@@ -9,6 +9,7 @@ using AutoMapper;
 using Domain.Events;
 using Domain.Model.Base;
 using MassTransit;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Service
 {
@@ -33,8 +34,9 @@ namespace Application.Service
             IMapper mapper,
             ICacheService cacheService,
             IPublishEndpoint publishEndpoint,
-            CurrentUser currentUser)
-            : base(repo, mapper, cacheService, currentUser)
+            CurrentUser currentUser,
+            ILogger logger)
+            : base(repo, mapper, cacheService, currentUser, logger)
         {
             _unitOfWork = unitOfWork;
             _publishEndpoint = publishEndpoint;
@@ -42,6 +44,7 @@ namespace Application.Service
 
         public virtual async Task<RDTO> AddAsync(CDTO dto, CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Adding new {EntityType}", typeof(T).Name);
             T entity = _mapper.Map<T>(dto);
 
             T added = await _repo.AddAsync(entity, cancellationToken);
@@ -51,6 +54,7 @@ namespace Application.Service
                 new EntityChangedEvent(CacheEntityNames.ForType<T>(), added.Id, CurrentGymId),
                 cancellationToken);
 
+            _logger.LogInformation("{EntityType} with ID {Id} added successfully by user {UserId}", typeof(T).Name, added.Id, CurrentUserId);
             return _mapper.Map<RDTO>(added);
         }
 
@@ -59,8 +63,12 @@ namespace Application.Service
             T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: true, cancellationToken: cancellationToken);
 
             if (entity is null)
+            {
+                _logger.LogWarning("{EntityType} with ID {Id} was not found for update", typeof(T).Name, id);
                 throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
+            }
 
+            _logger.LogInformation("Updating {EntityType} with ID {Id}", typeof(T).Name, id);
             _mapper.Map(dto, entity);
 
             T updated = await _repo.UpdateAsync(entity, cancellationToken);
@@ -70,6 +78,7 @@ namespace Application.Service
                 new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId),
                 cancellationToken);
 
+            _logger.LogInformation("{EntityType} with ID {Id} updated successfully by user {UserId}", typeof(T).Name, id, CurrentUserId);
             return _mapper.Map<RDTO>(updated);
         }
 
@@ -78,8 +87,12 @@ namespace Application.Service
             T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: true, cancellationToken: cancellationToken);
 
             if (entity is null)
+            {
+                _logger.LogWarning("{EntityType} with ID {Id} was not found for deletion", typeof(T).Name, id);
                 throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
+            }
 
+            _logger.LogInformation("Deleting {EntityType} with ID {Id}", typeof(T).Name, id);
             await _repo.DeleteAsync(entity, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -87,6 +100,7 @@ namespace Application.Service
                 new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId),
                 cancellationToken);
 
+            _logger.LogInformation("{EntityType} with ID {Id} deleted successfully by user {UserId}", typeof(T).Name, id, CurrentUserId);
             return _mapper.Map<RDTO>(entity);
         }
     }

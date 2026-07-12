@@ -13,7 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
- builder.AddSerilogLogging();
+builder.AddSerilogLogging();
 
 
 #region Services
@@ -29,7 +29,8 @@ builder.Services
 #endregion
 
 var app = builder.Build();
-
+// Suppress noisy messages
+Serilog.Debugging.SelfLog.Enable(Console.Error);
 #region Seeder
 
 using (var scope = app.Services.CreateScope())

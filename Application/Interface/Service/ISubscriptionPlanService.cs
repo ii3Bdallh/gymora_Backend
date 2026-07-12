@@ -16,7 +16,7 @@ namespace Application.Interface.Service.Entity
 {
     public interface ISubscriptionPlanService : IBaseService<SubscriptionPlan, SubscriptionPlanRDTO, SubscriptionPlanCDTO, SubscriptionPlanUDTO>
     {
-        public Task<PlanPrice> AddPlanPriceAsync(PlanPrice planPrice, CancellationToken cancellationToken = default);
+        public Task<PlanPrice> AddPlanPriceAsync(PlanPrice planPrice, int PlanId, CancellationToken cancellationToken = default);
 
         public Task<PlanPrice> DeletePlanPriceAsync(int id, CancellationToken cancellationToken = default);
 

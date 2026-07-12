@@ -7,5 +7,6 @@ namespace Application.DTO.Base.Auditable
     {
         [Required(ErrorMessage = "File is required.")]
         public virtual IFormFile File { get; set; } = null!;
+        public bool IsPublic { get; set; } = false;
     }
 }

@@ -5,8 +5,10 @@ namespace Application.DTO.Base
     public record BaseFUDTO : BaseUDTO
     {
         /// <summary>
-        /// null = keep the old file. Provided = replace the old file (and delete it from Bunny).
+        /// null = keep old file | Provided = replace file
         /// </summary>
         public virtual IFormFile? File { get; set; }
+
+        public bool IsPublic { get; set; } = false;
     }
 }

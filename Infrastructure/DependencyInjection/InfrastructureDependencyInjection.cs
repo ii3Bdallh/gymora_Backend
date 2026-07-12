@@ -183,19 +183,19 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
         services.AddMassTransit(x =>
    {
        // 1. تسجيل الـ Consumers
-       x.AddConsumer<NotificationConsumer>();
-       x.AddConsumer<EmailConsumer>();
+       //x.AddConsumer<NotificationConsumer>();
+       //x.AddConsumer<EmailConsumer>();
        x.AddConsumer<CacheInvalidationConsumer>();
 
        // 2. تهيئة الـ Entity Framework Outbox
-       x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
-       {
-           o.UseSqlServer(); // تحديد أننا نستخدم SQL Server للـ Outbox
-           o.UseBusOutbox(); // تفعيل الـ Outbox للـ Service Bus الداخلي
+       //    x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
+       //    {
+       //        o.UseSqlServer(); // تحديد أننا نستخدم SQL Server للـ Outbox
+       //        o.UseBusOutbox(); // تفعيل الـ Outbox للـ Service Bus الداخلي
 
-           // 💡 تعديل الحل: بدلاً من o.UseHangfire()، بنستخدم دالة إدارة الخلفية الافتراضية للـ Outbox:
-           o.DisableInboxCleanupService(); // اختياري لو مش عاوز الـ cleanup التلقائي
-       });
+       //        // 💡 تعديل الحل: بدلاً من o.UseHangfire()، بنستخدم دالة إدارة الخلفية الافتراضية للـ Outbox:
+       //     //    o.DisableInboxCleanupService(); // اختياري لو مش عاوز الـ cleanup التلقائي
+       //    });
 
        // 3. ربط الـ Outbox بـ Hangfire بيتم تلقائياً بمجرد استدعاء الـ Job يدوياً أو ترك MassTransit تدير الـ Background Hosted Service
        // وإذا كنت تريد تشغيل الـ Outbox Delivery عبر جهاز الـ Background Worker الافتراضي (وهو الأفضل والموصى به للـ Monolith):

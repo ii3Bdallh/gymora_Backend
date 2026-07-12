@@ -5,6 +5,7 @@ using Domain.Model.Base;
 
 namespace Application.Interface.Repo
 {
+
     public interface IBaseRepo<T> where T : BaseEntity
     {
         // جلب كل العناصر (للقوائم الصغيرة)

@@ -16,7 +16,6 @@ public sealed class ApplicationDbContext
     // Script will Add After Here DbSet<Entity>
 public DbSet<SubscriptionPlan> SubscriptionPlan { get; set; }
 public DbSet<PlanPrice> PlanPrice { get; set; }
-public DbSet<TrainerCertificate> TrainerCertificates { get; set; }
     
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
@@ -27,8 +26,6 @@ public DbSet<TrainerCertificate> TrainerCertificates { get; set; }
     public DbSet<UserDevice> UserDevices
         => Set<UserDevice>();
 
-    public DbSet<Parent> Parents { get; set; }
-    public DbSet<Child> Children { get; set; }
 
 
 

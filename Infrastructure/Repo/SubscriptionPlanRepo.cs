@@ -18,6 +18,7 @@ namespace Infrastructure.Repo.Entity
     public class SubscriptionPlanRepo(ApplicationDbContext context, ILogger<SubscriptionPlanRepo> logger, QueryCache queryCache)
     : BaseRepo<SubscriptionPlan>(context, logger, queryCache), ISubscriptionPlanRepo
     {
+
         public Task<PlanPrice> AddPlanPriceAsync(PlanPrice planPrice, CancellationToken cancellationToken = default)
         {
             // العملية تتم في الـ Memory فقط

@@ -27,10 +27,8 @@ public static class InfrastructureServiceCollectionExtensions
 
         // Script will Add After Here DependencyInjectionRepo
         services.AddScoped<ISubscriptionPlanRepo, SubscriptionPlanRepo>();
-        services.AddScoped<ITrainerCertificateRepo, TrainerCertificateRepo>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-        services.AddScoped<TestRepository>();
 
         return services;
     }

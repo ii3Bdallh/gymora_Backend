@@ -9,6 +9,7 @@ using Application.Interface.Service.Shared;
 using Application.Model;
 using AutoMapper;
 using Domain.Model.Base;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Service
 {
@@ -26,17 +27,20 @@ namespace Application.Service
         protected readonly IMapper _mapper;
         protected readonly ICacheService _cacheService;
         protected readonly CurrentUser _currentUser;
+        protected readonly ILogger _logger;
 
         protected BaseReadService(
             IBaseRepo<T> repo,
             IMapper mapper,
             ICacheService cacheService,
-            CurrentUser currentUser)
+            CurrentUser currentUser,
+            ILogger logger)
         {
             _repo = repo;
             _mapper = mapper;
             _cacheService = cacheService;
             _currentUser = currentUser;
+            _logger = logger;
         }
 
         protected int? CurrentGymId => _currentUser.CurrentGymId;
@@ -45,8 +49,11 @@ namespace Application.Service
 
         public virtual async Task<IEnumerable<RDTO>> GetAllAsync(CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("Fetching all {EntityType} records", typeof(T).Name);
             var models = await _repo.GetAllAsync(cancellationToken);
-            return _mapper.Map<IEnumerable<RDTO>>(models);
+            var result = _mapper.Map<IEnumerable<RDTO>>(models);
+            _logger.LogInformation("Fetched {Count} {EntityType} records", models.Count(), typeof(T).Name);
+            return result;
         }
 
         public virtual async Task<RDTO> GetByIdAsync(
@@ -59,12 +66,20 @@ namespace Application.Service
             var key = CacheKeyGenerator.ById(entityName, id, CurrentGymId);
 
             var cached = await _cacheService.GetAsync<RDTO>(key);
-            if (cached is not null) return cached;
+            if (cached is not null)
+            {
+                _logger.LogInformation("Cache hit for {EntityType} with ID {Id}", typeof(T).Name, id);
+                return cached;
+            }
 
+            _logger.LogInformation("Fetching {EntityType} with ID {Id}", typeof(T).Name, id);
             T? entity = await _repo.GetByIdAsync(id, isActive, trackChanges, cancellationToken);
 
             if (entity is null)
+            {
+                _logger.LogWarning("{EntityType} with ID {Id} was not found", typeof(T).Name, id);
                 throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
+            }
 
             var dto = _mapper.Map<RDTO>(entity);
             await _cacheService.SetAsync(key, dto);
@@ -82,8 +97,13 @@ namespace Application.Service
             var key = CacheKeyGenerator.ByPage(entityName, searchReq, CurrentGymId);
 
             var cached = await _cacheService.GetAsync<PaginatedRes<RDTO>>(key);
-            if (cached is not null) return cached;
+            if (cached is not null)
+            {
+                _logger.LogInformation("Cache hit for {EntityType} page {PageNumber}", typeof(T).Name, searchReq.PageNumber);
+                return cached;
+            }
 
+            _logger.LogInformation("Fetching page {PageNumber} of {EntityType}", searchReq.PageNumber, typeof(T).Name);
             var page = await _repo.GetPageAsync(searchReq, isActive, trackChanges, cancellationToken);
 
             var dtoPage = new PaginatedRes<RDTO>
@@ -95,6 +115,7 @@ namespace Application.Service
             };
 
             await _cacheService.SetAsync(key, dtoPage);
+            _logger.LogInformation("Fetched page {PageNumber}/{TotalPages} of {EntityType} ({TotalCount} total)", page.PageNumber, (int)Math.Ceiling((double)page.TotalCount / page.PageSize), typeof(T).Name, page.TotalCount);
             return dtoPage;
         }
     }
