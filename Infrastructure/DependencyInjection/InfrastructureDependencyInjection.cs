@@ -23,7 +23,9 @@ using Polly;
 using Polly.Extensions.Http;
 using System.Reflection;
 using Application.Interface.Service.Shared;
-using Application.Interface.Service.Shared.Application.Interface.Service.Shared;
+using Application.Interface.Repo;
+using Infrastructure.Repo.Base;
+
 
 
 namespace Infrastructure.DependencyInjection;
@@ -95,10 +97,9 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
 
 
         // Bunny كـ Keyed Service (بيستخدم HttpClient factory بس مسجل باسم مختلف عشان الـ Client نفسه)
-        // services.AddHttpClient<IStorageService, BunnyStorageService>().AddPolicyHandler(retryPolicy);
+        services.AddHttpClient<IStorageService, BunnyStorageService>().AddPolicyHandler(retryPolicy);
 
         // Firebase كـ Keyed Service كمان
-        services.AddScoped<IStorageService, FirebaseStorageService>();
 
         // باقي الـ Bunny-specific services (لسه Typed HttpClient عادي، مش IStorageService)
         services.AddHttpClient<IBunnyCollectionService, BunnyCollectionService>()
@@ -115,7 +116,6 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
         services.AddScoped<TokenCleanupJob>();
 
 
-        services.AddScoped<TestRepository>();
 
         services.AddAutoMapper(fg => { }, Assembly.GetAssembly(typeof(MapperConfig)));
 
@@ -128,10 +128,10 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
                     sql.MigrationsAssembly(
                         typeof(ApplicationDbContext).Assembly.FullName);
 
-                    sql.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(30),
-                        errorNumbersToAdd: null);
+                    // sql.EnableRetryOnFailure(
+                    //     maxRetryCount: 5,
+                    //     maxRetryDelay: TimeSpan.FromSeconds(30),
+                    //     errorNumbersToAdd: null); 
                 });
 
 

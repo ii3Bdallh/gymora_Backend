@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Interface.Repo.Entity
+namespace Application.Interface.Repo
 {
     public interface ISubscriptionPlanRepo : IBaseRepo<SubscriptionPlan>
     {

@@ -7,12 +7,11 @@ using Application.Service.shared;
 using Application.Service.Shared; // تأكد من اسم الـ namespace الخاص بالـ Storage الجديد
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
-using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
-using Google.Cloud.Storage.V1;
+using Application.Model;
 
 
 namespace Application.DependencyInjection
@@ -42,9 +41,7 @@ namespace Application.DependencyInjection
                 });
             }
 
-            // 2. إنشاء وتجسبل الـ StorageClient كـ Singleton لرفع الملفات
-            var storageClient = StorageClient.Create(googleCredential);
-            services.AddSingleton(storageClient);
+
 
             services.AddSingleton(googleCredential);
             // --- تسجيل الخدمات (DI Registration) ---
@@ -54,8 +51,13 @@ namespace Application.DependencyInjection
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
 
+
             // Notification Service
             services.AddScoped<INotificationService, NotificationService>();
+
+            // Trainer Certificate
+            services.AddScoped<ITrainerCertificateService, TrainerCertificateService>();
+            services.AddScoped<CurrentUser>();
 
 
             return services;

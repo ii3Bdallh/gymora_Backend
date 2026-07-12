@@ -4,29 +4,53 @@ public sealed class BunnyOptions
 {
     public const string SectionName = "Bunny";
 
-    public string LibraryId { get; init; } = string.Empty;
+    public BunnyStorageOptions BunnyStorageOptions { get; init; } = new BunnyStorageOptions();
 
-    public string CdnHostName { get; init; } = string.Empty;
+    public BunnyStreamOptions BunnyStreamOptions { get; init; } = new BunnyStreamOptions();
 
-    public string StreamApiKey { get; init; } = string.Empty;
+    public PullZoneOptions PullZoneOptions { get; init; } = new PullZoneOptions();
 
-    public string StorageApiKey { get; init; } = string.Empty;
+}
+
+public sealed class PullZoneOptions
+{
+    public const string SectionName = "PullZone";
 
     public string PullZoneUrl { get; init; } = string.Empty;
 
-    public string StorageName { get; init; } = string.Empty;
+    public string CdnSignature { get; init; } = string.Empty;
+
+    public int GenerateWatchUrlExpirationInMinutes { get; init; } = 5;
+
+}
+
+
+
+public sealed class BunnyStorageOptions
+{
+    public const string SectionName = "BunnyStorage";
+
+    public string Password { get; init; } = string.Empty;
+
+    public string StorageZoneRegionEndpoint { get; init; } = string.Empty;
+
+    public int StorageMaxUploadSizeMB { get; init; } = 10;
+}
+
+public sealed class BunnyStreamOptions
+{
+    public const string SectionName = "BunnyStream";
+    public string StreamApiKey { get; init; } = string.Empty;
 
     public string StreamSignature { get; init; } = string.Empty;
 
-    public string CdnSignature { get; init; } = string.Empty;
 
-    public int StorageMaxUploadSizeMB { get; init; } = 10;
+    public string LibraryId { get; init; } = string.Empty;
+
 
     public int UploadVideoExpirationInMinutes { get; init; } = 60;
 
     public int GenerateWatchUrlExpirationInMinutes { get; init; } = 5;
-
-    public int UploadFileExpirationInMinutes { get; init; } = 60;
-
-    public string BunnyCdnBaseUrl { get; init; } = string.Empty;
 }
+
+

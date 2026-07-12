@@ -4,7 +4,7 @@ using Application.DTO.Base;
 using Application.DTO.Exceptions;
 using Application.Interface.Repo;
 using Application.Interface.Service.Shared;
-using Application.Interface.Service.Shared.Application.Interface.Service.Shared;
+using Application.Interface.Service.Shared;
 using Application.Model;
 using AutoMapper;
 using Domain.Events;

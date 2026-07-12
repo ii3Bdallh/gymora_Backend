@@ -22,9 +22,9 @@ namespace Application.Service.Shared
 
         public async Task<BunnyCreateResponse> GetVideoDetails(String VideoId , string? LibraryId, CancellationToken cancellationToken)
         {
-            LibraryId = LibraryId ?? settings.LibraryId;
+            LibraryId = LibraryId ?? settings.BunnyStreamOptions.LibraryId;
             var request = new HttpRequestMessage(HttpMethod.Get, $"https://video.bunnycdn.com/library/{LibraryId}/videos/{VideoId}");
-            request.Headers.Add("AccessKey", settings.StreamApiKey);
+            request.Headers.Add("AccessKey", settings.BunnyStreamOptions.StreamApiKey);
 
 
             var response = await httpClient.SendAsync(request, cancellationToken);
@@ -58,14 +58,14 @@ namespace Application.Service.Shared
             if (videoData == null)
                 return new BunnyUploadCredentials { VideoId = "", LibraryId = "", ExpirationTime = 0, Signature = "" };
 
-            long expirationTime = DateTimeOffset.UtcNow.AddMinutes(settings.UploadVideoExpirationInMinutes).ToUnixTimeSeconds();
-            string signatureString = settings.LibraryId + settings.StreamApiKey + expirationTime + videoData.Guid;
+            long expirationTime = DateTimeOffset.UtcNow.AddMinutes(settings.BunnyStreamOptions.UploadVideoExpirationInMinutes).ToUnixTimeSeconds();
+            string signatureString = settings.BunnyStreamOptions.LibraryId + settings.BunnyStreamOptions.StreamApiKey + expirationTime + videoData.Guid;
             string signature = HashingService.GenerateSHA256(signatureString);
 
             return new BunnyUploadCredentials()
             {
                 VideoId = videoData.Guid,
-                LibraryId = settings.LibraryId,
+                LibraryId = settings.BunnyStreamOptions.LibraryId,
                 ExpirationTime = expirationTime,
                 Signature = signature
             };
@@ -89,8 +89,8 @@ namespace Application.Service.Shared
         private async Task<BunnyCreateResponse> CreateVideoAsync(string videoTitle, string collectionIdentifier, CancellationToken cancellationToken)
         {
             videoTitle = videoTitle + "_" + Guid.NewGuid().ToString(); // Ensure unique title to avoid conflicts in Bunny Stream
-            var request = new HttpRequestMessage(HttpMethod.Post, $"https://video.bunnycdn.com/library/{settings.LibraryId}/videos");
-            request.Headers.Add("AccessKey", settings.StreamApiKey);
+            var request = new HttpRequestMessage(HttpMethod.Post, $"https://video.bunnycdn.com/library/{settings.BunnyStreamOptions.LibraryId}/videos");
+            request.Headers.Add("AccessKey", settings.BunnyStreamOptions.StreamApiKey);
             request.Content = JsonContent.Create(new { title = videoTitle, collectionId = collectionIdentifier });
 
             var response = await httpClient.SendAsync(request, cancellationToken);
@@ -122,9 +122,9 @@ namespace Application.Service.Shared
         /// </summary>
         private string GenerateSecureUrlForEmbed(string videoId)
         {
-            string securityKey = settings.StreamSignature;
-            string libraryId = settings.LibraryId;
-            long expires = DateTimeOffset.UtcNow.AddMinutes(settings.GenerateWatchUrlExpirationInMinutes).ToUnixTimeSeconds();
+            string securityKey = settings.BunnyStreamOptions.StreamSignature;
+            string libraryId = settings.BunnyStreamOptions.LibraryId;
+            long expires = DateTimeOffset.UtcNow.AddMinutes(settings.BunnyStreamOptions.GenerateWatchUrlExpirationInMinutes).ToUnixTimeSeconds();
 
             string stringToHash = securityKey + videoId + expires;
             string token = HashingService.GenerateSHA256(stringToHash);
@@ -141,9 +141,9 @@ namespace Application.Service.Shared
             }
 
             logger.LogInformation($"Deleting video from Bunny Stream: {videoGuid}");
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"{settings.BunnyCdnBaseUrl}/library/{settings.LibraryId}/videos/{videoGuid}");
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"https://video.bunnycdn.com/library/{settings.BunnyStreamOptions.LibraryId}/videos/{videoGuid}");
 
-            request.Headers.Add("AccessKey", settings.StreamApiKey);
+            request.Headers.Add("AccessKey", settings.BunnyStreamOptions.StreamApiKey);
 
             var response = await httpClient.SendAsync(request, cancellationToken);
 

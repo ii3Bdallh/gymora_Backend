@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Domain.Options;
-using Application.Interface.Service.Shared.Application.Interface.Service.Shared;
 
 
 namespace Application.Service.Shared
@@ -20,6 +19,11 @@ namespace Application.Service.Shared
     public class BunnyStorageService(BunnyOptions bunnyConfig, HttpClient httpClient, ILogger<BunnyStorageService> logger)
         : IStorageService
     {
+        // StorageName
+        // StorageApiKey
+        // CDnSignature
+        // PullZoneUrl
+        
         /// <summary>
         /// Upload a file to Bunny Storage
         /// </summary>
@@ -28,14 +32,14 @@ namespace Application.Service.Shared
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File cannot be null or empty");
 
-            var maxSizeBytes = bunnyConfig.StorageMaxUploadSizeMB * 1024 * 1024;
+            var maxSizeBytes = bunnyConfig.BunnyStorageOptions.StorageMaxUploadSizeMB * 1024 * 1024;
             if (file.Length > maxSizeBytes)
-                throw new ArgumentException($"File size exceeds maximum allowed size of {bunnyConfig.StorageMaxUploadSizeMB}MB. Current file size: {Math.Round(file.Length / (1024.0 * 1024.0), 2)}MB");
+                throw new ArgumentException($"File size exceeds maximum allowed size of {bunnyConfig.BunnyStorageOptions.StorageMaxUploadSizeMB}MB. Current file size: {Math.Round(file.Length / (1024.0 * 1024.0), 2)}MB");
 
             var finalFileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
 
-            var request = new HttpRequestMessage(HttpMethod.Put, $"https://storage.bunnycdn.com/{bunnyConfig.StorageName}/{finalFileName}");
-            request.Headers.Add("AccessKey", bunnyConfig.StorageApiKey);
+            var request = new HttpRequestMessage(HttpMethod.Put, $"{bunnyConfig.BunnyStorageOptions.StorageZoneRegionEndpoint}/{finalFileName}");
+            request.Headers.Add("AccessKey", bunnyConfig.BunnyStorageOptions.Password);
 
             using var stream = file.OpenReadStream();
             var content = new StreamContent(stream);
@@ -67,9 +71,9 @@ namespace Application.Service.Shared
         /// </summary>
         private string GenerateSecureUrlForBasicCdn(string fileName, string? ipAddress = null)
         {
-            string securityKey = bunnyConfig.CdnSignature;
-            string pullZoneUrl = bunnyConfig.PullZoneUrl;
-            long expiresUnix = DateTimeOffset.UtcNow.AddMinutes(bunnyConfig.GenerateWatchUrlExpirationInMinutes).ToUnixTimeSeconds();
+            string securityKey = bunnyConfig.PullZoneOptions.CdnSignature;
+            string pullZoneUrl = bunnyConfig.PullZoneOptions.PullZoneUrl;
+            long expiresUnix = DateTimeOffset.UtcNow.AddMinutes(bunnyConfig.PullZoneOptions.GenerateWatchUrlExpirationInMinutes).ToUnixTimeSeconds();
 
             string filePath = fileName.StartsWith("/") ? fileName : $"/{fileName}";
 
@@ -86,8 +90,8 @@ namespace Application.Service.Shared
 
         public async Task<bool> DeleteFileFromStorageAsync(string fileName, CancellationToken cancellationToken = default)
         {
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"https://storage.bunnycdn.com/{bunnyConfig.StorageName}/{fileName}");
-            request.Headers.Add("AccessKey", bunnyConfig.StorageApiKey);
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"{bunnyConfig.BunnyStorageOptions.StorageZoneRegionEndpoint}/{fileName}");
+            request.Headers.Add("AccessKey", bunnyConfig.BunnyStorageOptions.Password);
 
             var response = await httpClient.SendAsync(request, cancellationToken);
             if (response.IsSuccessStatusCode)

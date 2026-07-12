@@ -2,7 +2,6 @@ using Application.DTO;
 using Application.DTO.Exceptions;
 using Application.DTO.Pagintion;
 using Application.Interface.Repo;
-using Application.Interface.Repo.Entity;
 using Domain.Model;
 using Domain.Model.Base;
 using Infrastructure.Cache;

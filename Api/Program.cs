@@ -19,7 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 #region Services
 
 builder.Services
-    .AddApplication()
+    .AddApplication(builder.Configuration)
     .AddInfrastructure(builder.Configuration)
     .AddApi();
 

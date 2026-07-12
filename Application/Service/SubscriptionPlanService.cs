@@ -6,9 +6,9 @@ using Application.DTO.CRUD.Update;
 using Application.DTO.Exceptions;
 using Application.DTO.Pagintion;
 using Application.Interface.Repo;
-using Application.Interface.Repo.Entity;
 using Application.Interface.Service.Entity;
 using Application.Interface.Service.Shared;
+using Application.Model;
 using Application.Service.Base;
 using AutoMapper;
 using Domain.Model;
@@ -24,8 +24,8 @@ namespace Application.Service.Entity
             IMapper mapper,
             ICacheService cacheService,
             IPublishEndpoint publishEndpoint,
-            ICurrentGymService currentGym)
-            : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentGym)
+            CurrentUser currentUser)
+            : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser)
         {
         }
 

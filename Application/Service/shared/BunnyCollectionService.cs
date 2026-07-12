@@ -25,8 +25,8 @@ namespace Application.Service.Shared
             if (string.IsNullOrWhiteSpace(collectionId))
                 throw new ArgumentException("Collection ID cannot be empty", nameof(collectionId));
 
-            var request = new HttpRequestMessage(HttpMethod.Get, $"{settings.BunnyCdnBaseUrl}/library/{settings.LibraryId}/collections/{collectionId}");
-            request.Headers.Add("AccessKey", settings.StreamApiKey);
+            var request = new HttpRequestMessage(HttpMethod.Get, $"https://video.bunnycdn.com/library/{settings.BunnyStreamOptions.LibraryId}/collections/{collectionId}");
+            request.Headers.Add("AccessKey", settings.BunnyStreamOptions.StreamApiKey);
 
             var response = await httpClient.SendAsync(request, cancellationToken);
 
@@ -54,8 +54,8 @@ namespace Application.Service.Shared
             if (string.IsNullOrWhiteSpace(dto.Name))
                 throw new ArgumentException("Collection name cannot be empty", nameof(dto.Name));
 
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{settings.BunnyCdnBaseUrl}/library/{settings.LibraryId}/collections");
-            request.Headers.Add("AccessKey", settings.StreamApiKey);
+            var request = new HttpRequestMessage(HttpMethod.Post, $"https://video.bunnycdn.com/library/{settings.BunnyStreamOptions.LibraryId}/collections");
+            request.Headers.Add("AccessKey", settings.BunnyStreamOptions.StreamApiKey);
             request.Content = JsonContent.Create(new { name = dto.Name });
 
             var response = await httpClient.SendAsync(request, cancellationToken);
@@ -86,8 +86,8 @@ namespace Application.Service.Shared
             if (string.IsNullOrWhiteSpace(dto.Name))
                 throw new ArgumentException("Collection name cannot be empty", nameof(dto.Name));
 
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{settings.BunnyCdnBaseUrl}/library/{settings.LibraryId}/collections/{collectionId}");
-            request.Headers.Add("AccessKey", settings.StreamApiKey);
+            var request = new HttpRequestMessage(HttpMethod.Post, $"https://video.bunnycdn.com/library/{settings.BunnyStreamOptions.LibraryId}/collections/{collectionId}");
+            request.Headers.Add("AccessKey", settings.BunnyStreamOptions.StreamApiKey);
             request.Content = JsonContent.Create(new { name = dto.Name });
 
             var response = await httpClient.SendAsync(request, cancellationToken);
@@ -115,8 +115,8 @@ namespace Application.Service.Shared
             if (string.IsNullOrWhiteSpace(collectionId))
                 throw new ArgumentException("Collection ID cannot be empty", nameof(collectionId));
 
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"{settings.BunnyCdnBaseUrl}/library/{settings.LibraryId}/collections/{collectionId}");
-            request.Headers.Add("AccessKey", settings.StreamApiKey);
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"https://video.bunnycdn.com/library/{settings.BunnyStreamOptions.LibraryId}/collections/{collectionId}");
+            request.Headers.Add("AccessKey", settings.BunnyStreamOptions.StreamApiKey);
 
             var response = await httpClient.SendAsync(request, cancellationToken);
 

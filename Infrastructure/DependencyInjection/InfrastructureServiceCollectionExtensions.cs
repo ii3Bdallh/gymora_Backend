@@ -1,9 +1,10 @@
 using Application.Interface;
 using Application.Interface.Repo;
-using Application.Interface.Repo.Entity;
 using Application.Interface.Repo.Shared;
+using Domain.Model;
 
 using Infrastructure.Repo;
+using Infrastructure.Repo.Base;
 using Infrastructure.Repo.Entity;
 using Infrastructure.Service;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,9 +25,12 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<ILogger>(sp =>
             sp.GetRequiredService<ILoggerFactory>().CreateLogger("App"));
 
-           // Script will Add After Here DependencyInjectionRepo
-    services.AddScoped<ISubscriptionPlanRepo, SubscriptionPlanRepo>();
+        // Script will Add After Here DependencyInjectionRepo
+        services.AddScoped<ISubscriptionPlanRepo, SubscriptionPlanRepo>();
+        services.AddScoped<ITrainerCertificateRepo, TrainerCertificateRepo>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+        services.AddScoped<TestRepository>();
 
         return services;
     }

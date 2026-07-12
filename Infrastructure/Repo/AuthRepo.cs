@@ -26,6 +26,7 @@ namespace Infrastructure.Repo
         private readonly IEmailService _emailSender;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthRepo> _logger;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly int _refreshTokenDays;
 
         public AuthRepo(
@@ -34,7 +35,9 @@ namespace Infrastructure.Repo
             ApplicationDbContext context,
             IEmailService emailSender,
             IConfiguration configuration,
-            ILogger<AuthRepo> logger)
+            ILogger<AuthRepo> logger,
+            IUnitOfWork unitOfWork
+            )
         {
             _userManager = userManager;
             _jwtProvider = jwtProvider;
@@ -42,6 +45,7 @@ namespace Infrastructure.Repo
             _emailSender = emailSender;
             _configuration = configuration;
             _logger = logger;
+            _unitOfWork = unitOfWork;
             _refreshTokenDays = int.TryParse(configuration["Jwt:RefreshTokenExpirationInDays"], out var days) ? days : 7;
         }
 
@@ -111,7 +115,6 @@ namespace Infrastructure.Repo
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
             try
             {
                 // ---- حد أقصى لعدد الأجهزة المسجلة (Refresh Tokens) ----
@@ -129,9 +132,8 @@ namespace Infrastructure.Repo
                     ExpirationAt = refreshTokenExpiry
                 });
 
-                await _userManager.UpdateAsync(user);
                 var (token, expiresIn) = _jwtProvider.GenerateToken(user, roles);
-                await transaction.CommitAsync(cancellationToken);
+                await _userManager.UpdateAsync(user);
 
                 return new LoginResDto(user.Id, user.Email!, user.PersonName, token, expiresIn,
                     refreshToken, roles, refreshTokenExpiry);
@@ -139,7 +141,6 @@ namespace Infrastructure.Repo
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Login transaction failed for user {Email}", loginReqDto.Email);
-                await transaction.RollbackAsync(cancellationToken);
                 throw;
             }
         }
@@ -264,7 +265,7 @@ namespace Infrastructure.Repo
                     token.RevokedAt = DateTime.UtcNow;
                 }
 
-                await _context.SaveChangesAsync(cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
             else
             {
@@ -274,7 +275,7 @@ namespace Infrastructure.Repo
                 if (refreshToken != null)
                 {
                     refreshToken.RevokedAt = DateTime.UtcNow;
-                    await _context.SaveChangesAsync(cancellationToken);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
                 }
             }
         }
@@ -295,7 +296,7 @@ namespace Infrastructure.Repo
             }
 
             // Best practice: امسح كل الـ refresh tokens بعد تغيير الباسورد (يقفل كل الأجهزة عدا الحالي)
-            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
             try
             {
                 var userWithTokens = await _userManager.Users
@@ -306,12 +307,12 @@ namespace Infrastructure.Repo
                     token.RevokedAt = DateTime.UtcNow;
 
                 await _userManager.UpdateAsync(userWithTokens);
-                await transaction.CommitAsync(cancellationToken);
+                await _unitOfWork.CommitTransactionAsync(cancellationToken);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to revoke tokens after password change for user {UserId}", userId);
-                await transaction.RollbackAsync(cancellationToken);
+                await _unitOfWork.RollbackTransactionAsync(cancellationToken);
                 throw;
             }
         }
@@ -369,7 +370,7 @@ namespace Infrastructure.Repo
             if (isSamePassword)
                 throw new BadRequestException("New password cannot be the same as the old password");
 
-            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
             try
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -385,12 +386,12 @@ namespace Infrastructure.Repo
                 user.PasswordResetOtpExpiry = null;
                 await _userManager.UpdateAsync(user);
 
-                await transaction.CommitAsync(cancellationToken);
+                await _unitOfWork.CommitTransactionAsync(cancellationToken);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Reset password transaction failed for user {Email}", resetPasswordRequest.Email);
-                await transaction.RollbackAsync(cancellationToken);
+                await _unitOfWork.RollbackTransactionAsync(cancellationToken);
                 throw;
             }
         }
@@ -434,7 +435,7 @@ namespace Infrastructure.Repo
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
             try
             {
                 string refreshToken = GenerateRefreshToken();
@@ -446,7 +447,7 @@ namespace Infrastructure.Repo
                 });
                 await _userManager.UpdateAsync(user);
                 var (token, expiresIn) = _jwtProvider.GenerateToken(user, roles);
-                await transaction.CommitAsync(cancellationToken);
+                await _unitOfWork.CommitTransactionAsync(cancellationToken);
                 return new LoginResDto(
                     Id: user.Id,
                     Email: user.Email!,
@@ -461,7 +462,7 @@ namespace Infrastructure.Repo
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Google login transaction failed");
-                await transaction.RollbackAsync(cancellationToken);
+                await _unitOfWork.RollbackTransactionAsync(cancellationToken);
                 throw;
             }
         }

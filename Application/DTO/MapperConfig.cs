@@ -1,14 +1,10 @@
 
+using Application.DTO.CRUD.Create;
+using Application.DTO.CRUD.Read;
+using Application.DTO.CRUD.Update;
+using Application.DTO.TrainerCertificate;
 using AutoMapper;
 using Domain.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application.DTO.CRUD.Read;
-using Application.DTO.CRUD.Create;
-using Application.DTO.CRUD.Update;
 
 namespace Application.DTO
 {
@@ -30,6 +26,21 @@ namespace Application.DTO
             CreateMap<PlanPrice, PlanPriceUDTO>()
                 .ReverseMap();
             CreateMap<PlanPrice, PlanPriceRDTO>()
+                .ReverseMap();
+
+            CreateMap<Domain.Model.TrainerCertificate, TrainerCertificateCDTO>()
+                .ForMember(dest => dest.File, opt => opt.Ignore())
+                .ReverseMap()
+                .ForMember(dest => dest.FileUrl, opt => opt.Ignore())
+                .ForMember(dest => dest.StoredFileName, opt => opt.Ignore());
+
+            CreateMap<Domain.Model.TrainerCertificate, TrainerCertificateUDTO>()
+                .ForMember(dest => dest.File, opt => opt.Ignore())
+                .ReverseMap()
+                .ForMember(dest => dest.FileUrl, opt => opt.Ignore())
+                .ForMember(dest => dest.StoredFileName, opt => opt.Ignore());
+
+            CreateMap<Domain.Model.TrainerCertificate, TrainerCertificateRDTO>()
                 .ReverseMap();
                 
 
