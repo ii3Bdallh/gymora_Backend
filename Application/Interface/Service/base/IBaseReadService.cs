@@ -30,5 +30,7 @@ namespace Application.Interface.Service
             bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default);
+
+
     }
 }

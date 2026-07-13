@@ -16,10 +16,12 @@ namespace Application.DTO
             CreateMap<SubscriptionPlan, SubscriptionPlanCDTO>()
                 .ReverseMap();
             CreateMap<SubscriptionPlan, SubscriptionPlanUDTO>()
-                .ReverseMap();
+                .ReverseMap()
+                .ForMember(dest => dest.Prices, opt => opt.Ignore())
+                ;
             CreateMap<SubscriptionPlan, SubscriptionPlanRDTO>()
                 .ReverseMap();
-                
+
             CreateMap<PlanPrice, PlanPriceCDTO>()
                 .ReverseMap();
             CreateMap<PlanPrice, PlanPriceUDTO>()

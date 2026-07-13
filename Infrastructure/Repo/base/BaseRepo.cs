@@ -27,8 +27,10 @@ namespace Infrastructure.Repo.Base
 
         public DbSet<T> DbSet => context.Set<T>();
 
-        public virtual async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
+        public virtual async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
+            if (include != null)
+                return await include(DbSet.AsNoTracking()).ToListAsync(cancellationToken);
             return await DbSet.AsNoTracking().ToListAsync(cancellationToken);
         }
 
@@ -37,7 +39,7 @@ namespace Infrastructure.Repo.Base
             bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
-            params Expression<Func<T, object>>[] includes)
+            Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
             // ضبط الـ Tracking من بداية الـ Pipeline لتوفير الـ CPU والـ Memory
             IQueryable<T> query = trackChanges ? DbSet : DbSet.AsNoTracking();
@@ -57,9 +59,9 @@ namespace Infrastructure.Repo.Base
             query = query.OrderBy($"{orderBy} {direction}");
 
             // دمج الـ Includes لو وُجدت
-            if (includes != null && includes.Length > 0)
+            if (include != null)
             {
-                query = includes.Aggregate(query, (current, include) => current.Include(include));
+                query = include(query);
             }
 
             return query;
@@ -70,14 +72,16 @@ namespace Infrastructure.Repo.Base
             bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
-            params Expression<Func<T, object>>[] includes)
+                 Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
             // 1. بنجيب كويري "خفيفة" من غير Includes عشان نعمل عليها الـ Count بسرعة
             var countQuery = GetAllQuery(searchReq, isActive, trackChanges, cancellationToken);
             var totalCount = await countQuery.CountAsync(cancellationToken);
 
             // 2. بنجيب الكويري الكاملة بالـ Includes عشان نسحب الداتا مع الـ Children بتوعها
-            var dataQuery = GetAllQuery(searchReq, isActive, trackChanges, cancellationToken, includes);
+            var dataQuery = GetAllQuery(searchReq, isActive, trackChanges, cancellationToken);
+            if (include != null)
+                dataQuery = include(dataQuery);
 
             var pageItems = await dataQuery
                 .Skip((searchReq.PageNumber - 1) * searchReq.PageSize)
@@ -98,14 +102,13 @@ namespace Infrastructure.Repo.Base
             bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
-            params Expression<Func<T, object>>[] includes)
+            Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
             IQueryable<T> query = trackChanges ? DbSet : DbSet.AsNoTracking();
 
-            if (includes != null && includes.Length > 0)
-            {
-                query = includes.Aggregate(query, (current, include) => current.Include(include));
-            }
+            if (include != null)
+                query = include(query);
+
 
             return await query
                 .Where(x => x.Id == id && x.IsActive == isActive)

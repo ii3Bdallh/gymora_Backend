@@ -15,7 +15,7 @@ namespace Application.DTO.CRUD.Update
         public string? FeaturesJson { get; set; }
         public bool IsActive { get; set; }
 
-        public ICollection<PlanPriceUDTO> Prices { get; set; } = new List<PlanPriceUDTO>();
+        // public ICollection<PlanPriceUDTO> Prices { get; set; } = new List<PlanPriceUDTO>();
     }
 }
 

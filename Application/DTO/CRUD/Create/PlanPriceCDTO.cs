@@ -11,7 +11,6 @@ namespace Application.DTO.CRUD.Create
 {
     public record PlanPriceCDTO : BaseCDTO
     {
-                public int PlanId { get; set; }
         public string CountryCode { get; set; } = null!;
         public string CurrencyCode { get; set; } = null!;
         public int DurationMonths { get; set; }

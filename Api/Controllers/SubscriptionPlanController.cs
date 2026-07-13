@@ -11,6 +11,7 @@ using Application.DTO.CRUD.Read;
 using Application.DTO.CRUD.Update;
 using Domain.Model;
 
+
 namespace Api.Controllers
 {
     [ApiController]
@@ -94,20 +95,37 @@ namespace Api.Controllers
 
         #region PlanPrice
 
-        [HttpPost("SubscriptionPlan/{PlanId}/PlanPrices")]
-        public async Task<ActionResult<PlanPrice>> CreatePlanPriceAsync(int PlanId, [FromBody] PlanPrice planPrice)
+        [HttpPost("{PlanId}/PlanPrices/Create")]
+        public async Task<ActionResult<PlanPriceRDTO>> CreatePlanPriceAsync(int PlanId, [FromBody] PlanPriceCDTO planPriceDto)
         {
             if (!ModelState.IsValid)
             {
-                logger.LogWarning("Invalid ModelState while creating PlanPrice: {@PlanPrice}", planPrice);
+                logger.LogWarning("Invalid ModelState while creating PlanPrice: {@PlanPriceDto}", planPriceDto);
                 return BadRequest(ModelState);
             }
 
-            logger.LogInformation("Creating a new PlanPrice: {@PlanPrice}", planPrice);
+            logger.LogInformation("Creating a new PlanPrice: {@PlanPriceDto}", planPriceDto);
 
-            var createdPlanPrice = await service.AddPlanPriceAsync(planPrice, PlanId);
+            PlanPriceRDTO createdPlanPrice = await service.AddPlanPriceAsync(PlanId, planPriceDto);
 
-            return Ok(Result<PlanPrice>.Success(createdPlanPrice));
+            return Ok(Result<PlanPriceRDTO>.Success(createdPlanPrice));
+        }
+
+        [HttpPut("{PlanId}/PlanPrices/{id}")]
+        public async Task<ActionResult<PlanPriceRDTO>> UpdatePlanPriceAsync(int PlanId, int id, [FromBody] PlanPriceUDTO planPriceDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                logger.LogWarning("Invalid ModelState while updating PlanPrice Id: {Id}", id);
+                return BadRequest(ModelState);
+            }
+
+            logger.LogInformation("Updating PlanPrice with Id: {Id}", id);
+
+            PlanPriceRDTO updatedPlanPrice = await service.UpdatePlanPriceAsync(id, planPriceDto);
+
+            logger.LogInformation("Successfully updated PlanPrice with Id: {Id}", id);
+            return Ok(Result<PlanPriceRDTO>.Success(updatedPlanPrice));
         }
 
         [HttpDelete("PlanPrices/{id}")]
@@ -115,10 +133,10 @@ namespace Api.Controllers
         {
             logger.LogInformation("Deleting PlanPrice with Id: {Id}", id);
 
-            var deletedPlanPrice = await service.DeletePlanPriceAsync(id);
+            PlanPriceRDTO deletedPlanPrice = await service.DeletePlanPriceAsync(id);
 
             logger.LogInformation("Successfully deleted PlanPrice with Id: {Id}", id);
-            return Ok(Result<PlanPrice>.Success(deletedPlanPrice));
+            return Ok(Result<PlanPriceRDTO>.Success(deletedPlanPrice));
         }
 
 

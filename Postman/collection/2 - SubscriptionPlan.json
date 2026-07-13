@@ -1,0 +1,424 @@
+{
+  "info": {
+    "_postman_id": "b7a1c2d3-e4f5-6789-abcd-ef0123456789",
+    "name": "Gymora API",
+    "description": "# Gymora API Postman Collection\n\n## Overview\n\nComplete Postman collection for the Gymora ASP.NET Core 9.0 REST API.\n\n## Architecture\n\n- **Authentication:** JWT Bearer Token with Refresh Tokens\n- **Identity:** ASP.NET Core Identity with `ApplicationUser` (int PK)\n- **Roles:** `SuperAdmin`, `User`\n- **Rate Limiting:** IP-based fixed window policies\n- **Global Exception Handling:** Custom middleware returning `Result<T>` envelope\n- **ORM:** Entity Framework Core with SQL Server\n- **Background Jobs:** Hangfire + MassTransit InMemory + EF Outbox\n- **File Storage:** Bunny.net (Stream + Storage)\n- **Payment:** Paymob integration\n- **Validation:** DataAnnotations\n\n## Authentication Flow\n\n1. `POST /api/Auth/register` — Creates account + sends confirmation OTP\n2. `POST /api/Auth/confirm-email` — Confirms with OTP (or use GET variant)\n3. `POST /api/Auth/login` — Returns JWT + Refresh Token\n4. All protected requests automatically use `Authorization: Bearer {{accessToken}}`\n5. `POST /api/Auth/refresh-token` — When access token expires\n6. `POST /api/Auth/logout` — Revokes refresh token\n\n## Rate Limiting Policies\n\n| Policy Name | Limit | Window | Endpoints |\n|------------|-------|--------|-----------|\n| `Ip_5Limit_1Min` | 5 requests | 1 minute | POST /api/Auth/login |\n| `Ip_3Limit_5Min` | 3 requests | 5 minutes | POST resend-confirmation-email, POST forgot-password |\n| `Ip_10Limit_1Min` | 10 requests | 1 minute | POST verify-otp, POST reset-password, GET confirm-email |\n\n## Standard Response Envelope\n\n### Success\n```json\n{\n  \"isSuccess\": true,\n  \"data\": { ... }\n}\n```\n\n### Error\n```json\n{\n  \"isSuccess\": false,\n  \"error\": {\n    \"code\": \"ERROR_CODE\",\n    \"message\": \"Description\"\n  }\n}\n```\n\n### Error Codes\n\n| HTTP Status | Code | Description |\n|------------|------|-------------|\n| 400 | `BAD_REQUEST` | Invalid input / business rule violation |\n| 400 | `VALIDATION_ERROR` | Model state validation failure |\n| 401 | `UNAUTHORIZED` | Missing or invalid authentication |\n| 403 | `FORBIDDEN` | Insufficient role permissions |\n| 404 | `NOT_FOUND` | Resource not found |\n| 429 | `RATE_LIMIT_EXCEEDED` | Rate limit triggered |\n| 500 | `INTERNAL_ERROR` | Unexpected server error |\n\n## Roles\n\n| Role | Description |\n|------|-------------|\n| `SuperAdmin` | Full system access (value: 0) |\n| `User` | Standard authenticated user (value: 1) |\n\n## Enums\n\n### FileType\n| Value | Name |\n|-------|------|\n| 0 | Video |\n| 1 | PDF |\n| 2 | Audio |\n| 3 | Document |\n| 4 | Image |\n| 5 | Other |\n\n### BunnyUploadStatus\n| Value | Name |\n|-------|------|\n| 0 | Queued |\n| 1 | Processing |\n| 2 | Encoding |\n| 3 | Finished |\n| 4 | ResolutionFinished |\n| 5 | Failed |\n| 6 | PresignedUploadStarted |\n| 7 | PresignedUploadFinished |\n| 8 | PresignedUploadFailed |\n| 9 | CaptionsGenerated |\n| 10 | TitleOrDescriptionGenerated |\n\n## Dependencies\n\n- **Email:** SMTP via Gmail (`MailOptions`)\n- **Firebase:** Cloud Messaging for push notifications\n- **Bunny.net:** Video streaming + file storage\n- **Redis:** Caching (optional, configured per environment)\n- **Hangfire:** Background job processing\n- **MassTransit:** InMemory message bus with EF Outbox\n\n## Collection Variables\n\n| Variable | Auto-Set By | Description |\n|----------|------------|-------------|\n| `baseUrl` | — | API base URL (set per environment) |\n| `accessToken` | Login, LoginGoogle, RefreshToken | JWT Bearer token |\n| `refreshToken` | Login, LoginGoogle, RefreshToken | Refresh token |\n| `currentUserId` | Login, LoginGoogle | Authenticated user ID |\n| `createdEntityId` | Create SubscriptionPlan | Created entity ID for chaining |\n| `createdPlanPriceId` | Create PlanPrice | Created plan price ID |",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+
+    {
+      "name": "02 Subscription Plans",
+      "description": "Subscription Plan management with full CRUD operations, pagination, and related PlanPrice management.",
+      "item": [
+        {
+          "name": "Get Subscription Plans (Paged)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Response has pagination fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    pm.expect(data.totalCount).to.be.a('number');",
+                  "    pm.expect(data.pageSize).to.be.a('number');",
+                  "    pm.expect(data.pageNumber).to.be.a('number');",
+                  "    pm.expect(data.totalPages).to.be.a('number');",
+                  "    pm.expect(data.hasPrevious).to.be.a('boolean');",
+                  "    pm.expect(data.hasNext).to.be.a('boolean');",
+                  "    pm.expect(data.items).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": null,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"createdById\": null,\n  \"filters\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/SubscriptionPlan",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "SubscriptionPlan"]
+            },
+            "description": "Get a paginated list of subscription plans with optional search, sorting, and filtering.\n\n## Request Body Fields\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `pageNumber` | int | 1 | Page number (1-based) |\n| `pageSize` | int | 10 | Page size (max 50) |\n| `searchTerm` | string | null | Search term (max 100 chars) |\n| `orderBy` | string | \"Id\" | Property to order by |\n| `orderDirection` | string | \"asc\" | Sort direction: \"asc\" or \"desc\" |\n| `isActive` | bool | true | Filter by active status |\n| `createdById` | int | null | Filter by creator |\n| `filters` | object | null | Advanced filtering (BetweenFilters, ExactFilters) |\n\n## Pagination Response\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `totalCount` | number | Total items matching the query |\n| `pageSize` | number | Items per page |\n| `pageNumber` | number | Current page |\n| `totalPages` | number | Total number of pages |\n| `hasPrevious` | boolean | Whether a previous page exists |\n| `hasNext` | boolean | Whether a next page exists |\n| `items` | array | SubscriptionPlan items for current page |\n\n### Requires Authentication: No (AllowAnonymous)"
+          }
+        },
+        {
+          "name": "Get Subscription Plan by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Plan has required fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    pm.expect(data.id).to.be.a('number');",
+                  "    pm.expect(data.name).to.be.a('string');",
+                  "    pm.expect(data.maxOwnedGyms).to.be.a('number');",
+                  "    pm.expect(data.maxCoachesPerGym).to.be.a('number');",
+                  "    pm.expect(data.maxMembersPerGym).to.be.a('number');",
+                  "    pm.expect(data.isActive).to.be.a('boolean');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/{{createdEntityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "SubscriptionPlan", "{{createdEntityId}}"]
+            },
+            "description": "Get a single subscription plan by its ID.\n\n## Route Parameters\n\n| Parameter | Type | Description |\n|-----------|------|-------------|\n| `id` | int | Subscription Plan ID |\n\n## Response Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | number | Plan ID |\n| `name` | string | Plan name |\n| `description` | string | Plan description |\n| `maxOwnedGyms` | number | Max owned gyms allowed |\n| `maxCoachesPerGym` | number | Max coaches per gym |\n| `maxMembersPerGym` | number | Max members per gym |\n| `featuresJson` | string | JSON string of features |\n| `isActive` | boolean | Whether the plan is active |\n| `createdOn` | string | Creation timestamp |\n| `prices` | array | Plan prices (PlanPriceRDTO) |\n\n### Requires Authentication: No (AllowAnonymous)"
+          }
+        },
+        {
+          "name": "Create Subscription Plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Created plan has an ID\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data.id).to.be.a('number');",
+                  "    pm.collectionVariables.set(\"createdEntityId\", data.id.toString());",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Premium Gym Plan\",\n  \"description\": \"Complete gym management solution with unlimited members and coaches\",\n  \"maxOwnedGyms\": 5,\n  \"maxCoachesPerGym\": 20,\n  \"maxMembersPerGym\": 500,\n  \"featuresJson\": \"[\\\"analytics\\\",\\\"staff-management\\\",\\\"member-app\\\",\\\"payment-processing\\\"]\",\n  \"prices\": [\n    {\n      \"planId\": 0,\n      \"countryCode\": \"EG\",\n      \"currencyCode\": \"EGP\",\n      \"durationMonths\": 1,\n      \"amount\": 999.99\n    },\n    {\n      \"planId\": 0,\n      \"countryCode\": \"EG\",\n      \"currencyCode\": \"EGP\",\n      \"durationMonths\": 12,\n      \"amount\": 9999.99\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/Create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "SubscriptionPlan", "Create"]
+            },
+            "description": "Create a new subscription plan with optional prices.\n\nOn success, the **createdEntityId** collection variable is automatically set to the new plan's ID.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `name` | string | Yes | Plan name |\n| `description` | string | No | Plan description |\n| `maxOwnedGyms` | int | Yes | Maximum gyms allowed |\n| `maxCoachesPerGym` | int | Yes | Maximum coaches per gym |\n| `maxMembersPerGym` | int | Yes | Maximum members per gym |\n| `featuresJson` | string | No | JSON array of feature names |\n| `prices` | array | No | Array of PlanPriceCDTO objects |\n\n### Requires Roles: SuperAdmin"
+          }
+        },
+        {
+          "name": "Update Subscription Plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Updated plan has modified fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data.name).to.eql(\"Enterprise Gym Plan\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Enterprise Gym Plan\",\n  \"description\": \"Enterprise-grade gym management with unlimited resources\",\n  \"maxOwnedGyms\": 50,\n  \"maxCoachesPerGym\": 100,\n  \"maxMembersPerGym\": 10000,\n  \"featuresJson\": \"[\\\"analytics\\\",\\\"staff-management\\\",\\\"member-app\\\",\\\"payment-processing\\\",\\\"api-access\\\",\\\"white-label\\\"]\",\n  \"isActive\": true,\n  \"prices\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/{{createdEntityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "SubscriptionPlan", "{{createdEntityId}}"]
+            },
+            "description": "Update an existing subscription plan.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `name` | string | Yes | Plan name |\n| `description` | string | No | Plan description |\n| `maxOwnedGyms` | int | Yes | Maximum gyms allowed |\n| `maxCoachesPerGym` | int | Yes | Maximum coaches per gym |\n| `maxMembersPerGym` | int | Yes | Maximum members per gym |\n| `featuresJson` | string | No | JSON array of feature names |\n| `isActive` | bool | Yes | Whether the plan is active |\n| `prices` | array | No | Array of PlanPriceUDTO objects |\n\n### Requires Roles: SuperAdmin"
+          }
+        },
+        {
+          "name": "Delete Subscription Plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/{{createdEntityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "SubscriptionPlan", "{{createdEntityId}}"]
+            },
+            "description": "Soft-delete a subscription plan by its ID.\n\n### Requires Roles: SuperAdmin"
+          }
+        },
+        {
+          "name": "Create Plan Price",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Created plan price has an ID\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data.id).to.be.a('number');",
+                  "    pm.collectionVariables.set(\"createdPlanPriceId\", data.id.toString());",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": {{createdEntityId}},\n  \"countryCode\": \"US\",\n  \"currencyCode\": \"USD\",\n  \"durationMonths\": 3,\n  \"amount\": 299.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/{{createdEntityId}}/PlanPrices/Create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "SubscriptionPlan", "{{createdEntityId}}", "PlanPrices", "Create"]
+            },
+            "description": "Create a new plan price for a subscription plan.\n\nOn success, the **createdPlanPriceId** collection variable is automatically set.\n\n## Request Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `planId` | int | Subscription Plan ID |\n| `countryCode` | string | ISO country code (e.g., \"EG\", \"US\") |\n| `currencyCode` | string | ISO currency code (e.g., \"EGP\", \"USD\") |\n| `durationMonths` | int | Duration in months |\n| `amount` | decimal | Price amount |\n\n### Requires Roles: SuperAdmin"
+          }
+        },
+        {
+          "name": "Update Plan Price",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Updated plan price has modified fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data.amount).to.eql(199.99);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"countryCode\": \"US\",\n  \"currencyCode\": \"USD\",\n  \"durationMonths\": 6,\n  \"amount\": 199.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/{{createdEntityId}}/PlanPrices/{{createdPlanPriceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "SubscriptionPlan", "{{createdEntityId}}", "PlanPrices", "{{createdPlanPriceId}}"]
+            },
+            "description": "Update an existing plan price.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `countryCode` | string | Yes | ISO country code |\n| `currencyCode` | string | Yes | ISO currency code |\n| `durationMonths` | int | Yes | Duration in months |\n| `amount` | decimal | Yes | Price amount |\n\n### Requires Roles: SuperAdmin"
+          }
+        },
+        {
+          "name": "Delete Plan Price",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/SubscriptionPlan/PlanPrices/{{createdPlanPriceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "SubscriptionPlan", "PlanPrices", "{{createdPlanPriceId}}"]
+            },
+            "description": "Soft-delete a plan price by its ID.\n\n### Requires Roles: SuperAdmin"
+          }
+        }
+      ]
+    }
+ 
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:7059",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "currentUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "createdEntityId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "createdPlanPriceId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ]
+}
