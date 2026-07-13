@@ -11,7 +11,7 @@ using MassTransit;
 using Application.Cache;
 using Application.Interface.Service.Shared;
 using Application.Model;
-using Application.DTO.Base.Auditable;
+using Application.DTO.Base;
 using Domain.Events;
 using Microsoft.Extensions.Logging;
 

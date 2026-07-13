@@ -1,5 +1,5 @@
 using Application.Cache;
-using Application.DTO.Base.Auditable;
+using Application.DTO.Base;
 using Application.DTO.Exceptions;
 using Application.Interface.Repo;
 using Application.Interface.Service.Shared;

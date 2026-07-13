@@ -119,16 +119,16 @@ namespace Application.Service
 
                 string newStoredPath = await _storageService.UploadFileToStorageAsync(
                     dto.File,
-                    dto.IsPublic,
+                    entity.IsPublic,
                     typeof(T).Name.Replace("Entity", ""),
                     cancellationToken);
 
                 _mapper.Map(dto, entity);
 
                 entity.StoredFileName = newStoredPath;
-                entity.IsPublic = dto.IsPublic;
+                entity.IsPublic = entity.IsPublic;
 
-                if (dto.IsPublic)
+                if (entity.IsPublic)
                     entity.FileUrl = _storageService.GetFileAccessUrl(newStoredPath, true);
                 else
                     entity.FileUrl = null; // مهم: نمسح الرابط القديم
