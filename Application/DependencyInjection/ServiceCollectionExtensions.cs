@@ -28,7 +28,6 @@ public static class ServiceCollectionExtensions
             services.AddScoped<CurrentUser>();
 
             // Script will Add After Here DependencyInjectionService
-            services.AddScoped<IPaymentRequestService, PaymentRequestService>();
 
         return services;
     }
