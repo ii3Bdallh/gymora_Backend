@@ -9,6 +9,8 @@ public static class CacheEntityNames
     public const string Notification = "notification";
     public const string UserDevice = "user_device";
 
+    // Script will Add After Here CacheEntityNames
+
     public static string ForType<T>() where T : class
     {
         var type = typeof(T);
@@ -16,6 +18,8 @@ public static class CacheEntityNames
         if (type == typeof(PlanPrice)) return PlanPrice;
         if (type == typeof(Notification)) return Notification;
         if (type == typeof(UserDevice)) return UserDevice;
+
+        // Script will Add After Here ForType
         return type.Name.ToLower();
     }
 }

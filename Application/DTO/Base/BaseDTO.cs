@@ -1,6 +1,4 @@
 
-
-
 namespace Application.DTO.Base
 {
     public record BaseCDTO

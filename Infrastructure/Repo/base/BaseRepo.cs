@@ -33,7 +33,10 @@ namespace Infrastructure.Repo.Base
                 return await include(DbSet.AsNoTracking()).ToListAsync(cancellationToken);
             return await DbSet.AsNoTracking().ToListAsync(cancellationToken);
         }
-
+        public virtual IQueryable<T> GetQueryable(bool trackChanges = false)
+        {
+            return trackChanges ? DbSet : DbSet.AsNoTracking();
+        }
         public virtual IQueryable<T> GetAllQuery(
             PaginatedSearchReq searchReq,
             bool isActive = true,

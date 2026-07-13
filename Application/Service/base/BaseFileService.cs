@@ -77,12 +77,16 @@ namespace Application.Service
         public override async Task<RDTO> AddAsync(CDTO dto, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Uploading file for {EntityType}", typeof(T).Name);
+            string storedPath = string.Empty;
+
             // رفع الملف مع التحكم في نوعه
-            string storedPath = await _storageService.UploadFileToStorageAsync(
-                dto.File,
-                dto.IsPublic,
-                typeof(T).Name.Replace("Entity", ""),
-                cancellationToken);
+            if (dto.File != null)
+                storedPath = await _storageService.UploadFileToStorageAsync(
+                   dto.File,
+                   dto.IsPublic,
+                   typeof(T).Name.Replace("Entity", ""),
+                   cancellationToken);
+
 
             T entity = _mapper.Map<T>(dto);
             entity.StoredFileName = storedPath;
@@ -116,19 +120,20 @@ namespace Application.Service
             {
                 _logger.LogInformation("Replacing file for {EntityType} with ID {Id}", typeof(T).Name, id);
                 string oldStoredPath = entity.StoredFileName;
+                bool currentIsPublicStatus = entity.IsPublic;
 
                 string newStoredPath = await _storageService.UploadFileToStorageAsync(
                     dto.File,
-                    entity.IsPublic,
+                    currentIsPublicStatus,
                     typeof(T).Name.Replace("Entity", ""),
                     cancellationToken);
 
                 _mapper.Map(dto, entity);
 
                 entity.StoredFileName = newStoredPath;
-                entity.IsPublic = entity.IsPublic;
+                entity.IsPublic = currentIsPublicStatus;
 
-                if (entity.IsPublic)
+                if (currentIsPublicStatus)
                     entity.FileUrl = _storageService.GetFileAccessUrl(newStoredPath, true);
                 else
                     entity.FileUrl = null; // مهم: نمسح الرابط القديم

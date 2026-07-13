@@ -8,7 +8,7 @@ namespace Infrastructure.Extensions;
 public static class ConfigurationExtensions
 {
     public static void ConfigureAuditing<T>(this EntityTypeBuilder<T> builder)
-            where T : AuditableEntity
+            where T : BaseAuditableEntity
     {
         builder.HasOne<ApplicationUser>()
                .WithMany()

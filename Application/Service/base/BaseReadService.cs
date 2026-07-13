@@ -8,16 +8,16 @@ using Application.Interface.Service;
 using Application.Interface.Service.Shared;
 using Application.Model;
 using AutoMapper;
+using Domain.Interface;
 using Domain.Model.Base;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Service
 {
     /// <summary>
-    /// Implements read-only operations. BaseService below inherits from
-    /// this and adds write operations on top, so writing is never
-    /// possible without the read plumbing (repo, mapper, cache, user)
-    /// already being in place.
+    /// Implements read-only operations with ownership-based filtering support.
+    /// Public entities are visible to everyone, while owned entities are filtered by CreatedById.
     /// </summary>
     public abstract class BaseReadService<T, RDTO> : IBaseReadService<T, RDTO>
         where T : BaseEntity
@@ -47,11 +47,45 @@ namespace Application.Service
         protected int CurrentUserId => _currentUser.UserId;
         protected CurrentUser CurrentUser => _currentUser;
 
+        /// <summary>
+        /// بيحدد هل نبعت userId للـ CacheKeyGenerator ولا لأ.
+        /// بنبعته بس لو الـ Entity Owned واليوزر مش SuperAdmin،
+        /// لأن دول هما الحالة الوحيدة اللي محتاجة عزل الكاش لكل يوزر لوحده.
+        /// </summary>
+        private int? CacheUserScope =>
+            typeof(IOwnedEntity).IsAssignableFrom(typeof(T)) && !_currentUser.IsSuperAdmin
+                ? _currentUser.UserId
+                : (int?)null;
+
+        /// <summary>
+        /// Applies ownership filter for IOwnedEntity while skipping it for IPublicEntity.
+        /// </summary>
+        protected IQueryable<T> ApplyOwnershipFilter(IQueryable<T> query)
+        {
+            // Public entities: visible to everyone
+            if (typeof(IPublicEntity).IsAssignableFrom(typeof(T)))
+                return query;
+
+            // Owned entities: filter by CurrentUserId (except SuperAdmin)
+            if (typeof(IOwnedEntity).IsAssignableFrom(typeof(T)) && !_currentUser.IsSuperAdmin)
+            {
+                return query.Where(x => EF.Property<int>(x, nameof(IOwnedEntity.CreatedById)) == _currentUser.UserId);
+            }
+
+            return query;
+        }
+
         public virtual async Task<IEnumerable<RDTO>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Fetching all {EntityType} records", typeof(T).Name);
-            var models = await _repo.GetAllAsync(cancellationToken  , Includes());
+
+            var query = _repo.GetQueryable();           // افترض أن لديك هذه الطريقة
+            query = ApplyOwnershipFilter(query);
+
+            var models = await _repo.GetAllAsync(cancellationToken: cancellationToken); // استخدم await إذا كانت الطريقة GetAllAsync تدعم ذلك
+
             var result = _mapper.Map<IEnumerable<RDTO>>(models);
+
             _logger.LogInformation("Fetched {Count} {EntityType} records", models.Count(), typeof(T).Name);
             return result;
         }
@@ -63,7 +97,7 @@ namespace Application.Service
             CancellationToken cancellationToken = default)
         {
             var entityName = CacheEntityNames.ForType<T>();
-            var key = CacheKeyGenerator.ById(entityName, id, CurrentGymId);
+            var key = CacheKeyGenerator.ById(entityName, id, CurrentGymId, CacheUserScope);
 
             var cached = await _cacheService.GetAsync<RDTO>(key);
             if (cached is not null)
@@ -73,12 +107,26 @@ namespace Application.Service
             }
 
             _logger.LogInformation("Fetching {EntityType} with ID {Id}", typeof(T).Name, id);
-            T? entity = await _repo.GetByIdAsync(id, isActive, trackChanges, cancellationToken , Includes());
+
+            var query = _repo.GetQueryable();
+            query = ApplyOwnershipFilter(query);
+
+
+
+            T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: false, cancellationToken: cancellationToken);   // أفضل من FindAsync مع الفلتر
 
             if (entity is null)
             {
                 _logger.LogWarning("{EntityType} with ID {Id} was not found", typeof(T).Name, id);
                 throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
+            }
+
+            // Additional ownership check for GetById (defense in depth)
+            if (entity is IOwnedEntity owned && !_currentUser.IsSuperAdmin && owned.CreatedById != _currentUser.UserId)
+            {
+                _logger.LogWarning("User {UserId} attempted to access {EntityType} ID {Id} which he does not own",
+                    _currentUser.UserId, typeof(T).Name, id);
+                throw new UnauthorizedAccessException("You do not have permission to access this resource.");
             }
 
             var dto = _mapper.Map<RDTO>(entity);
@@ -94,7 +142,7 @@ namespace Application.Service
             CancellationToken cancellationToken = default)
         {
             var entityName = CacheEntityNames.ForType<T>();
-            var key = CacheKeyGenerator.ByPage(entityName, searchReq, CurrentGymId);
+            var key = CacheKeyGenerator.ByPage(entityName, searchReq, CurrentGymId, CacheUserScope);
 
             var cached = await _cacheService.GetAsync<PaginatedRes<RDTO>>(key);
             if (cached is not null)
@@ -104,7 +152,14 @@ namespace Application.Service
             }
 
             _logger.LogInformation("Fetching page {PageNumber} of {EntityType}", searchReq.PageNumber, typeof(T).Name);
-            var page = await _repo.GetPageAsync(searchReq, isActive, trackChanges, cancellationToken , Includes());
+
+            var query = _repo.GetQueryable();
+            query = ApplyOwnershipFilter(query);
+
+
+
+            var page = await _repo.GetPageAsync(searchReq, isActive, trackChanges, cancellationToken, Includes());
+            // إذا كان GetPageAsync في الـ Repo يدعم IQueryable، يفضل تعديله لاحقًا
 
             var dtoPage = new PaginatedRes<RDTO>
             {
@@ -115,7 +170,9 @@ namespace Application.Service
             };
 
             await _cacheService.SetAsync(key, dtoPage);
-            _logger.LogInformation("Fetched page {PageNumber}/{TotalPages} of {EntityType} ({TotalCount} total)", page.PageNumber, (int)Math.Ceiling((double)page.TotalCount / page.PageSize), typeof(T).Name, page.TotalCount);
+            _logger.LogInformation("Fetched page {PageNumber}/{TotalPages} of {EntityType} ({TotalCount} total)",
+                page.PageNumber, (int)Math.Ceiling((double)page.TotalCount / page.PageSize), typeof(T).Name, page.TotalCount);
+
             return dtoPage;
         }
 

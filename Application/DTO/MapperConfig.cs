@@ -1,6 +1,8 @@
+using Application.DTO.Base;
 using Application.DTO.Model;
 using AutoMapper;
 using Domain.Model;
+using Domain.Model.Base;
 
 namespace Application.DTO
 {
@@ -8,6 +10,8 @@ namespace Application.DTO
     {
         public MapperConfig()
         {
+
+
 
             // Script will Add After Here MapperConfig
             CreateMap<SubscriptionPlan, SubscriptionPlanCDTO>()
@@ -28,6 +32,83 @@ namespace Application.DTO
 
 
 
+
+
+            #region Base Mappings
+            // ===========================
+            // Base
+            // ===========================
+
+            CreateMap<BaseEntity, BaseRDTO>()
+                .ReverseMap();
+
+            CreateMap<BaseEntity, BaseCDTO>()
+                .ReverseMap();
+
+            CreateMap<BaseEntity, BaseUDTO>()
+                .ReverseMap();
+
+
+            // ===========================
+            // Auditable
+            // ===========================
+
+            CreateMap<AuditableEntity, BaseAuditableRDTO>()
+                .IncludeBase<BaseEntity, BaseRDTO>()
+                .ReverseMap();
+
+            CreateMap<AuditableEntity, BaseAuditableCDTO>()
+                .IncludeBase<BaseEntity, BaseCDTO>()
+                .ReverseMap();
+
+            CreateMap<AuditableEntity, BaseAuditableUDTO>()
+                .IncludeBase<BaseEntity, BaseUDTO>()
+                .ReverseMap();
+
+
+            // ===========================
+            // File
+            // ===========================
+
+            CreateMap<BaseFileEntity, BaseFRDTO>()
+                .IncludeBase<BaseEntity, BaseRDTO>()
+                .ReverseMap()
+                .ForMember(x => x.StoredFileName, opt => opt.Ignore());
+
+            CreateMap<BaseFileEntity, BaseFCDTO>()
+                .IncludeBase<BaseEntity, BaseCDTO>()
+                .ReverseMap()
+                .ForMember(x => x.FileUrl, opt => opt.Ignore())
+                .ForMember(x => x.StoredFileName, opt => opt.Ignore());
+
+            CreateMap<BaseFileEntity, BaseFUDTO>()
+                .IncludeBase<BaseEntity, BaseUDTO>()
+                .ReverseMap()
+                .ForMember(x => x.FileUrl, opt => opt.Ignore())
+                .ForMember(x => x.StoredFileName, opt => opt.Ignore());
+
+
+            // ===========================
+            // Auditable File
+            // ===========================
+
+            CreateMap<BaseAuditableFileEntity, BaseAuditableFRDTO>()
+                .IncludeBase<AuditableEntity, BaseAuditableRDTO>()
+                .ReverseMap()
+                .ForMember(x => x.StoredFileName, opt => opt.Ignore());
+
+            CreateMap<BaseAuditableFileEntity, BaseAuditableFCDTO>()
+                .IncludeBase<AuditableEntity, BaseAuditableCDTO>()
+                .ReverseMap()
+                .ForMember(x => x.FileUrl, opt => opt.Ignore())
+                .ForMember(x => x.StoredFileName, opt => opt.Ignore());
+
+            CreateMap<BaseAuditableFileEntity, BaseAuditableFUDTO>()
+                .IncludeBase<AuditableEntity, BaseAuditableUDTO>()
+                .ReverseMap()
+                .ForMember(x => x.FileUrl, opt => opt.Ignore())
+                .ForMember(x => x.StoredFileName, opt => opt.Ignore());
+            #endregion
 
 
 

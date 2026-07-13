@@ -74,14 +74,16 @@ namespace Application.Service.Base
 
         public override async Task<RDTO> AddAsync(CDTO dto, CancellationToken cancellationToken = default)
         {
+            string storedPath = string.Empty;
             dto.CreatedById = CurrentUserId;
             _logger.LogInformation("Uploading file for auditable {EntityType} by user {UserId}", typeof(T).Name, CurrentUserId);
 
-            string storedPath = await _storageService.UploadFileToStorageAsync(
-                dto.File,
-                dto.IsPublic,
-                typeof(T).Name.Replace("Entity", ""),
-                cancellationToken);
+            if (dto.File != null)
+                storedPath = await _storageService.UploadFileToStorageAsync(
+                   dto.File,
+                   dto.IsPublic,
+                   typeof(T).Name.Replace("Entity", ""),
+                   cancellationToken);
 
             T entity = _mapper.Map<T>(dto);
             entity.StoredFileName = storedPath;

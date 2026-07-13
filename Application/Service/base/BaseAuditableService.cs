@@ -11,7 +11,6 @@ using MassTransit;
 using Application.Cache;
 using Application.Interface.Service.Shared;
 using Application.Model;
-using Application.DTO.Base;
 using Domain.Events;
 using Microsoft.Extensions.Logging;
 
@@ -23,7 +22,7 @@ namespace Application.Service.Base
     /// </summary>
     public abstract class BaseAuditableService<T, RDTO, CDTO, UDTO>
         : BaseService<T, RDTO, CDTO, UDTO>
-        where T : AuditableEntity
+        where T : BaseAuditableEntity
         where RDTO : BaseAuditableRDTO
         where CDTO : BaseAuditableCDTO
         where UDTO : BaseAuditableUDTO

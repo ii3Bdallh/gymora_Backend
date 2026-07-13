@@ -1,6 +1,6 @@
 namespace Domain.Model.Base;
 
-public abstract class AuditableEntity : BaseEntity
+public abstract class BaseAuditableEntity : BaseEntity
 {
     public DateTime CreatedOn { get; set; }
     public int CreatedById { get; set; }

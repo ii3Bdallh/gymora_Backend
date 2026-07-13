@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-
 namespace Application.DTO.Base
 {
     public record BaseFCDTO : BaseCDTO
