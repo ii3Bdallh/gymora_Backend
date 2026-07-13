@@ -1,12 +1,12 @@
 using Application.Cache;
 using Application.DTO;
-using Application.DTO.CRUD.Create;
-using Application.DTO.CRUD.Read;
-using Application.DTO.CRUD.Update;
+
+
+using Application.DTO.Model;
 using Application.DTO.Exceptions;
 using Application.DTO.Pagintion;
 using Application.Interface.Repo;
-using Application.Interface.Service.Entity;
+using Application.Interface.Service;
 using Application.Interface.Service.Shared;
 using Application.Model;
 using Application.Service.Base;

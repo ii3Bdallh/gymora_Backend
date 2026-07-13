@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.DependencyInjection;
 
-public static class InfrastructureServiceCollectionExtensions
+public static class RepositoryCollectionExtensions
 {
     public static IServiceCollection AddInfrastructureRepositories(
         this IServiceCollection services)
@@ -26,6 +26,7 @@ public static class InfrastructureServiceCollectionExtensions
             sp.GetRequiredService<ILoggerFactory>().CreateLogger("App"));
 
         // Script will Add After Here DependencyInjectionRepo
+        services.AddScoped<IPaymentRequestRepo, PaymentRequestRepo>();
         services.AddScoped<ISubscriptionPlanRepo, SubscriptionPlanRepo>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 

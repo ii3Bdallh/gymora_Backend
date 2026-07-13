@@ -5,14 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Application.DTO.CRUD.Read;
-using Application.DTO.CRUD.Create;
-using Application.DTO.CRUD.Update;
+
+
+using Application.DTO.Model;
 using Application.DTO;
 using Application.DTO.Pagintion;
 
 
-namespace Application.Interface.Service.Entity
+namespace Application.Interface.Service
 {
     public interface ISubscriptionPlanService : IBaseService<SubscriptionPlan, SubscriptionPlanRDTO, SubscriptionPlanCDTO, SubscriptionPlanUDTO>
     {

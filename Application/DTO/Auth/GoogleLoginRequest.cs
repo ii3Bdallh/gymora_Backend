@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 
-namespace Application.DTO.Request
+namespace Application.DTO.Auth
 {
 
     public class GoogleLoginRequest

@@ -9,7 +9,6 @@ using Infrastructure.Cache;
 using Infrastructure.Hangfire;
 using Infrastructure.Persistence;
 using Infrastructure.Seed;
-using Infrastructure.Service;
 using Infrastructure.Utils;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -22,9 +21,7 @@ using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Extensions.Http;
 using System.Reflection;
-using Application.Interface.Service.Shared;
-using Application.Interface.Repo;
-using Infrastructure.Repo.Base;
+
 
 
 

@@ -1,7 +1,4 @@
-
-using Application.DTO.CRUD.Create;
-using Application.DTO.CRUD.Read;
-using Application.DTO.CRUD.Update;
+using Application.DTO.Model;
 using AutoMapper;
 using Domain.Model;
 

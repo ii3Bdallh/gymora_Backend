@@ -5,10 +5,10 @@ using Domain.Enum;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Application.Interface.Service.Entity;
-using Application.DTO.CRUD.Create;
-using Application.DTO.CRUD.Read;
-using Application.DTO.CRUD.Update;
+using Application.Interface.Service;
+
+
+using Application.DTO.Model;
 using Domain.Model;
 
 

@@ -1,4 +1,4 @@
-namespace Application.DTO.Response
+namespace Application.DTO.Auth
 {
     /// <summary>
     /// Response for role assignment operations
