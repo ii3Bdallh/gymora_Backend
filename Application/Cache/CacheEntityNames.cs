@@ -10,6 +10,8 @@ public static class CacheEntityNames
     public const string UserDevice = "user_device";
 
     // Script will Add After Here CacheEntityNames
+    public const string PaymentRequest = "paymentrequest";
+
 
     public static string ForType<T>() where T : class
     {
@@ -20,6 +22,8 @@ public static class CacheEntityNames
         if (type == typeof(UserDevice)) return UserDevice;
 
         // Script will Add After Here ForType
+        if (type == typeof(PaymentRequest)) return PaymentRequest;
+
         return type.Name.ToLower();
     }
 }

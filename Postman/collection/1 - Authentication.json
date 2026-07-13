@@ -45,8 +45,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "register"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "register"
+              ]
             },
             "description": "Register a new user account.\n\nAfter registration, a confirmation OTP is sent to the provided email address. The user must confirm their email before they can log in.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n| `userName` | Required, 3-100 characters |\n| `password` | Required, 8-100 characters. Must contain: uppercase, lowercase, digit, and special character |\n| `phoneNumber` | Optional, max 50 characters |\n\n### Rate Limiting\n\nNone."
           }
@@ -86,8 +92,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/confirm-email",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "confirm-email"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "confirm-email"
+              ]
             },
             "description": "Confirm email address using the OTP code sent during registration.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n| `otp` | Required, exactly 5 digits |\n\n### Rate Limiting\n\nNone."
           }
@@ -126,8 +138,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/resend-confirmation-email",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "resend-confirmation-email"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "resend-confirmation-email"
+              ]
             },
             "description": "Resend the email confirmation OTP.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n\n### Rate Limiting\n\n`Ip_3Limit_5Min`: **3 requests per 5 minutes** per IP."
           }
@@ -166,6 +184,88 @@
                   "    pm.collectionVariables.set(\"accessToken\", data.token);",
                   "    pm.collectionVariables.set(\"refreshToken\", data.refreshtoken);",
                   "    pm.collectionVariables.set(\"currentUserId\", data.id.toString());",
+                  "    pm.collectionVariables.set(\"userAccessToken\", data.token);",
+                  "    pm.collectionVariables.set(\"userRefreshToken\", data.refreshtoken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": [
+     
+            {
+              "name": "Login Failure",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/Auth/login"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [],
+              "body": "{\n  \"isSuccess\": false,\n  \"error\": {\n    \"code\": \"BAD_REQUEST\",\n    \"message\": \"Invalid email or password\"\n  }\n}"
+            },
+            {
+              "name": "Rate Limited",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/Auth/login"
+                }
+              },
+              "status": "Too Many Requests",
+              "code": 429,
+              "header": [],
+              "body": "{\"success\":false,\"error\":{\"code\":\"RATE_LIMIT_EXCEEDED\",\"message\":\"Too many requests. Please try again later.\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Login as SuperAdmin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "    pm.expect(json.data).to.be.an('object');",
+                  "});",
+                  "",
+                  "pm.test(\"Login response has all required fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data.id).to.be.a('number');",
+                  "    pm.expect(data.email).to.be.a('string');",
+                  "    pm.expect(data.personName).to.be.a('string');",
+                  "    pm.expect(data.token).to.be.a('string');",
+                  "    pm.expect(data.expiresIn).to.be.a('number');",
+                  "    pm.expect(data.refreshtoken).to.be.a('string');",
+                  "    pm.expect(data.roles).to.be.an('array');",
+                  "    pm.expect(data.refreshTokenExpirationDate).to.be.a('string');",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200 && pm.response.json().isSuccess) {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.collectionVariables.set(\"superAdminAccessToken\", data.token);",
+                  "    pm.collectionVariables.set(\"superAdminRefreshToken\", data.refreshtoken);",
+                  "    pm.collectionVariables.set(\"currentUserId\", data.id.toString());",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -185,34 +285,51 @@
             ],
             "body": {
               "mode": "raw",
+              "raw": "{\n  \"email\": \"superadmin@gymora.com\",\n  \"password\": \"SuperAdminP@ss1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "login"
+              ]
+            },
+            "description": "Authenticate as SuperAdmin to obtain a JWT token with SuperAdmin role claims.\n\nOn success, **superAdminAccessToken** and **superAdminRefreshToken** collection variables are automatically set.\n\nUse this endpoint before testing SuperAdmin-restricted endpoints.\n\n## Credentials\n\nThe default credentials shown are placeholders — replace with actual SuperAdmin credentials for your environment.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required |\n| `password` | Required |\n\n### Rate Limiting\n\n`Ip_5Limit_1Min`: **5 requests per 1 minute** per IP."
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
               "raw": "{\n  \"email\": \"abdallhmamdouh619@gmail.com\",\n  \"password\": \"P@ssw0rd123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "login"
+              ]
             },
-            "description": "Authenticate with email and password.\n\nOn success, **accessToken** and **refreshToken** are automatically saved as collection variables.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required |\n| `password` | Required |\n\n## Response Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | number | User ID |\n| `email` | string | User email |\n| `personName` | string | Display name |\n| `token` | string | JWT access token |\n| `expiresIn` | number | Token expiration in seconds |\n| `refreshtoken` | string | Refresh token |\n| `roles` | string[] | Assigned roles |\n| `refreshTokenExpirationDate` | string | Refresh token expiry (ISO-8601) |\n\n### Rate Limiting\n\n`Ip_5Limit_1Min`: **5 requests per 1 minute** per IP."
+            "description": "Authenticate with email and password."
           },
           "response": [
-            {
-              "name": "Login Success",
-              "originalRequest": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": ""
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/Auth/login"
-                }
-              },
-              "status": "OK",
-              "code": 200,
-              "header": [],
-              "body": "{\n  \"isSuccess\": true,\n  \"data\": {\n    \"id\": 1,\n    \"email\": \"abdallhmamdouh619@gmail.com\",\n    \"personName\": \"Abdallh Mamdouh\",\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"expiresIn\": 3600,\n    \"refreshtoken\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n    \"roles\": [\"User\"],\n    \"refreshTokenExpirationDate\": \"2026-07-09T09:31:46Z\"\n  }\n}"
-            },
+
             {
               "name": "Login Failure",
               "originalRequest": {
@@ -295,8 +412,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/login-google",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "login-google"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "login-google"
+              ]
             },
             "description": "Authenticate using a Google ID token.\n\nOn success, **accessToken** and **refreshToken** are automatically saved.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `idToken` | Required |\n\n## Prerequisites\n\n- A valid Google ID token obtained from the Google Sign-In SDK on the client side.\n- Backend must be configured with `Authentication:Google:ClientId` in appsettings.json."
           }
@@ -344,8 +467,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/refresh-token",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "refresh-token"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "refresh-token"
+              ]
             },
             "description": "Refresh an expired JWT access token using a valid refresh token.\n\nBoth the current `accessToken` (expired or valid) and `refreshToken` must be provided. On success, new tokens are automatically saved.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `refreshToken` | Required |\n| `accessToken` | Required |\n\n### Rate Limiting\n\nNone."
           }
@@ -384,8 +513,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/logout",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "logout"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "logout"
+              ]
             },
             "description": "Logout and invalidate the refresh token.\n\n- Set `logoutFromAllDevices` to `true` to invalidate ALL refresh tokens for the user.\n- Set to `false` (or omit) to only invalidate the provided refresh token.\n\nThe `UserId` is automatically extracted from the JWT claims, so it does not need to be provided in the body.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `refreshToken` | string | No | The refresh token to invalidate |\n| `logoutFromAllDevices` | bool | No | Invalidate all tokens (default: false) |\n\n### Requires Authentication: Yes\n\n### Rate Limiting\n\nNone."
           }
@@ -428,8 +563,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/forgot-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "forgot-password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "forgot-password"
+              ]
             },
             "description": "Request a password reset OTP sent to the provided email address.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n\n### Rate Limiting\n\n`Ip_3Limit_5Min`: **3 requests per 5 minutes** per IP."
           }
@@ -472,8 +613,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/verify-otp",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "verify-otp"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "verify-otp"
+              ]
             },
             "description": "Verify the OTP code sent via the Forgot Password flow.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n| `otp` | Required, max 6 characters |\n\n### Rate Limiting\n\n`Ip_10Limit_1Min`: **10 requests per 1 minute** per IP."
           }
@@ -516,8 +663,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/reset-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "reset-password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "reset-password"
+              ]
             },
             "description": "Reset the password using the verified OTP.\n\nThis endpoint verifies the OTP internally before resetting the password.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required, valid email format |\n| `otp` | Required, max 6 characters |\n| `newPassword` | Required, 8-100 characters. Must contain: uppercase, lowercase, digit, and special character |\n\n### Rate Limiting\n\n`Ip_10Limit_1Min`: **10 requests per 1 minute** per IP."
           }
@@ -546,8 +699,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/Auth/confirm-email?userId=1&code=testconfirmationcode",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "confirm-email"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "confirm-email"
+              ],
               "query": [
                 {
                   "key": "userId",
@@ -596,8 +755,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/Auth/change-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "change-password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "change-password"
+              ]
             },
             "description": "Change password for the currently authenticated user.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `currentPassword` | Required |\n| `newPassword` | Required, min 8 characters |\n\n### Requires Authentication: Yes\n\n### Rate Limiting\n\nNone."
           }
@@ -638,15 +803,20 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/Auth/get-user-profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "Auth", "get-user-profile"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "get-user-profile"
+              ]
             },
             "description": "Get the profile of the currently authenticated user.\n\n## Response Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `email` | string | User email address |\n| `personName` | string | User display name |\n| `phoneNumber` | string | Phone number |\n| `roles` | string[] | List of assigned roles |\n\n### Requires Authentication: Yes"
           }
         }
       ]
     }
- 
   ],
   "variable": [
     {
@@ -676,6 +846,26 @@
     },
     {
       "key": "createdPlanPriceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "superAdminAccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "superAdminRefreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userAccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userRefreshToken",
       "value": "",
       "type": "string"
     }

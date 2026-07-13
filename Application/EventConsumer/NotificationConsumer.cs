@@ -1,55 +1,58 @@
-//using Application.DTO;
-//using Application.Interface.Service;
-//using Domain.Events;
-//using MassTransit;
+using Application.DTO;
+using Application.Interface.Service;
+using Application.StaticTexts;
+using Domain.Events;
+using MassTransit;
 
-//namespace Application.EventConsumer;
+namespace Application.EventConsumer;
 
-//public class NotificationConsumer :
-//    IConsumer<ChildAddedEvent>,
-//    IConsumer<UserRegisteredEvent>,
-//    IConsumer<MembershipExpiredEvent>
-//{
-//    private readonly INotificationService _notificationService;
+public class NotificationConsumer :
+   IConsumer<PaymentCreatedEvent>
+//    , IConsumer<EntityChangedEvent>
 
-//    public NotificationConsumer(INotificationService notificationService)
-//    {
-//        _notificationService = notificationService;
-//    }
+{
+    private readonly INotificationService _notificationService;
 
-//    public async Task Consume(ConsumeContext<ChildAddedEvent> context)
-//    {
-//        var message = context.Message;
+    public NotificationConsumer(INotificationService notificationService)
+    {
+        _notificationService = notificationService;
+    }
 
-//        await _notificationService.SendNotificationTestAsync(
-//            new NotificationDTO
-//            {
-//                Title = "Child Added",
-//                Body = message.ChildName
-//            });
-//    }
+    public async Task Consume(ConsumeContext<PaymentCreatedEvent> context)
+    {
+        var message = context.Message;
 
-//    public async Task Consume(ConsumeContext<UserRegisteredEvent> context)
-//    {
-//        var message = context.Message;
+        await _notificationService.SendToTopicAsync(
+            NotificationTopic.AdminTopic,
+            new NotificationDTO
+            {
+                Title = "Payment Created",
+                Body = $"A new payment has been created for request {message.PaymentRequestId}."
+            });
+    }
 
-//        await _notificationService.SendNotificationTestAsync(
-//            new NotificationDTO
-//            {
-//                Title = "Welcome",
-//                Body = $"Welcome {message.FullName}"
-//            });
-//    }
+    //    public async Task Consume(ConsumeContext<UserRegisteredEvent> context)
+    //    {
+    //        var message = context.Message;
 
-//    public async Task Consume(ConsumeContext<MembershipExpiredEvent> context)
-//    {
-//        var message = context.Message;
+    //        await _notificationService.SendNotificationTestAsync(
+    //            new NotificationDTO
+    //            {
+    //                Title = "Welcome",
+    //                Body = $"Welcome {message.FullName}"
+    //            });
+    //    }
 
-//        await _notificationService.SendNotificationTestAsync(
-//            new NotificationDTO
-//            {
-//                Title = "Membership Expired",
-//                Body = $"Membership of {message.MemberName} has expired."
-//            });
-//    }
-//}
+    //    public async Task Consume(ConsumeContext<MembershipExpiredEvent> context)
+    //    {
+    //        var message = context.Message;
+
+    //        await _notificationService.SendNotificationTestAsync(
+    //            new NotificationDTO
+    //            {
+    //                Title = "Membership Expired",
+    //                Body = $"Membership of {message.MemberName} has expired."
+    //            });
+    //    }
+}
+

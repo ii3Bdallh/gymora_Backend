@@ -13,7 +13,7 @@ namespace Application.Interface.Repo
     {
         // إرجاع IQueryable خام بدون أي فلترة (Active/Includes/Ordering)
         // تستخدم في الـ Services اللي عايزة تبني الـ Query بنفسها (زي BaseReadService)
-        IQueryable<T> GetQueryable(bool trackChanges = false);
+        // IQueryable<T> GetQueryable(bool trackChanges = false);
         // جلب كل العناصر (للقوائم الصغيرة)
         Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default, Func<IQueryable<T>, IQueryable<T>>? include = null);
 

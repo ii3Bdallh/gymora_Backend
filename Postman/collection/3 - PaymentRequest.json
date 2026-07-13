@@ -1,0 +1,363 @@
+{
+  "info": {
+    "_postman_id": "b7a1c2d3-e4f5-6789-abcd-ef0123456789",
+    "name": "Gymora API",
+    "description": "# Gymora API Postman Collection\n\n## Overview\n\nComplete Postman collection for the Gymora ASP.NET Core 9.0 REST API.\n\n## Architecture\n\n- **Authentication:** JWT Bearer Token with Refresh Tokens\n- **Identity:** ASP.NET Core Identity with `ApplicationUser` (int PK)\n- **Roles:** `SuperAdmin`, `User`\n- **Rate Limiting:** IP-based fixed window policies\n- **Global Exception Handling:** Custom middleware returning `Result<T>` envelope\n- **ORM:** Entity Framework Core with SQL Server\n- **Background Jobs:** Hangfire + MassTransit InMemory + EF Outbox\n- **File Storage:** Bunny.net (Stream + Storage)\n- **Payment:** Paymob integration\n- **Validation:** DataAnnotations\n\n## Authentication Flow\n\n1. `POST /api/Auth/register` — Creates account + sends confirmation OTP\n2. `POST /api/Auth/confirm-email` — Confirms with OTP (or use GET variant)\n3. `POST /api/Auth/login` — Returns JWT + Refresh Token\n4. All protected requests automatically use `Authorization: Bearer {{accessToken}}`\n5. `POST /api/Auth/refresh-token` — When access token expires\n6. `POST /api/Auth/logout` — Revokes refresh token\n\n## Rate Limiting Policies\n\n| Policy Name | Limit | Window | Endpoints |\n|------------|-------|--------|-----------|\n| `Ip_5Limit_1Min` | 5 requests | 1 minute | POST /api/Auth/login |\n| `Ip_3Limit_5Min` | 3 requests | 5 minutes | POST resend-confirmation-email, POST forgot-password |\n| `Ip_10Limit_1Min` | 10 requests | 1 minute | POST verify-otp, POST reset-password, GET confirm-email |\n\n## Standard Response Envelope\n\n### Success\n```json\n{\n  \"isSuccess\": true,\n  \"data\": { ... }\n}\n```\n\n### Error\n```json\n{\n  \"isSuccess\": false,\n  \"error\": {\n    \"code\": \"ERROR_CODE\",\n    \"message\": \"Description\"\n  }\n}\n```\n\n### Error Codes\n\n| HTTP Status | Code | Description |\n|------------|------|-------------|\n| 400 | `BAD_REQUEST` | Invalid input / business rule violation |\n| 400 | `VALIDATION_ERROR` | Model state validation failed |\n| 401 | `UNAUTHORIZED` | Missing or invalid JWT |\n| 403 | `FORBIDDEN` | Insufficient role permissions |\n| 404 | `NOT_FOUND` | Resource not found |\n| 409 | `CONFLICT` | Duplicate resource |\n| 429 | `RATE_LIMIT_EXCEEDED` | Too many requests |\n| 500 | `SERVER_ERROR` | Internal server error |\n\n## Token Variables\n\nThis collection uses role-specific token variables for testing authorization:\n\n| Variable | Description |\n|----------|-------------|\n| `accessToken` / `refreshToken` | Default tokens (set by Login) |\n| `superAdminAccessToken` / `superAdminRefreshToken` | SuperAdmin role tokens (set by Login as SuperAdmin) |\n| `userAccessToken` / `userRefreshToken` | User role tokens (set by Login) |",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "03 Payment Requests",
+      "description": "Payment Request management with full CRUD operations and pagination. Payment requests include proof of payment uploads (images) and an approval workflow (Pending, Approved, Rejected, Cancelled).",
+      "item": [
+        {
+          "name": "Get Payment Requests (Paged)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Response has pagination fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    pm.expect(data.totalCount).to.be.a('number');",
+                  "    pm.expect(data.pageSize).to.be.a('number');",
+                  "    pm.expect(data.pageNumber).to.be.a('number');",
+                  "    pm.expect(data.totalPages).to.be.a('number');",
+                  "    pm.expect(data.hasPrevious).to.be.a('boolean');",
+                  "    pm.expect(data.hasNext).to.be.a('boolean');",
+                  "    pm.expect(data.items).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": null,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"createdById\": null,\n  \"filters\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/PaymentRequest",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "PaymentRequest"]
+            },
+            "description": "Get a paginated list of payment requests with optional search, sorting, and filtering.\n\n## Request Body Fields\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `pageNumber` | int | 1 | Page number (1-based) |\n| `pageSize` | int | 10 | Page size (max 50) |\n| `searchTerm` | string | null | Search term (max 100 chars) |\n| `orderBy` | string | \"Id\" | Property to order by |\n| `orderDirection` | string | \"asc\" | Sort direction: \"asc\" or \"desc\" |\n| `isActive` | bool | true | Filter by active status |\n| `createdById` | int | null | Filter by creator |\n| `filters` | object | null | Advanced filtering (BetweenFilters, ExactFilters) |\n\n## Pagination Response\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `totalCount` | number | Total items matching the query |\n| `pageSize` | number | Items per page |\n| `pageNumber` | number | Current page |\n| `totalPages` | number | Total number of pages |\n| `hasPrevious` | boolean | Whether a previous page exists |\n| `hasNext` | boolean | Whether a next page exists |\n| `items` | array | PaymentRequest items for current page |\n\n### Requires Authentication: No (AllowAnonymous)"
+          }
+        },
+        {
+          "name": "Get Payment Request by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Payment request has required fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    pm.expect(data.id).to.be.a('number');",
+                  "    pm.expect(data.planId).to.be.a('number');",
+                  "    pm.expect(data.planPriceId).to.be.a('number');",
+                  "    pm.expect(data.originalAmount).to.be.a('number');",
+                  "    pm.expect(data.finalAmount).to.be.a('number');",
+                  "    pm.expect(data.currencyCode).to.be.a('string');",
+                  "    pm.expect(data.status).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/PaymentRequest/{{createdEntityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "PaymentRequest", "{{createdEntityId}}"]
+            },
+            "description": "Get a single payment request by its ID.\n\n## Route Parameters\n\n| Parameter | Type | Description |\n|-----------|------|-------------|\n| `id` | int | Payment Request ID |\n\n## Response Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | number | Payment request ID |\n| `planId` | number | Subscription Plan ID |\n| `planPriceId` | number | Plan Price ID |\n| `subscriptionId` | number | Subscription ID (if approved) |\n| `couponId` | number | Applied coupon ID |\n| `couponCode` | string | Applied coupon code |\n| `originalAmount` | number | Amount before discount |\n| `discountAmount` | number | Discount amount |\n| `finalAmount` | number | Amount after discount |\n| `currencyCode` | string | ISO currency code |\n| `proofUrl` | string | Payment proof file URL |\n| `status` | number | 1=Pending, 2=Approved, 3=Rejected, 4=Cancelled |\n| `reviewNotes` | string | Admin review notes |\n| `rejectionReason` | string | Rejection reason |\n| `reviewedBy` | number | Admin user ID who reviewed |\n| `reviewedAt` | string | Review timestamp |\n| `fileUrl` | string | Uploaded proof file URL |\n| `createdOn` | string | Creation timestamp |\n| `createdById` | number | Creator user ID |\n| `modifiedOn` | string | Last modification timestamp |\n\n### Requires Authentication: No (AllowAnonymous)"
+          }
+        },
+        {
+          "name": "Create Payment Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Created payment request has an ID\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data.id).to.be.a('number');",
+                  "    pm.collectionVariables.set(\"createdEntityId\", data.id.toString());",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "PlanId",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "PlanPriceId",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "CouponCode",
+                  "value": "",
+                  "type": "text"
+                },
+                {
+                  "key": "File",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/PaymentRequest/Create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "PaymentRequest", "Create"]
+            },
+            "description": "Submit a new payment request with proof of payment.\n\nThis endpoint uses `multipart/form-data` (`[FromForm]`) to accept a file upload along with metadata.\n\nOn success, the **createdEntityId** collection variable is automatically set to the new payment request's ID.\n\n## Form Data Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `PlanId` | number | Yes | Subscription Plan ID |\n| `PlanPriceId` | number | Yes | Plan Price ID |\n| `CouponCode` | string | No | Coupon code to apply |\n| `File` | file | Yes | Payment proof image (JPG or PNG, max 3MB) |\n\n### File Validation\n- Allowed types: JPG, PNG\n- Max size: 3MB (enforced by `AllowedFileTypes` attribute)\n\n### Requires Authentication: Yes\n\n### Rate Limiting\n\nNone."
+          }
+        },
+        {
+          "name": "Update Payment Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Updated payment request has expected status\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data.status).to.eql(2);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "Status",
+                  "value": "2",
+                  "type": "text"
+                },
+                {
+                  "key": "ReviewNotes",
+                  "value": "Payment verified successfully.",
+                  "type": "text"
+                },
+                {
+                  "key": "RejectionReason",
+                  "value": "",
+                  "type": "text"
+                },
+                {
+                  "key": "ReviewedBy",
+                  "value": "{{currentUserId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "ReviewedAt",
+                  "value": "",
+                  "type": "text"
+                },
+                {
+                  "key": "File",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/PaymentRequest/{{createdEntityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "PaymentRequest", "{{createdEntityId}}"]
+            },
+            "description": "Update an existing payment request — typically used by admins to review/approve/reject.\n\nThis endpoint uses `multipart/form-data` (`[FromForm]`).\n\n## Form Data Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `Status` | number | Yes | 1=Pending, 2=Approved, 3=Rejected, 4=Cancelled |\n| `ReviewNotes` | string | No | Admin review notes |\n| `RejectionReason` | string | No | Rejection reason |\n| `ReviewedBy` | number | No | Reviewer user ID |\n| `ReviewedAt` | string | No | Review timestamp (ISO-8601) |\n| `File` | file | No | Updated payment proof image |\n\n### Requires Authentication: Yes\n\n### Rate Limiting\n\nNone."
+          }
+        },
+        {
+          "name": "Delete Payment Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/PaymentRequest/{{createdEntityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "PaymentRequest", "{{createdEntityId}}"]
+            },
+            "description": "Soft-delete a payment request by its ID.\n\n### Requires Authentication: Yes\n\n### Rate Limiting\n\nNone."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:7059",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "superAdminAccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "superAdminRefreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userAccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userRefreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "currentUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "createdEntityId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "createdPlanPriceId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ]
+}

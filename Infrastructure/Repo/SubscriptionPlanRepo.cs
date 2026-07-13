@@ -2,6 +2,7 @@ using Application.DTO;
 using Application.DTO.Exceptions;
 using Application.DTO.Pagintion;
 using Application.Interface.Repo;
+using Application.Model;
 using Domain.Model;
 using Domain.Model.Base;
 using Infrastructure.Cache;
@@ -15,8 +16,8 @@ using System.Linq.Dynamic.Core;
 
 namespace Infrastructure.Repo.Entity
 {
-    public class SubscriptionPlanRepo(ApplicationDbContext context, ILogger<SubscriptionPlanRepo> logger, QueryCache queryCache)
-    : BaseRepo<SubscriptionPlan>(context, logger, queryCache), ISubscriptionPlanRepo
+    public class SubscriptionPlanRepo(ApplicationDbContext context, ILogger<SubscriptionPlanRepo> logger, QueryCache queryCache , CurrentUser currentUser)
+    : BaseRepo<SubscriptionPlan>(context, logger, queryCache , currentUser), ISubscriptionPlanRepo
     {
 
         public Task<PlanPrice> AddPlanPriceAsync(PlanPrice planPrice, CancellationToken cancellationToken = default)

@@ -57,30 +57,12 @@ namespace Application.Service
                 ? _currentUser.UserId
                 : (int?)null;
 
-        /// <summary>
-        /// Applies ownership filter for IOwnedEntity while skipping it for IPublicEntity.
-        /// </summary>
-        protected IQueryable<T> ApplyOwnershipFilter(IQueryable<T> query)
-        {
-            // Public entities: visible to everyone
-            if (typeof(IPublicEntity).IsAssignableFrom(typeof(T)))
-                return query;
-
-            // Owned entities: filter by CurrentUserId (except SuperAdmin)
-            if (typeof(IOwnedEntity).IsAssignableFrom(typeof(T)) && !_currentUser.IsSuperAdmin)
-            {
-                return query.Where(x => EF.Property<int>(x, nameof(IOwnedEntity.CreatedById)) == _currentUser.UserId);
-            }
-
-            return query;
-        }
 
         public virtual async Task<IEnumerable<RDTO>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             _logger.LogInformation("Fetching all {EntityType} records", typeof(T).Name);
 
-            var query = _repo.GetQueryable();           // افترض أن لديك هذه الطريقة
-            query = ApplyOwnershipFilter(query);
+
 
             var models = await _repo.GetAllAsync(cancellationToken: cancellationToken); // استخدم await إذا كانت الطريقة GetAllAsync تدعم ذلك
 
@@ -108,8 +90,7 @@ namespace Application.Service
 
             _logger.LogInformation("Fetching {EntityType} with ID {Id}", typeof(T).Name, id);
 
-            var query = _repo.GetQueryable();
-            query = ApplyOwnershipFilter(query);
+
 
 
 
@@ -153,8 +134,6 @@ namespace Application.Service
 
             _logger.LogInformation("Fetching page {PageNumber} of {EntityType}", searchReq.PageNumber, typeof(T).Name);
 
-            var query = _repo.GetQueryable();
-            query = ApplyOwnershipFilter(query);
 
 
 

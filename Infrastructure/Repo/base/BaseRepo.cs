@@ -9,6 +9,8 @@ using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Application.DTO;
+using Application.Model;
+using Domain.Interface;
 
 namespace Infrastructure.Repo.Base
 {
@@ -18,24 +20,48 @@ namespace Infrastructure.Repo.Base
         protected readonly ILogger<BaseRepo<T>> logger;
         protected readonly QueryCache queryCache;
 
-        protected BaseRepo(ApplicationDbContext context, ILogger<BaseRepo<T>> logger, QueryCache queryCache)
+        protected readonly CurrentUser currentUser;
+
+
+
+        protected BaseRepo(ApplicationDbContext context, ILogger<BaseRepo<T>> logger, QueryCache queryCache, CurrentUser currentUser)
         {
             this.context = context;
             this.logger = logger;
             this.queryCache = queryCache;
+            this.currentUser = currentUser;
         }
 
         public DbSet<T> DbSet => context.Set<T>();
 
         public virtual async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
+            IQueryable<T> query = BuildQuery(true);
+
             if (include != null)
-                return await include(DbSet.AsNoTracking()).ToListAsync(cancellationToken);
-            return await DbSet.AsNoTracking().ToListAsync(cancellationToken);
+                query = include(query);
+
+            return await query.ToListAsync(cancellationToken);
         }
-        public virtual IQueryable<T> GetQueryable(bool trackChanges = false)
+        protected virtual IQueryable<T> BuildQuery(
+            bool isActive = true,
+            bool trackChanges = false)
         {
-            return trackChanges ? DbSet : DbSet.AsNoTracking();
+            IQueryable<T> query = trackChanges
+                ? DbSet
+                : DbSet.AsNoTracking();
+
+            query = query.Where(x => x.IsActive == isActive);
+
+            if (typeof(IOwnedEntity).IsAssignableFrom(typeof(T))
+                && !currentUser.IsSuperAdmin)
+            {
+                query = query.Where(x =>
+                    EF.Property<int>(x, nameof(IOwnedEntity.CreatedById))
+                    == currentUser.UserId);
+            }
+
+            return query;
         }
         public virtual IQueryable<T> GetAllQuery(
             PaginatedSearchReq searchReq,
@@ -44,10 +70,7 @@ namespace Infrastructure.Repo.Base
             CancellationToken cancellationToken = default,
             Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            // ضبط الـ Tracking من بداية الـ Pipeline لتوفير الـ CPU والـ Memory
-            IQueryable<T> query = trackChanges ? DbSet : DbSet.AsNoTracking();
-
-            query = isActive ? query.Where(x => x.IsActive) : query.Where(x => !x.IsActive);
+            IQueryable<T> query = BuildQuery(isActive, trackChanges);
 
             // تطبيق الـ Extensions الاحترافية بتاعتك
             if (!string.IsNullOrEmpty(searchReq.SearchTerm))
@@ -107,15 +130,13 @@ namespace Infrastructure.Repo.Base
             CancellationToken cancellationToken = default,
             Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            IQueryable<T> query = trackChanges ? DbSet : DbSet.AsNoTracking();
+            IQueryable<T> query = BuildQuery(isActive, trackChanges);
 
             if (include != null)
                 query = include(query);
 
-
             return await query
-                .Where(x => x.Id == id && x.IsActive == isActive)
-                .FirstOrDefaultAsync(cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 
         public virtual Task<T> AddAsync(T item, CancellationToken cancellationToken = default)

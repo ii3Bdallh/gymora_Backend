@@ -11,9 +11,9 @@ public class CurrentUser
     public int UserId { get; set; }
     public int? CurrentGymId { get; set; }
     public string? GymRole { get; set; }
-    public string? AppRole { get; set; }
+    public string? PlatformRole { get; set; }
     public bool IsAuthenticated { get; set; }
-    public bool IsSuperAdmin => string.Equals(AppRole, RoleType.SuperAdmin.ToRoleString(), StringComparison.OrdinalIgnoreCase);
+    public bool IsSuperAdmin => string.Equals(PlatformRole, AppRole.SuperAdmin, StringComparison.OrdinalIgnoreCase);
 
     public bool IsInGymRole(string role)
         => string.Equals(GymRole, role, StringComparison.OrdinalIgnoreCase);

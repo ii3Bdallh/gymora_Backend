@@ -14,14 +14,14 @@ namespace Domain.Enum
 
     }
 
-  
 
-        public static class RolesEnumExtensions
-        {
-            public static string ToRoleString(this RoleType role)
-            {
-                return role.ToString(); // في حالة لو حابب تغيرها مستقبلاً (مثلاً role.ToString().ToLower())
-            }
+
+
+
+    public static class AppRole
+    {
+        public const string SuperAdmin = "SuperAdmin";
+        public const string User = "User";
     }
 
 }
