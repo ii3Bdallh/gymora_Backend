@@ -17,7 +17,7 @@ namespace Api.Controllers
 
 
         [HttpPost]
-        [Authorize(Roles =$"{AppRole.SuperAdmin}")]
+        [Authorize(Roles = $"{AppRole.SuperAdmin}")]
         public async Task<ActionResult<IEnumerable<PaymentRequestRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
         {
             logger.LogInformation("Fetching all PaymentRequests");
@@ -56,30 +56,54 @@ namespace Api.Controllers
             return Ok(Result<PaymentRequestRDTO>.Success(createdPaymentRequest));
         }
 
-        [HttpPut("{id}")]
+        // [HttpPut("{id}")]
+        // [Authorize(Roles = $"{AppRole.SuperAdmin}")]
+
+        // public async Task<ActionResult> UpdateAsync(int id, [FromForm] PaymentRequestUDTO PaymentRequestDto)
+        // {
+
+        //     if (!ModelState.IsValid)
+        //     {
+        //         logger.LogWarning("Invalid ModelState while updating PaymentRequest Id: {Id}", id);
+        //         return BadRequest(ModelState);
+        //     }
+
+        //     logger.LogInformation("Updating PaymentRequest with Id: {Id}", id);
+
+        //     var updatedPaymentRequest = await service.UpdateAsync(id, PaymentRequestDto);
+
+        //     logger.LogInformation("Successfully updated PaymentRequest with Id: {Id}", id);
+        //     return Ok(Result<PaymentRequestRDTO>.Success(updatedPaymentRequest));
+        // }
+
+        [HttpPut("Approve/{id}")]
         [Authorize(Roles = $"{AppRole.SuperAdmin}")]
-
-        public async Task<ActionResult> UpdateAsync(int id, [FromForm] PaymentRequestUDTO PaymentRequestDto)
+        public async Task<ActionResult> ApproveAsync(int id, PaymentRequestApprove dto)
         {
+            logger.LogInformation("Approving PaymentRequest with Id: {Id}", id);
 
-            if (!ModelState.IsValid)
-            {
-                logger.LogWarning("Invalid ModelState while updating PaymentRequest Id: {Id}", id);
-                return BadRequest(ModelState);
-            }
+            var approvedPaymentRequest = await service.ApproveAsync(id, dto);
 
-            logger.LogInformation("Updating PaymentRequest with Id: {Id}", id);
+            logger.LogInformation("Successfully approved PaymentRequest with Id: {Id}", id);
+            return Ok(Result<PaymentRequestRDTO>.Success(approvedPaymentRequest));
+        }
 
-            var updatedPaymentRequest = await service.UpdateAsync(id, PaymentRequestDto);
+        [HttpPut("Reject/{id}")]
+        [Authorize(Roles = $"{AppRole.SuperAdmin}")]
+        public async Task<ActionResult> RejectAsync(int id, PaymentRequestReject dto)
+        {
+            logger.LogInformation("Rejecting PaymentRequest with Id: {Id}", id);
 
-            logger.LogInformation("Successfully updated PaymentRequest with Id: {Id}", id);
-            return Ok(Result<PaymentRequestRDTO>.Success(updatedPaymentRequest));
+            var rejectedPaymentRequest = await service.RejectAsync(id, dto);
+
+            logger.LogInformation("Successfully rejected PaymentRequest with Id: {Id}", id);
+            return Ok(Result<PaymentRequestRDTO>.Success(rejectedPaymentRequest));
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles =$"{AppRole.SuperAdmin}")]
+        [Authorize(Roles = $"{AppRole.SuperAdmin}")]
 
-        public async Task<ActionResult> DeleteAsync(int id)
+        public async Task<ActionResult> DeleteAsync(int id, PaymentRequestReject dto)
         {
             logger.LogInformation("Deleting PaymentRequest with Id: {Id}", id);
 

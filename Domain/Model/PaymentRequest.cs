@@ -60,8 +60,8 @@ namespace Domain.Model
     // public int? SubscriptionId { get; set; } // FK added - missing in original SQL
     // public OwnerSubscription? Subscription { get; set; }
 
-    // public int? CouponId { get; set; }
-    // public Coupon? Coupon { get; set; }
+    public int? CouponId { get; set; }
+    public Coupon? Coupon { get; set; }
     [Timestamp]
     public byte[] RowVersion { get; set; } = null!;
 

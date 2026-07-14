@@ -14,6 +14,20 @@ namespace Application.DTO
 
 
             // Script will Add After Here MapperConfig
+            
+            CreateMap<Coupon, CouponRDTO>()
+                .IncludeBase<BaseEntity, BaseRDTO>()
+                .ReverseMap();
+
+            CreateMap<Coupon, CouponCDTO>()
+                .IncludeBase<BaseEntity, BaseCDTO>()
+                .ReverseMap();
+
+            CreateMap<Coupon, CouponUDTO>()
+                .IncludeBase<BaseEntity, BaseUDTO>()
+                .ReverseMap();
+
+
             CreateMap<PaymentRequest, PaymentRequestRDTO>()
                 .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>()
                 .ReverseMap();

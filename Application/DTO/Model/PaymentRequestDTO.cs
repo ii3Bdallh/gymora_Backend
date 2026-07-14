@@ -19,7 +19,9 @@ namespace Application.DTO.Model
 
         public int PlanId { get; set; }
         public int PlanPriceId { get; set; }
-        // public int? CouponId { get; set; }
+        [BindNever]
+
+        public int? CouponId { get; set; }
         public string? CouponCode { get; set; }
 
         [BindNever]
@@ -42,6 +44,21 @@ namespace Application.DTO.Model
         public string? RejectionReason { get; set; }
         public int? ReviewedBy { get; set; }
         public DateTime? ReviewedAt { get; set; }
+    }
+
+    public record PaymentRequestApprove
+    {
+        public PaymentRequestStatus Status { get; set; } = PaymentRequestStatus.Approved;
+
+        public string? ReviewNotes { get; set; }
+    }
+
+    public record PaymentRequestReject
+    {
+        public PaymentRequestStatus Status { get; set; } = PaymentRequestStatus.Rejected;
+
+        [Required(ErrorMessage = "Rejection reason is required.")]
+        public string RejectionReason { get; set; } = null!;
     }
 
     public record PaymentRequestRDTO : BaseAuditableFRDTO

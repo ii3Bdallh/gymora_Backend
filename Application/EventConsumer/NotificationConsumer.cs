@@ -8,6 +8,8 @@ namespace Application.EventConsumer;
 
 public class NotificationConsumer :
    IConsumer<PaymentCreatedEvent>
+   , IConsumer<PaymentApprovedEvent>
+   , IConsumer<PaymentRejectedEvent>
 //    , IConsumer<EntityChangedEvent>
 
 {
@@ -31,28 +33,32 @@ public class NotificationConsumer :
             });
     }
 
-    //    public async Task Consume(ConsumeContext<UserRegisteredEvent> context)
-    //    {
-    //        var message = context.Message;
+    public async Task Consume(ConsumeContext<PaymentApprovedEvent> context)
+    {
+        var message = context.Message;
 
-    //        await _notificationService.SendNotificationTestAsync(
-    //            new NotificationDTO
-    //            {
-    //                Title = "Welcome",
-    //                Body = $"Welcome {message.FullName}"
-    //            });
-    //    }
+        await _notificationService.SendNotificationAsync(
+            context.Message.UserId,
+            new NotificationDTO
+            {
+                Title = "Payment Approved",
+                Body = $"Payment request {message.PaymentRequestId} has been approved \n You can now enjoy your subscription."
+            });
+    }
 
-    //    public async Task Consume(ConsumeContext<MembershipExpiredEvent> context)
-    //    {
-    //        var message = context.Message;
+    public async Task Consume(ConsumeContext<PaymentRejectedEvent> context)
+    {
+        var message = context.Message;
 
-    //        await _notificationService.SendNotificationTestAsync(
-    //            new NotificationDTO
-    //            {
-    //                Title = "Membership Expired",
-    //                Body = $"Membership of {message.MemberName} has expired."
-    //            });
-    //    }
+        await _notificationService.SendNotificationAsync(
+               context.Message.UserId,
+            new NotificationDTO
+            {
+                Title = "Payment Rejected",
+                Body = $"Payment request {message.PaymentRequestId} has been rejected."
+            });
+    }
+
+ 
 }
 

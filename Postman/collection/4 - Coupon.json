@@ -1,0 +1,357 @@
+{
+  "info": {
+    "_postman_id": "b7a1c2d3-e4f5-6789-abcd-ef0123456789",
+    "name": "Gymora API",
+    "description": "# Gymora API Postman Collection\n\n## Overview\n\nComplete Postman collection for the Gymora ASP.NET Core 9.0 REST API.\n\n## Architecture\n\n- **Authentication:** JWT Bearer Token with Refresh Tokens\n- **Identity:** ASP.NET Core Identity with `ApplicationUser` (int PK)\n- **Roles:** `SuperAdmin`, `User`\n- **Rate Limiting:** IP-based fixed window policies\n- **Global Exception Handling:** Custom middleware returning `Result<T>` envelope\n- **ORM:** Entity Framework Core with SQL Server\n- **Background Jobs:** Hangfire + MassTransit InMemory + EF Outbox\n- **File Storage:** Bunny.net (Stream + Storage)\n- **Payment:** Paymob integration\n- **Validation:** DataAnnotations\n\n## Authentication Flow\n\n1. `POST /api/Auth/register` — Creates account + sends confirmation OTP\n2. `POST /api/Auth/confirm-email` — Confirms with OTP (or use GET variant)\n3. `POST /api/Auth/login` — Returns JWT + Refresh Token\n4. All protected requests automatically use `Authorization: Bearer {{accessToken}}`\n5. `POST /api/Auth/refresh-token` — When access token expires\n6. `POST /api/Auth/logout` — Revokes refresh token\n\n## Rate Limiting Policies\n\n| Policy Name | Limit | Window | Endpoints |\n|------------|-------|--------|-----------|\n| `Ip_5Limit_1Min` | 5 requests | 1 minute | POST /api/Auth/login |\n| `Ip_3Limit_5Min` | 3 requests | 5 minutes | POST resend-confirmation-email, POST forgot-password |\n| `Ip_10Limit_1Min` | 10 requests | 1 minute | POST verify-otp, POST reset-password, GET confirm-email |\n\n## Standard Response Envelope\n\n### Success\n```json\n{\n  \"isSuccess\": true,\n  \"data\": { ... }\n}\n```\n\n### Error\n```json\n{\n  \"isSuccess\": false,\n  \"error\": {\n    \"code\": \"ERROR_CODE\",\n    \"message\": \"Description\"\n  }\n}\n```\n\n### Error Codes\n\n| HTTP Status | Code | Description |\n|------------|------|-------------|\n| 400 | `BAD_REQUEST` | Invalid input / business rule violation |\n| 400 | `VALIDATION_ERROR` | Model state validation failed |\n| 401 | `UNAUTHORIZED` | Missing or invalid JWT |\n| 403 | `FORBIDDEN` | Insufficient role permissions |\n| 404 | `NOT_FOUND` | Resource not found |\n| 409 | `CONFLICT` | Duplicate resource |\n| 429 | `RATE_LIMIT_EXCEEDED` | Too many requests |\n| 500 | `SERVER_ERROR` | Internal server error |\n\n## Token Variables\n\nThis collection uses role-specific token variables for testing authorization:\n\n| Variable | Description |\n|----------|-------------|\n| `accessToken` / `refreshToken` | Default tokens (set by Login) |\n| `superAdminAccessToken` / `superAdminRefreshToken` | SuperAdmin role tokens (set by Login as SuperAdmin) |\n| `userAccessToken` / `userRefreshToken` | User role tokens (set by Login) |\n\n> **Note:** All Coupon endpoints require SuperAdmin role. The collection auth uses `{{superAdminAccessToken}}`. Use the \"Login as SuperAdmin\" request from the Authentication collection before testing.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "04 Coupons",
+      "description": "Coupon management with full CRUD operations, pagination, and coupon validation. All endpoints require SuperAdmin authorization.",
+      "item": [
+        {
+          "name": "Get Coupons (Paged)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Response has pagination fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    pm.expect(data.totalCount).to.be.a('number');",
+                  "    pm.expect(data.pageSize).to.be.a('number');",
+                  "    pm.expect(data.pageNumber).to.be.a('number');",
+                  "    pm.expect(data.totalPages).to.be.a('number');",
+                  "    pm.expect(data.hasPrevious).to.be.a('boolean');",
+                  "    pm.expect(data.hasNext).to.be.a('boolean');",
+                  "    pm.expect(data.items).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": null,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"createdById\": null,\n  \"filters\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Coupon",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Coupon"]
+            },
+            "description": "Get a paginated list of coupons with optional search, sorting, and filtering.\n\n## Request Body Fields\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `pageNumber` | int | 1 | Page number (1-based) |\n| `pageSize` | int | 10 | Page size (max 50) |\n| `searchTerm` | string | null | Search term (max 100 chars) |\n| `orderBy` | string | \"Id\" | Property to order by |\n| `orderDirection` | string | \"asc\" | Sort direction: \"asc\" or \"desc\" |\n| `isActive` | bool | true | Filter by active status |\n| `createdById` | int | null | Filter by creator |\n| `filters` | object | null | Advanced filtering (BetweenFilters, ExactFilters) |\n\n## Pagination Response\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `totalCount` | number | Total items matching the query |\n| `pageSize` | number | Items per page |\n| `pageNumber` | number | Current page |\n| `totalPages` | number | Total number of pages |\n| `hasPrevious` | boolean | Whether a previous page exists |\n| `hasNext` | boolean | Whether a next page exists |\n| `items` | array | Coupon items for current page |\n\n### Requires Roles: SuperAdmin"
+          }
+        },
+        {
+          "name": "Get Coupon by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Coupon has required fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    pm.expect(data.id).to.be.a('number');",
+                  "    pm.expect(data.code).to.be.a('string');",
+                  "    pm.expect(data.name).to.be.a('string');",
+                  "    pm.expect(data.discountType).to.be.a('number');",
+                  "    pm.expect(data.discountValue).to.be.a('number');",
+                  "    pm.expect(data.validFrom).to.be.a('string');",
+                  "    pm.expect(data.validTo).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Coupon/{{createdEntityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Coupon", "{{createdEntityId}}"]
+            },
+            "description": "Get a single coupon by its ID.\n\n## Route Parameters\n\n| Parameter | Type | Description |\n|-----------|------|-------------|\n| `id` | int | Coupon ID |\n\n## Response Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | number | Coupon ID |\n| `code` | string | Unique coupon code |\n| `name` | string | Coupon name |\n| `description` | string | Coupon description |\n| `discountType` | number | 1=Percentage, 2=FixedAmount |\n| `discountValue` | number | Discount value (percentage or fixed) |\n| `maxDiscountAmount` | number | Max discount cap (for percentage type) |\n| `minimumPurchaseAmount` | number | Minimum order amount required |\n| `usageLimit` | number | Max number of times coupon can be used |\n| `usedCount` | number | Current usage count |\n| `validFrom` | string | Coupon validity start (ISO-8601) |\n| `validTo` | string | Coupon validity end (ISO-8601) |\n| `isFirstPurchaseOnly` | boolean | Restrict to first-time purchases |\n| `isActive` | boolean | Whether the coupon is active |\n\n### Requires Roles: SuperAdmin"
+          }
+        },
+        {
+          "name": "Create Coupon",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Created coupon has an ID\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data.id).to.be.a('number');",
+                  "    pm.collectionVariables.set(\"createdEntityId\", data.id.toString());",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SUMMER2026\",\n  \"name\": \"Summer Sale 2026\",\n  \"description\": \"Summer season discount for new subscriptions\",\n  \"discountType\": 1,\n  \"discountValue\": 20,\n  \"maxDiscountAmount\": 500,\n  \"minimumPurchaseAmount\": 100,\n  \"usageLimit\": 100,\n  \"validFrom\": \"2026-07-01T00:00:00Z\",\n  \"validTo\": \"2026-09-30T23:59:59Z\",\n  \"isFirstPurchaseOnly\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Coupon/Create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Coupon", "Create"]
+            },
+            "description": "Create a new coupon.\n\nOn success, the **createdEntityId** collection variable is automatically set to the new coupon's ID.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `code` | string | Yes | Unique coupon code (max 50 chars) |\n| `name` | string | Yes | Coupon display name (max 100 chars) |\n| `description` | string | No | Coupon description (max 500 chars) |\n| `discountType` | number | Yes | 1=Percentage, 2=FixedAmount |\n| `discountValue` | decimal | Yes | Discount value (must be > 0) |\n| `maxDiscountAmount` | decimal | No | Max discount cap (for percentage type) |\n| `minimumPurchaseAmount` | decimal | No | Minimum order amount to qualify |\n| `usageLimit` | int | Yes | Max number of uses |\n| `validFrom` | string | Yes | Validity start (ISO-8601) |\n| `validTo` | string | Yes | Validity end (ISO-8601) |\n| `isFirstPurchaseOnly` | bool | No | Restrict to first purchases (default: false) |\n\n### Requires Roles: SuperAdmin"
+          }
+        },
+        {
+          "name": "Update Coupon",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Updated coupon has modified fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data.name).to.eql(\"Summer Sale 2026 - Extended\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Summer Sale 2026 - Extended\",\n  \"description\": \"Extended summer season discount\",\n  \"maxDiscountAmount\": 750,\n  \"minimumPurchaseAmount\": 100,\n  \"usageLimit\": 200,\n  \"validTo\": \"2026-10-31T23:59:59Z\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Coupon/{{createdEntityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Coupon", "{{createdEntityId}}"]
+            },
+            "description": "Update an existing coupon.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `name` | string | Yes | Coupon display name |\n| `description` | string | No | Coupon description |\n| `maxDiscountAmount` | decimal | No | Max discount cap |\n| `minimumPurchaseAmount` | decimal | No | Minimum order amount |\n| `usageLimit` | int | No | Max number of uses |\n| `validTo` | string | Yes | New validity end date |\n| `isActive` | bool | Yes | Whether the coupon is active |\n\n### Requires Roles: SuperAdmin"
+          }
+        },
+        {
+          "name": "Delete Coupon",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Coupon/{{createdEntityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Coupon", "{{createdEntityId}}"]
+            },
+            "description": "Delete a coupon by its ID.\n\n### Requires Roles: SuperAdmin"
+          }
+        },
+        {
+          "name": "Validate Coupon",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Validation result has required fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    pm.expect(data.isValid).to.be.a('boolean');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Coupon/Validate/{{couponCode}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Coupon", "Validate", "{{couponCode}}"]
+            },
+            "description": "Validate a coupon by its code.\n\nReturns whether the coupon is valid and the calculated discount amount.\n\n## Route Parameters\n\n| Parameter | Type | Description |\n|-----------|------|-------------|\n| `code` | string | Coupon code to validate |\n\n## Response Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `isValid` | boolean | Whether the coupon is valid |\n| `message` | string | Validation message / error reason |\n| `couponId` | number | Coupon ID (if valid) |\n| `discountAmount` | number | Calculated discount (if valid) |\n\n### Requires Roles: SuperAdmin"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:7059",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "superAdminAccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "superAdminRefreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userAccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userRefreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "currentUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "createdEntityId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "createdPlanPriceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "couponCode",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{superAdminAccessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ]
+}
