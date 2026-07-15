@@ -1,3 +1,4 @@
+using Application.Cache;
 using Application.Interface.Service.Shared;
 using Domain.Options;
 using Microsoft.Extensions.Caching.Memory;
@@ -12,7 +13,7 @@ public class CacheService : ICacheService
     private readonly IMemoryCache _cache;
     private readonly CacheOptions _options;
     private readonly ILogger<CacheService> _logger;
-    
+
     // قاموس لتخزين جميع الـ Keys النشطة في الذاكرة بشكل آمن (Thread-Safe)
     private static readonly ConcurrentDictionary<string, bool> CacheKeys = new();
 
@@ -53,6 +54,37 @@ public class CacheService : ICacheService
         _cache.Remove(key);
         CacheKeys.TryRemove(key, out _); // حذف المفتاح من القاموس
         return Task.CompletedTask;
+    }
+
+    public async Task InvalidateEntityAsync(
+    string entityName,
+    int entityId,
+    int? gymId,
+    int? userId)
+    {
+        entityName = entityName.ToLower();
+
+        await RemoveAsync(
+            CacheKeyGenerator.ById(
+                entityName,
+                entityId,
+                gymId,
+                userId));
+
+        if (gymId.HasValue)
+        {
+            await RemoveByPrefixAsync(
+                $"{CacheKeyGenerator.GymPrefix(gymId.Value)}:{entityName}:");
+        }
+        else
+        {
+            await RemoveByPrefixAsync(
+                $"{CacheKeyGenerator.GlobalPrefix()}:{entityName}:");
+        }
+
+        _logger.LogInformation(
+            "Cache invalidated for {Entity}",
+            entityName);
     }
 
     public Task RemoveByPrefixAsync(string prefix)

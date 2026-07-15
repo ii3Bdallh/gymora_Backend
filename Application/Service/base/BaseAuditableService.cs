@@ -51,7 +51,7 @@ namespace Application.Service.Base
 
         public override async Task<RDTO> UpdateAsync(int id, UDTO dto, CancellationToken cancellationToken = default)
         {
-             dto.CreatedById = CurrentUserId;
+            dto.CreatedById = CurrentUserId;
 
             T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: true, cancellationToken);
 
@@ -70,7 +70,7 @@ namespace Application.Service.Base
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
+                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId, CurrentUser.UserId),
                 cancellationToken);
 
             _logger.LogInformation("{EntityType} with ID {Id} updated successfully", typeof(T).Name, id);
@@ -93,7 +93,7 @@ namespace Application.Service.Base
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
+                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId, CurrentUser.UserId),
                 cancellationToken);
 
             _logger.LogInformation("{EntityType} with ID {Id} deleted successfully", typeof(T).Name, id);
@@ -102,18 +102,7 @@ namespace Application.Service.Base
 
         protected virtual bool CanModify(T entity)
         {
-            if (CurrentUser.IsSuperAdmin)
-                return true;
-
-            // Owner or Admin in the gym
-            // if (CurrentUser.IsInGymRole("Owner") || CurrentUser.IsInGymRole("Admin"))
-            //     return true;
-
-            // Owner of the record
-            if (entity.CreatedById == CurrentUserId)
-                return true;
-
-            return false;
+            return CanAccess(entity.CreatedById);
         }
     }
 }

@@ -99,9 +99,7 @@ namespace Application.Service
             T added = await _repo.AddAsync(entity, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), added.Id, CurrentGymId),
-                cancellationToken);
+            await PublishEntityChangedAsync(added.Id, cancellationToken);
 
             _logger.LogInformation("{EntityType} file entity with ID {Id} added successfully (Public: {IsPublic})", typeof(T).Name, added.Id, dto.IsPublic);
             return _mapper.Map<RDTO>(added);
@@ -153,9 +151,7 @@ namespace Application.Service
             T updated = await _repo.UpdateAsync(entity, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
-                cancellationToken);
+            await PublishEntityChangedAsync(id, cancellationToken);
 
             _logger.LogInformation("{EntityType} file entity with ID {Id} updated successfully", typeof(T).Name, id);
             return _mapper.Map<RDTO>(updated);
@@ -174,9 +170,7 @@ namespace Application.Service
             await _repo.DeleteAsync(entity, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
-                cancellationToken);
+            await PublishEntityChangedAsync(id, cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(entity.StoredFileName))
             {

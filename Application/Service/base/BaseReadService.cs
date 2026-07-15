@@ -46,16 +46,50 @@ namespace Application.Service
         protected int? CurrentGymId => _currentUser.CurrentGymId;
         protected int CurrentUserId => _currentUser.UserId;
         protected CurrentUser CurrentUser => _currentUser;
+        protected virtual bool IsCacheEnabled =>
+             typeof(ICacheableEntity).IsAssignableFrom(typeof(T));
+
+
+        protected bool HasFullAccess => CurrentUser.IsSuperAdmin;
+
+        protected virtual bool CanAccess(int createdById)
+        {
+            return HasFullAccess || createdById == CurrentUserId;
+        }
 
         /// <summary>
         /// بيحدد هل نبعت userId للـ CacheKeyGenerator ولا لأ.
-        /// بنبعته بس لو الـ Entity Owned واليوزر مش SuperAdmin،
+        /// بنبعته بس لو الـ Entity Owned واليوزر مش SuperAdmin，
         /// لأن دول هما الحالة الوحيدة اللي محتاجة عزل الكاش لكل يوزر لوحده.
         /// </summary>
-        private int? CacheUserScope =>
-            typeof(IOwnedEntity).IsAssignableFrom(typeof(T)) && !_currentUser.IsSuperAdmin
-                ? _currentUser.UserId
-                : (int?)null;
+        protected virtual int? CacheUserScope =>
+            typeof(IOwnedEntity).IsAssignableFrom(typeof(T)) && !HasFullAccess
+                ? CurrentUserId
+                : null;
+
+
+        protected async Task<TResult> GetOrCreateCacheAsync<TResult>(
+            string key,
+            Func<Task<TResult>> factory,
+            bool enableCache = true)
+        {
+            if (!enableCache)
+                return await factory();
+
+            var cached = await _cacheService.GetAsync<TResult>(key);
+
+            if (cached is not null)
+            {
+                _logger.LogInformation("Cache hit: {Key}", key);
+                return cached;
+            }
+
+            var result = await factory();
+
+            await _cacheService.SetAsync(key, result);
+
+            return result;
+        }
 
 
         public virtual async Task<IEnumerable<RDTO>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -73,44 +107,45 @@ namespace Application.Service
         }
 
         public virtual async Task<RDTO> GetByIdAsync(
-            int id,
-            bool isActive = true,
-            bool trackChanges = false,
-            CancellationToken cancellationToken = default)
+    int id,
+    bool isActive = true,
+    bool trackChanges = false,
+    CancellationToken cancellationToken = default)
         {
-            var entityName = CacheEntityNames.ForType<T>();
-            var key = CacheKeyGenerator.ById(entityName, id, CurrentGymId, CacheUserScope);
+            var key = CacheKeyGenerator.ById(
+                CacheEntityNames.ForType<T>(),
+                id,
+                CurrentGymId,
+                CacheUserScope);
 
-            var cached = await _cacheService.GetAsync<RDTO>(key);
-            if (cached is not null)
-            {
-                _logger.LogInformation("Cache hit for {EntityType} with ID {Id}", typeof(T).Name, id);
-                return cached;
-            }
+            return await GetOrCreateCacheAsync(
+                key,
+                async () =>
+                {
+                    _logger.LogInformation(
+                        "Fetching {EntityType} with ID {Id}",
+                        typeof(T).Name,
+                        id);
 
-            _logger.LogInformation("Fetching {EntityType} with ID {Id}", typeof(T).Name, id);
+                    var entity = await _repo.GetByIdAsync(
+                        id,
+                        isActive,
+                        trackChanges,
+                        cancellationToken);
 
+                    if (entity is null)
+                        throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
 
-            T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: false, cancellationToken: cancellationToken);   // أفضل من FindAsync مع الفلتر
+                    if (entity is IOwnedEntity owned &&
+                       !CanAccess(owned.CreatedById))
+                    {
+                        throw new UnauthorizedAccessException(
+                            "You do not have permission to access this resource.");
+                    }
 
-            if (entity is null)
-            {
-                _logger.LogWarning("{EntityType} with ID {Id} was not found", typeof(T).Name, id);
-                throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
-            }
-
-            // Additional ownership check for GetById (defense in depth)
-            if (entity is IOwnedEntity owned && !_currentUser.IsSuperAdmin && owned.CreatedById != _currentUser.UserId)
-            {
-                _logger.LogWarning("User {UserId} attempted to access {EntityType} ID {Id} which he does not own",
-                    _currentUser.UserId, typeof(T).Name, id);
-                throw new UnauthorizedAccessException("You do not have permission to access this resource.");
-            }
-
-            var dto = _mapper.Map<RDTO>(entity);
-            await _cacheService.SetAsync(key, dto);
-
-            return dto;
+                    return _mapper.Map<RDTO>(entity);
+                },
+                IsCacheEnabled);
         }
 
         public virtual async Task<PaginatedRes<RDTO>> GetPageAsync(
@@ -119,39 +154,35 @@ namespace Application.Service
             bool trackChanges = false,
             CancellationToken cancellationToken = default)
         {
-            var entityName = CacheEntityNames.ForType<T>();
-            var key = CacheKeyGenerator.ByPage(entityName, searchReq, CurrentGymId, CacheUserScope);
+            var key = CacheKeyGenerator.ByPage(
+                CacheEntityNames.ForType<T>(),
+                searchReq,
+                CurrentGymId,
+                CacheUserScope);
 
-            var cached = await _cacheService.GetAsync<PaginatedRes<RDTO>>(key);
-            if (cached is not null)
-            {
-                _logger.LogInformation("Cache hit for {EntityType} page {PageNumber}", typeof(T).Name, searchReq.PageNumber);
-                return cached;
-            }
+            return await GetOrCreateCacheAsync(
+                key,
+                async () =>
+                {
+                    var page = await _repo.GetPageAsync(
+                        searchReq,
+                        isActive,
+                        trackChanges,
+                        cancellationToken);
 
-            _logger.LogInformation("Fetching page {PageNumber} of {EntityType}", searchReq.PageNumber, typeof(T).Name);
-
-
-
-
-            var page = await _repo.GetPageAsync(searchReq, isActive, trackChanges, cancellationToken);
-            // إذا كان GetPageAsync في الـ Repo يدعم IQueryable، يفضل تعديله لاحقًا
-
-            var dtoPage = new PaginatedRes<RDTO>
-            {
-                PageNumber = page.PageNumber,
-                PageSize = page.PageSize,
-                TotalCount = page.TotalCount,
-                Items = _mapper.Map<List<RDTO>>(page.Items)
-            };
-
-            await _cacheService.SetAsync(key, dtoPage);
-            _logger.LogInformation("Fetched page {PageNumber}/{TotalPages} of {EntityType} ({TotalCount} total)",
-                page.PageNumber, (int)Math.Ceiling((double)page.TotalCount / page.PageSize), typeof(T).Name, page.TotalCount);
-
-            return dtoPage;
+                    return new PaginatedRes<RDTO>
+                    {
+                        PageNumber = page.PageNumber,
+                        PageSize = page.PageSize,
+                        TotalCount = page.TotalCount,
+                        Items = _mapper.Map<List<RDTO>>(page.Items)
+                    };
+                },
+                IsCacheEnabled);
         }
 
 
     }
+
+
 }

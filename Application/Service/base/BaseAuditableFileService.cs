@@ -95,9 +95,7 @@ namespace Application.Service.Base
             T added = await _repo.AddAsync(entity, cancellationToken);
 
 
-            await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), added.Id, CurrentGymId , CurrentUser.UserId),
-                cancellationToken);
+            await PublishEntityChangedAsync(added.Id, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -155,9 +153,7 @@ namespace Application.Service.Base
             _logger.LogInformation("📢 Publishing EntityChangedEvent for {Entity} ID {Id} | FileChanged: {FileChanged}",
     CacheEntityNames.ForType<T>(), id, dto.File != null);
 
-            await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
-                cancellationToken);
+            await PublishEntityChangedAsync(id, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Auditable {EntityType} file entity with ID {Id} updated successfully", typeof(T).Name, id);
             return _mapper.Map<RDTO>(updated);
@@ -175,9 +171,7 @@ namespace Application.Service.Base
             _logger.LogInformation("Deleting auditable {EntityType} file entity with ID {Id}", typeof(T).Name, id);
             T deleted = await _repo.DeleteAsync(entity, cancellationToken);
 
-            await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
-                cancellationToken);
+            await PublishEntityChangedAsync(id, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

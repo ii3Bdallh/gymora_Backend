@@ -16,33 +16,16 @@ public class CacheInvalidationConsumer : IConsumer<EntityChangedEvent>
         _logger = logger;
     }
 
-    public async Task Consume(ConsumeContext<EntityChangedEvent> context)
-    {
-        var e = context.Message;
-        var entityName = e.EntityName.ToLower();
+public async Task Consume(ConsumeContext<EntityChangedEvent> context)
+{
+    var e = context.Message;
 
-        _logger.LogInformation("🔄 Cache Invalidation Started → Entity: {EntityName}, ID: {Id}, GymId: {GymId}", 
-            entityName, e.EntityId, e.GymId);
-
-        // Remove single entity
-        await _cacheService.RemoveAsync(CacheKeyGenerator.ById(entityName, e.EntityId, e.GymId , e.UserId));
-
-        // Remove pages
-        if (e.GymId.HasValue)
-        {
-            await _cacheService.RemoveByPrefixAsync($"{CacheKeyGenerator.GymPrefix(e.GymId.Value)}:{entityName}:");
-            _logger.LogDebug("Cleared gym-scoped cache for {Entity}", entityName);
-        }
-        else
-        {
-            await _cacheService.RemoveByPrefixAsync($"{CacheKeyGenerator.GlobalPrefix()}:{entityName}:");
-            _logger.LogDebug("Cleared global cache for {Entity}", entityName);
-        }
-
-        _logger.LogInformation("✅ Cache Invalidation Completed for {Entity} ID {Id}", entityName, e.EntityId);
-    }
-
-
+    await _cacheService.InvalidateEntityAsync(
+        e.EntityName,
+        e.EntityId,
+        e.GymId,
+        e.UserId);
+}
 
 }
 

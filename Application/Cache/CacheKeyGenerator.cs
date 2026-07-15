@@ -1,3 +1,4 @@
+using System;
 using System.Security.Cryptography;
 using System.Text;
 using Application.DTO.Pagintion;
@@ -14,60 +15,67 @@ namespace Application.Cache
         private const string Prefix = "gymora";
 
         /// <summary>
-        /// key بتاع entity واحدة بالـ Id.
-        ///
-        /// userId هنا اختياري ومقصود:
-        /// - لو الـ Entity من نوع Owned (خاصة بيوزر معين) → الـ Service اللي بيستدعي
-        ///   الميثود دي المفروض يبعت CurrentUser.UserId، عشان كل يوزر ياخد صندوق كاش
-        ///   منفصل، ومنشتركش في نفس الـ key مع يوزر تاني.
-        /// - لو الـ Entity Public (زي حاجة كل الناس بتشوفها) أو اليوزر SuperAdmin
-        ///   (شايف كل حاجة أصلاً) → مفيش داعي نخصص الكاش، فبنبعت null
-        ///   وبالتالي الـ key بيفضل عام (Gym-level أو Global) زي ما كان.
-        ///
-        /// القرار "هل أبعت userId ولا لأ" بياخده الـ Caller (BaseReadService)
-        /// مش الميثود دي، لأنها هي بس اللي عارفة نوع الـ Entity.
+        /// Key بتاع entity واحدة بالـ Id.
         /// </summary>
+        /// <returns>
+        /// يرجع نصاً على شكل:
+        /// <list type="bullet">
+        ///   <item><description><c>gymora:gym:5:user:12:subscription:id:1</c> (يوزر معين جوه جيم)</description></item>
+        ///   <item><description><c>gymora:gym:5:subscription:id:1</c> (كاش عام لكل يوزرات الجيم)</description></item>
+        ///   <item><description><c>gymora:global:subscription:id:1</c> (كاش عام للنظام بالكامل)</description></item>
+        /// </list>
+        /// </returns>
         public static string ById(string entityName, int entityId, int? gymId = null, int? userId = null)
         {
-            var scope = ScopeSegment(gymId, userId);
+            var scope = ScopeSegment(gymId: gymId, userId: userId);
             return $"{Prefix}:{scope}:{entityName}:id:{entityId}";
         }
 
         /// <summary>
-        /// key بتاع صفحة (Pagination). بالإضافة لـ userId، بنحسب hash
-        /// من شكل الـ search request (رقم الصفحة، الفلاتر، الترتيب...)
-        /// عشان كل تركيبة بحث مختلفة تاخد صندوق كاش مختلف.
+        /// Key بتاع صفحة (Pagination) يعتمد على الـ Hash الخاص بالفلاتر والبحث.
         /// </summary>
+        /// <returns>
+        /// يرجع نصاً على شكل:
+        /// <list type="bullet">
+        ///   <item><description><c>gymora:gym:5:user:12:subscription:page:h:a1b2c3d4e5f6g7h8</c></description></item>
+        ///   <item><description><c>gymora:global:subscription:page:h:fa307e5b2298cde1</c></description></item>
+        /// </list>
+        /// </returns>
         public static string ByPage(string entityName, PaginatedSearchReq req, int? gymId = null, int? userId = null)
         {
-            var hash = ComputeHash(req);
-            var scope = ScopeSegment(gymId, userId);
+            var hash = ComputeHash(req: req);
+            var scope = ScopeSegment(gymId: gymId, userId: userId);
             return $"{Prefix}:{scope}:{entityName}:page:h:{hash}";
         }
 
         /// <summary>
-        /// key بتاع قايمة كاملة (زي GetAllAsync) تحت تصنيف/تاج معين.
+        /// Key بتاع قايمة كاملة (زي GetAllAsync) تحت تصنيف/تاج معين.
         /// </summary>
+        /// <returns>
+        /// يرجع نصاً على شكل:
+        /// <list type="bullet">
+        ///   <item><description><c>gymora:gym:5:subscription:list:tag:active</c></description></item>
+        ///   <item><description><c>gymora:global:subscription:list:tag:all</c></description></item>
+        /// </list>
+        /// </returns>
         public static string ByList(string entityName, int? gymId = null, int? userId = null, string tag = "all")
         {
-            var scope = ScopeSegment(gymId, userId);
+            var scope = ScopeSegment(gymId: gymId, userId: userId);
             return $"{Prefix}:{scope}:{entityName}:list:tag:{tag}";
         }
 
         /// <summary>
-        /// دي القلب بتاع الحل: بتبني جزء الـ "نطاق" (scope) من الـ key.
-        ///
-        /// 4 احتمالات:
-        /// 1) gymId + userId موجودين  → gym:{gymId}:user:{userId}   (الأكثر تحديدًا: يوزر معين جوه جيم معين)
-        /// 2) userId موجود بس        → global:user:{userId}         (يوزر معين، من غير سياق جيم)
-        /// 3) gymId موجود بس         → gym:{gymId}                  (كل يوزرز الجيم مشتركين، للـ Public entities)
-        /// 4) ولا واحد فيهم موجود    → global                       (كاش عام تمامًا)
-        ///
-        /// ليه فرقنا بين الحالة اللي فيها userId والحالة اللي مفيهاش؟
-        /// عشان أي Entity Owned لازم مفتاحها يحتوي user:{id}، وإلا
-        /// هيرجع الـ Bug القديم: يوزر A يحط الداتا في الكاش، يوزر B (في نفس الجيم)
-        /// بيلاقيها في نفس الصندوق ويشوفها من غير ما يستاهل.
+        /// بتبني جزء الـ "نطاق" (scope) من الـ key ديناميكياً.
         /// </summary>
+        /// <returns>
+        /// يرجع أحد الأشكال التالية فقط:
+        /// <list type="number">
+        ///   <item><description><c>gym:5:user:12</c> (لو الجيم واليوزر ممررين)</description></item>
+        ///   <item><description><c>global:user:12</c> (لو اليوزر فقط ممرر)</description></item>
+        ///   <item><description><c>gym:5</c> (لو الجيم فقط ممرر)</description></item>
+        ///   <item><description><c>global</c> (لو القيمة عامة تماماً)</description></item>
+        /// </list>
+        /// </returns>
         private static string ScopeSegment(int? gymId, int? userId)
         {
             if (gymId.HasValue && userId.HasValue)
@@ -83,11 +91,12 @@ namespace Application.Cache
         }
 
         /// <summary>
-        /// بيحول شكل الـ Search Request (صفحة، فلاتر، ترتيب) لبصمة (hash) قصيرة
-        /// عشان نستخدمها كجزء من الـ key بدل ما نكتب كل الباراميترز صريحة في الاسم.
-        /// ملحوظة: الهاش ده لسه عام (مش فيه userId) لأنه مسؤول بس عن شكل البحث نفسه،
-        /// مش عن "مين اللي طلبه" — ده شغل ScopeSegment.
+        /// بيحول شكل الـ Search Request (صفحة، فلاتر، ترتيب) لبصمة (hash) قصيرة من 16 حرف.
         /// </summary>
+        /// <returns>
+        /// سلسلة نصية مكونة من 16 حرفاً هكسا-ديسيمال (Hexadecimal) صغيرة، مثل:
+        /// <c>9f86d081884c7d65</c>
+        /// </returns>
         private static string ComputeHash(PaginatedSearchReq req)
         {
             var key = $"{req.PageNumber}_{req.PageSize}_{req.SearchTerm}_{req.OrderBy}_{req.OrderDirection ?? ""}";
@@ -96,12 +105,20 @@ namespace Application.Cache
         }
 
         /// <summary>
-        /// للـ Invalidation السريع: مسح كل كاش خاص بجيم معين دفعة واحدة
-        /// (مثلاً لو حصل تعديل جماعي على بيانات الجيم).
+        /// للـ Invalidation السريع: مسح كل كاش خاص بجيم معين دفعة واحدة.
         /// </summary>
+        /// <returns>
+        /// يرجع نصاً ثابتاً مثل: <c>gymora:gym:5</c>
+        /// </returns>
         public static string GymPrefix(int gymId)
             => $"{Prefix}:gym:{gymId}";
 
+        /// <summary>
+        /// للـ Invalidation السريع: مسح الكاش العام (Global) للنظام بالكامل.
+        /// </summary>
+        /// <returns>
+        /// يرجع نصاً ثابتاً: <c>gymora:global</c>
+        /// </returns>
         public static string GlobalPrefix()
             => $"{Prefix}:global";
     }

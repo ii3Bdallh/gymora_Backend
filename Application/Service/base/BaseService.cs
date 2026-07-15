@@ -50,14 +50,12 @@ namespace Application.Service
             T added = await _repo.AddAsync(entity, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), added.Id, CurrentGymId , CurrentUser.UserId),
-                cancellationToken);
+            await PublishEntityChangedAsync(added.Id, cancellationToken);
 
             _logger.LogInformation("{EntityType} with ID {Id} added successfully by user {UserId}", typeof(T).Name, added.Id, CurrentUserId);
             return _mapper.Map<RDTO>(added);
         }
-
+        #region Update
         public virtual async Task<RDTO> UpdateAsync(int id, UDTO dto, CancellationToken cancellationToken = default)
         {
             T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: true, cancellationToken: cancellationToken);
@@ -74,14 +72,14 @@ namespace Application.Service
             T updated = await _repo.UpdateAsync(entity, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
-                cancellationToken);
+            await PublishEntityChangedAsync(id, cancellationToken);
 
             _logger.LogInformation("{EntityType} with ID {Id} updated successfully by user {UserId}", typeof(T).Name, id, CurrentUserId);
             return _mapper.Map<RDTO>(updated);
         }
 
+
+        #endregion
         public virtual async Task<RDTO> DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
             T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: true, cancellationToken: cancellationToken);
@@ -96,12 +94,23 @@ namespace Application.Service
             await _repo.DeleteAsync(entity, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
-                cancellationToken);
+            await PublishEntityChangedAsync(id, cancellationToken);
 
             _logger.LogInformation("{EntityType} with ID {Id} deleted successfully by user {UserId}", typeof(T).Name, id, CurrentUserId);
             return _mapper.Map<RDTO>(entity);
+        }
+
+        protected virtual Task PublishEntityChangedAsync(
+    int entityId,
+    CancellationToken cancellationToken = default)
+        {
+            return _publishEndpoint.Publish(
+                new EntityChangedEvent(
+                    CacheEntityNames.ForType<T>(),
+                    entityId,
+                    CurrentGymId,
+                    CurrentUserId),
+                cancellationToken);
         }
     }
 }
