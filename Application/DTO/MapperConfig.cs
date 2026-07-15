@@ -134,18 +134,18 @@ namespace Application.DTO
             // ===========================
 
             CreateMap<BaseAuditableFileEntity, BaseAuditableFRDTO>()
-                .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>()
+                .IncludeBase<BaseFileEntity, BaseFRDTO>()
                 .ReverseMap()
                 .ForMember(x => x.StoredFileName, opt => opt.Ignore());
 
             CreateMap<BaseAuditableFileEntity, BaseAuditableFCDTO>()
-                .IncludeBase<BaseAuditableEntity, BaseAuditableCDTO>()
+                .IncludeBase<BaseFileEntity, BaseFCDTO>()
                 .ReverseMap()
                 .ForMember(x => x.FileUrl, opt => opt.Ignore())
                 .ForMember(x => x.StoredFileName, opt => opt.Ignore());
 
             CreateMap<BaseAuditableFileEntity, BaseAuditableFUDTO>()
-                .IncludeBase<BaseAuditableEntity, BaseAuditableUDTO>()
+                .IncludeBase<BaseFileEntity, BaseFUDTO>()
                 .ReverseMap()
                 .ForMember(x => x.FileUrl, opt => opt.Ignore())
                 .ForMember(x => x.StoredFileName, opt => opt.Ignore());

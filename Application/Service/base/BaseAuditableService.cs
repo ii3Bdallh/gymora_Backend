@@ -49,55 +49,46 @@ namespace Application.Service.Base
             return await base.AddAsync(dto, cancellationToken);
         }
 
-        public override async Task<RDTO> UpdateAsync(int id, UDTO dto, CancellationToken cancellationToken = default)
+        protected override Task BeforeUpdateAsync(
+            T entity,
+            UDTO dto,
+            CancellationToken cancellationToken)
+        {
+            if (!CanModify(entity))
+            {
+                _logger.LogWarning(
+                    "Unauthorized attempt to update {EntityType} with ID {Id} by user {UserId}",
+                    typeof(T).Name,
+                    entity.Id,
+                    CurrentUserId);
+
+                throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
+            }
+
+            dto.CreatedById = entity.CreatedById;
+
+            return Task.CompletedTask;
+        }
+
+        protected override Task BeforeDeleteAsync(
+            T entity,
+            CancellationToken cancellationToken)
+        {
+            if (!CanModify(entity))
+            {
+                throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
+            }
+
+            return Task.CompletedTask;
+        }
+
+        protected override Task BeforeAddAsync(
+    CDTO dto,
+    CancellationToken cancellationToken)
         {
             dto.CreatedById = CurrentUserId;
 
-            T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: true, cancellationToken);
-
-            if (entity == null || !CanModify(entity))
-            {
-                _logger.LogWarning("Unauthorized or failed attempt to update {EntityType} with ID {Id} by user {UserId}", typeof(T).Name, id, CurrentUserId);
-                throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
-            }
-
-            _logger.LogInformation("Updating auditable {EntityType} with ID {Id} by user {UserId}", typeof(T).Name, id, CurrentUserId);
-            dto.CreatedById = entity.CreatedById; // Preserve the original CreatedById
-
-            _mapper.Map(dto, entity);
-
-            T updated = await _repo.UpdateAsync(entity, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId, CurrentUser.UserId),
-                cancellationToken);
-
-            _logger.LogInformation("{EntityType} with ID {Id} updated successfully", typeof(T).Name, id);
-            return _mapper.Map<RDTO>(updated);
-
-        }
-
-        public override async Task<RDTO> DeleteAsync(int id, CancellationToken cancellationToken = default)
-        {
-            T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: true, cancellationToken);
-
-            if (entity == null || !CanModify(entity))
-            {
-                _logger.LogWarning("Unauthorized or failed attempt to delete {EntityType} with ID {Id} by user {UserId}", typeof(T).Name, id, CurrentUserId);
-                throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
-            }
-
-            _logger.LogInformation("Deleting auditable {EntityType} with ID {Id} by user {UserId}", typeof(T).Name, id, CurrentUserId);
-            T deleted = await _repo.DeleteAsync(entity, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId, CurrentUser.UserId),
-                cancellationToken);
-
-            _logger.LogInformation("{EntityType} with ID {Id} deleted successfully", typeof(T).Name, id);
-            return _mapper.Map<RDTO>(deleted);
+            return Task.CompletedTask;
         }
 
         protected virtual bool CanModify(T entity)
@@ -106,3 +97,4 @@ namespace Application.Service.Base
         }
     }
 }
+

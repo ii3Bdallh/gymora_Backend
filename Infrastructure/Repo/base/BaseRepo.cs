@@ -30,12 +30,41 @@ namespace Infrastructure.Repo.Base
             this.queryCache = queryCache;
             this.currentUser = currentUser;
         }
-
+        #region Protected Methods
         protected virtual Func<IQueryable<T>, IQueryable<T>>? Includes()
         {
             return null;
         }
 
+        protected virtual IQueryable<T> BuildQuery(
+    bool isActive = true,
+    bool trackChanges = false)
+        {
+            IQueryable<T> query = trackChanges
+                ? DbSet
+                : DbSet.AsNoTracking();
+
+            query = query.Where(x => x.IsActive == isActive);
+
+            query = ApplySecurityFilter(query);
+
+            return query;
+        }
+
+        protected virtual IQueryable<T> ApplySecurityFilter(IQueryable<T> query)
+        {
+            if (typeof(IOwnedEntity).IsAssignableFrom(typeof(T))
+                && !currentUser.IsSuperAdmin)
+            {
+                query = query.Where(x =>
+                    EF.Property<int>(x, nameof(IOwnedEntity.CreatedById))
+                    == currentUser.UserId);
+            }
+
+            return query;
+        }
+
+        #endregion
         public DbSet<T> DbSet => context.Set<T>();
 
         public virtual async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default, Func<IQueryable<T>, IQueryable<T>>? include = null)
@@ -47,26 +76,7 @@ namespace Infrastructure.Repo.Base
 
             return await query.ToListAsync(cancellationToken);
         }
-        protected virtual IQueryable<T> BuildQuery(
-            bool isActive = true,
-            bool trackChanges = false)
-        {
-            IQueryable<T> query = trackChanges
-                ? DbSet
-                : DbSet.AsNoTracking();
 
-            query = query.Where(x => x.IsActive == isActive);
-
-            if (typeof(IOwnedEntity).IsAssignableFrom(typeof(T))
-                && !currentUser.IsSuperAdmin)
-            {
-                query = query.Where(x =>
-                    EF.Property<int>(x, nameof(IOwnedEntity.CreatedById))
-                    == currentUser.UserId);
-            }
-
-            return query;
-        }
         public virtual IQueryable<T> GetAllQuery(
             PaginatedSearchReq searchReq,
             bool isActive = true,

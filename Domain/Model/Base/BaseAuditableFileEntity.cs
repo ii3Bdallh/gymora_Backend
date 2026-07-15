@@ -3,10 +3,12 @@ namespace Domain.Model.Base
     /// <summary>
     /// Base class for auditable entities that contain files
     /// </summary>
-    public abstract class BaseAuditableFileEntity : BaseAuditableEntity
+    public abstract class BaseAuditableFileEntity : BaseFileEntity
     {
-        public string? FileUrl { get; set; }
-        public string StoredFileName { get; set; } = string.Empty;
-        public bool IsPublic { get; set; } = false;
+
+        public DateTime CreatedOn { get; set; }
+        public int CreatedById { get; set; }
+
+
     }
 }

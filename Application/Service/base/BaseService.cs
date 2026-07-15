@@ -41,24 +41,76 @@ namespace Application.Service
             _unitOfWork = unitOfWork;
             _publishEndpoint = publishEndpoint;
         }
-
+        #region Add
         public virtual async Task<RDTO> AddAsync(CDTO dto, CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Adding new {EntityType}", typeof(T).Name);
-            T entity = _mapper.Map<T>(dto);
+            await BeforeAddAsync(dto, cancellationToken);
 
-            T added = await _repo.AddAsync(entity, cancellationToken);
+            var entity = _mapper.Map<T>(dto);
+
+            await AfterMapAddAsync(entity, dto, cancellationToken);
+
+            entity = await _repo.AddAsync(entity, cancellationToken);
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await PublishEntityChangedAsync(added.Id, cancellationToken);
+            await PublishEntityChangedAsync(entity.Id, cancellationToken);
 
-            _logger.LogInformation("{EntityType} with ID {Id} added successfully by user {UserId}", typeof(T).Name, added.Id, CurrentUserId);
-            return _mapper.Map<RDTO>(added);
+            return _mapper.Map<RDTO>(entity);
         }
-        #region Update
-        public virtual async Task<RDTO> UpdateAsync(int id, UDTO dto, CancellationToken cancellationToken = default)
+
+        protected virtual Task BeforeAddAsync(
+    CDTO dto,
+    CancellationToken cancellationToken)
         {
-            T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: true, cancellationToken: cancellationToken);
+            return Task.CompletedTask;
+        }
+
+        protected virtual Task AfterMapAddAsync(
+    T entity,
+    CDTO dto,
+    CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+        #endregion
+
+        #region Update
+
+
+
+        public virtual async Task<RDTO> UpdateAsync(
+            int id,
+            UDTO dto,
+            CancellationToken cancellationToken = default)
+        {
+            var entity = await LoadForUpdateAsync(id, cancellationToken);
+
+            await BeforeUpdateAsync(entity, dto, cancellationToken);
+
+            _mapper.Map(dto, entity);
+
+            await AfterMapUpdateAsync(entity, dto, cancellationToken);
+
+            entity = await _repo.UpdateAsync(entity, cancellationToken);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            await PublishEntityChangedAsync(entity.Id, cancellationToken);
+
+            await AfterUpdateAsync(entity, cancellationToken);
+
+            return _mapper.Map<RDTO>(entity);
+        }
+        protected virtual async Task<T> LoadForUpdateAsync(
+    int id,
+    CancellationToken cancellationToken)
+        {
+            var entity = await _repo.GetByIdAsync(
+                id,
+                isActive: true,
+                trackChanges: true,
+                cancellationToken);
 
             if (entity is null)
             {
@@ -66,40 +118,66 @@ namespace Application.Service
                 throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
             }
 
-            _logger.LogInformation("Updating {EntityType} with ID {Id}", typeof(T).Name, id);
-            _mapper.Map(dto, entity);
-
-            T updated = await _repo.UpdateAsync(entity, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            await PublishEntityChangedAsync(id, cancellationToken);
-
-            _logger.LogInformation("{EntityType} with ID {Id} updated successfully by user {UserId}", typeof(T).Name, id, CurrentUserId);
-            return _mapper.Map<RDTO>(updated);
+            return entity;
         }
 
+        protected virtual Task BeforeUpdateAsync(
+    T entity,
+    UDTO dto,
+    CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+        protected virtual Task AfterMapUpdateAsync(
+            T entity,
+            UDTO dto,
+            CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
 
+        protected virtual Task AfterUpdateAsync(
+    T entity,
+    CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
         #endregion
+
+        #region Delete     
         public virtual async Task<RDTO> DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
-            T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: true, cancellationToken: cancellationToken);
+            var entity = await LoadForUpdateAsync(id, cancellationToken);
 
-            if (entity is null)
-            {
-                _logger.LogWarning("{EntityType} with ID {Id} was not found for deletion", typeof(T).Name, id);
-                throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
-            }
+            await BeforeDeleteAsync(entity, cancellationToken);
 
-            _logger.LogInformation("Deleting {EntityType} with ID {Id}", typeof(T).Name, id);
             await _repo.DeleteAsync(entity, cancellationToken);
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await PublishEntityChangedAsync(id, cancellationToken);
+            await PublishEntityChangedAsync(entity.Id, cancellationToken);
 
-            _logger.LogInformation("{EntityType} with ID {Id} deleted successfully by user {UserId}", typeof(T).Name, id, CurrentUserId);
+
+            await AfterDeleteAsync(entity, cancellationToken);
+
             return _mapper.Map<RDTO>(entity);
         }
 
+        protected virtual Task BeforeDeleteAsync(
+    T entity,
+    CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        protected virtual Task AfterDeleteAsync(
+    T entity,
+    CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        #endregion
         protected virtual Task PublishEntityChangedAsync(
     int entityId,
     CancellationToken cancellationToken = default)

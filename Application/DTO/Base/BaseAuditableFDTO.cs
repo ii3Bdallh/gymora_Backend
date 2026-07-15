@@ -3,18 +3,26 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.DTO.Base
 {
-    public record BaseAuditableFCDTO : BaseAuditableCDTO
+    public record BaseAuditableFCDTO : BaseFCDTO
     {
-        public virtual IFormFile? File { get; set; }
-        public bool IsPublic { get; set; } = false;
-    }
-    public record BaseAuditableFUDTO : BaseAuditableUDTO
-    {
-        public virtual IFormFile? File { get; set; }
-    }
-    public record BaseAuditableFRDTO : BaseAuditableRDTO
-    {
-        public string FileUrl { get; set; } = string.Empty;
+
+
+        public int CreatedById { get; set; }
 
     }
+    public record BaseAuditableFUDTO : BaseFUDTO
+    {
+        public int CreatedById { get; set; }
+
+    }
+    public record BaseAuditableFRDTO : BaseFRDTO
+    {
+
+        public DateTime CreatedOn { get; set; }
+        public int CreatedById { get; set; }
+        public DateTime? ModifiedOn { get; set; }
+
+    }
+
+
 }

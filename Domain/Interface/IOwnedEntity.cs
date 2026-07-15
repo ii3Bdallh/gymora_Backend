@@ -9,4 +9,9 @@ namespace Domain.Interface
     {
         public int CreatedById { get; set; }
     }
+
+    public interface ICacheTT
+    {
+        
+    }
 }

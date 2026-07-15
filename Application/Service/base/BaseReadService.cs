@@ -47,7 +47,7 @@ namespace Application.Service
         protected int CurrentUserId => _currentUser.UserId;
         protected CurrentUser CurrentUser => _currentUser;
         protected virtual bool IsCacheEnabled =>
-             typeof(ICacheableEntity).IsAssignableFrom(typeof(T));
+             typeof(ICacheTT).IsAssignableFrom(typeof(T));
 
 
         protected bool HasFullAccess => CurrentUser.IsSuperAdmin;
@@ -106,6 +106,8 @@ namespace Application.Service
             return result;
         }
 
+
+        #region Read By Id
         public virtual async Task<RDTO> GetByIdAsync(
     int id,
     bool isActive = true,
@@ -143,10 +145,24 @@ namespace Application.Service
                             "You do not have permission to access this resource.");
                     }
 
-                    return _mapper.Map<RDTO>(entity);
+                    var dto = _mapper.Map<RDTO>(entity);
+
+                    await AfterMapReadAsync(entity, dto, cancellationToken);
+
+                    return dto;
                 },
                 IsCacheEnabled);
         }
+
+        protected virtual Task AfterMapReadAsync(
+    T entity,
+    RDTO dto,
+    CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        #endregion
 
         public virtual async Task<PaginatedRes<RDTO>> GetPageAsync(
             PaginatedSearchReq searchReq,
