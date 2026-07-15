@@ -25,6 +25,8 @@ namespace Application.Interface.Repo
      CancellationToken cancellationToken = default);
 
 
+
+        Task<SubscriptionPlan?> GetFreePlanAsync(CancellationToken ct = default);
     }
 }
 

@@ -29,6 +29,8 @@ namespace Application.Service
         private readonly ICouponService _couponService;
 
         private readonly IOwnerSubscriptionRepo _ownerSubscriptionRepo;
+
+        private readonly ICurrentPlanService _currentPlanService;
         public PaymentRequestService(
             IPaymentRequestRepo repo,
             IUnitOfWork unitOfWork,
@@ -40,7 +42,8 @@ namespace Application.Service
             IStorageService storageService,
             ISubscriptionPlanRepo subscriptionPlanRepo,
             ICouponService couponService,
-            IOwnerSubscriptionRepo ownerSubscriptionRepo
+            IOwnerSubscriptionRepo ownerSubscriptionRepo,
+            ICurrentPlanService currentPlanService
             )
             : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser, storageService, logger)
         {
@@ -48,6 +51,7 @@ namespace Application.Service
             _subscriptionPlanRepo = subscriptionPlanRepo;
             _couponService = couponService;
             _ownerSubscriptionRepo = ownerSubscriptionRepo;
+            _currentPlanService = currentPlanService;
         }
         public override async Task<PaymentRequestRDTO> AddAsync(PaymentRequestCDTO dto, CancellationToken ct = default)
         {
@@ -58,8 +62,10 @@ namespace Application.Service
             if (planPrice == null)
                 throw new ApplicationException("Invalid subscription plan.");
 
-            bool hasActiveSubscription = await _ownerSubscriptionRepo.HasActiveSubscriptionAsync(_currentUser.UserId, ct);
-            if (hasActiveSubscription)
+
+            CurrentPlanResult existingSubscription = await _currentPlanService.GetCurrentPlanAsync(_currentUser.UserId, ct);
+
+            if (existingSubscription.IsFree == false)
                 throw new ApplicationException("You already have an active subscription. You cannot create a new payment request until your current subscription expires.");
 
             decimal discountAmount = 0m;
@@ -133,7 +139,7 @@ namespace Application.Service
 
             await _unitOfWork.SaveChangesAsync(ct);
 
-            await _publishEndpoint.Publish(new PaymentApprovedEvent(entity.Id, entity.CreatedById , entity.CouponId, entity.DiscountAmount), ct);
+            await _publishEndpoint.Publish(new PaymentApprovedEvent(entity.Id, entity.CreatedById, entity.CouponId, entity.DiscountAmount), ct);
 
             return _mapper.Map<PaymentRequestRDTO>(entity);
         }

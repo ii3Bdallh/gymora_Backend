@@ -1,6 +1,7 @@
 
 using Application.DTO.Base;
 using Domain.Enum;
+using Domain.Model;
 
 namespace Application.DTO.Model
 {
@@ -36,5 +37,25 @@ namespace Application.DTO.Model
         {
             get; set;
         }
+    }
+
+
+    public class CurrentPlanResult
+    {
+        public int PlanId { get; init; }
+
+        public string PlanName { get; init; } = null!;
+
+        public int MaxOwnedGyms { get; init; }
+
+        public int MaxMembersPerGym { get; init; }
+
+        public int MaxCoachesPerGym { get; init; }
+
+        public bool IsFree { get; init; }
+
+        public OwnerSubscriptionStatus? SubscriptionStatus { get; init; }
+
+        public OwnerSubscription? Subscription { get; init; }
     }
 }

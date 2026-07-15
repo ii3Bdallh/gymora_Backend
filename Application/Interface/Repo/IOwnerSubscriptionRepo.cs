@@ -9,8 +9,7 @@ namespace Application.Interface.Repo
 {
     public interface IOwnerSubscriptionRepo : IBaseRepo<OwnerSubscription>
     {
-        Task<bool> HasActiveSubscriptionAsync(int ownerUserId, CancellationToken ct = default);
-        Task<bool> HasGraceSubscriptionAsync(int ownerUserId, CancellationToken ct = default);
+
         Task<OwnerSubscription?> GetCurrentSubscriptionAsync(int ownerUserId, CancellationToken ct = default);
     }
 }

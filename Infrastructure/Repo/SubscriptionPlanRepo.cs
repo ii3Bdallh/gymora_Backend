@@ -70,6 +70,15 @@ namespace Infrastructure.Repo.Entity
                 .Where(x => x.Id == id && x.IsActive == isActive)
                 .FirstOrDefaultAsync(cancellationToken);
         }
+
+
+
+        public async Task<SubscriptionPlan?> GetFreePlanAsync(CancellationToken ct = default)
+        {
+            return await context.SubscriptionPlan
+              .AsNoTracking()
+              .FirstOrDefaultAsync(x => x.IsFree && x.IsActive == true, ct);
+        }
     }
 }
 

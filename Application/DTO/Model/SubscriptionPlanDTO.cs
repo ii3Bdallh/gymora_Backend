@@ -11,6 +11,8 @@ namespace Application.DTO.Model
     public record SubscriptionPlanCDTO : BaseCDTO
     {
         public string Name { get; set; } = null!;
+            public bool IsFree { get; set; }
+
         public string? Description { get; set; }
         public int MaxOwnedGyms { get; set; }
         public int MaxCoachesPerGym { get; set; }
@@ -23,6 +25,8 @@ namespace Application.DTO.Model
     public record SubscriptionPlanRDTO : BaseRDTO
     {
         public string Name { get; set; } = null!;
+            public bool IsFree { get; set; }
+
         public string? Description { get; set; }
         public int MaxOwnedGyms { get; set; }
         public int MaxCoachesPerGym { get; set; }
@@ -37,6 +41,9 @@ namespace Application.DTO.Model
     public record SubscriptionPlanUDTO : BaseUDTO
     {
         public string Name { get; set; } = null!;
+
+            public bool IsFree { get; set; }
+
         public string? Description { get; set; }
         public int MaxOwnedGyms { get; set; }
         public int MaxCoachesPerGym { get; set; }

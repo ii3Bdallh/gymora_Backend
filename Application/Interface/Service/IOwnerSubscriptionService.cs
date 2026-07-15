@@ -13,6 +13,5 @@ namespace Application.Interface.Service
     public interface IOwnerSubscriptionService : IBaseService<OwnerSubscription, OwnerSubscriptionRDTO, OwnerSubscriptionCDTO, OwnerSubscriptionUDTO>
     {
         Task<OwnerSubscriptionRDTO> CreateFromApprovedPaymentAsync(int paymentRequestId, CancellationToken ct = default);
-        Task<OwnerSubscriptionRDTO> GetCurrentSubscriptionAsync(int ownerUserId, CancellationToken ct = default);
     }
 }

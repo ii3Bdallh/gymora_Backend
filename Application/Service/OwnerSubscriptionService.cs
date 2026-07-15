@@ -27,6 +27,8 @@ namespace Application.Service
         private readonly IOwnerSubscriptionRepo _ownerSubscriptionRepo;
 
         private readonly ISubscriptionPlanRepo _subscriptionPlanRepo;
+
+        private readonly ICurrentPlanService _currentPlanService;
         public OwnerSubscriptionService(
             IOwnerSubscriptionRepo repo,
             IUnitOfWork unitOfWork,
@@ -36,13 +38,15 @@ namespace Application.Service
             CurrentUser currentUser,
             ILogger<OwnerSubscriptionService> logger,
             IPaymentRequestRepo paymentRequestRepo,
-            ISubscriptionPlanRepo subscriptionPlanRepo
+            ISubscriptionPlanRepo subscriptionPlanRepo,
+            ICurrentPlanService currentPlanService
             )
             : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser, logger)
         {
             _paymentRequestRepo = paymentRequestRepo;
             _ownerSubscriptionRepo = repo;
             _subscriptionPlanRepo = subscriptionPlanRepo;
+            _currentPlanService = currentPlanService;
         }
         public async Task<OwnerSubscriptionRDTO> CreateFromApprovedPaymentAsync(int paymentRequestId, CancellationToken ct = default)
         {
@@ -50,8 +54,10 @@ namespace Application.Service
             if (payment == null || payment.Status != PaymentRequestStatus.Approved)
                 throw new ApplicationException("Payment request is not approved.");
 
+            CurrentPlanResult existingSubscription = await _currentPlanService.GetCurrentPlanAsync(payment.CreatedById, ct);
+
             // التحقق إن مفيش اشتراك نشط
-            if (await _ownerSubscriptionRepo.HasActiveSubscriptionAsync(payment.CreatedById, ct))
+            if (existingSubscription.IsFree == false)
                 throw new ApplicationException("User already has an active subscription.");
 
             PlanPrice? planPrice = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(payment.PlanPriceId, true, false, ct);
@@ -87,16 +93,6 @@ namespace Application.Service
             return result;
         }
 
-        public async Task<OwnerSubscriptionRDTO> GetCurrentSubscriptionAsync(int ownerUserId, CancellationToken ct = default)
-        {
 
-            var subscription = await _ownerSubscriptionRepo.GetCurrentSubscriptionAsync(ownerUserId, ct);
-            if (subscription == null || !CanModify(subscription))
-            {
-                _logger.LogWarning("Unauthorized or failed attempt to access subscription for user with ID {UserId} by user {CurrentUserId}", ownerUserId, CurrentUserId);
-                throw new NotFoundException($"Subscription for user with ID {ownerUserId} was not found.");
-            }
-            return _mapper.Map<OwnerSubscriptionRDTO>(subscription);
-        }
     }
 }
