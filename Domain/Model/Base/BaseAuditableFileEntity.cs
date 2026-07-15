@@ -6,7 +6,7 @@ namespace Domain.Model.Base
     public abstract class BaseAuditableFileEntity : BaseFileEntity
     {
 
-        public DateTime CreatedOn { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
         public int CreatedById { get; set; }
 
 

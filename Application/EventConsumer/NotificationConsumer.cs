@@ -44,7 +44,7 @@ public class NotificationConsumer :
         var message = context.Message;
 
         await _notificationService.SendNotificationAsync(
-            context.Message.dd,
+            context.Message.OwnerUserId,
             new NotificationDTO
             {
                 Title = "Subscription Activated",

@@ -35,7 +35,7 @@ namespace Domain.Model
     [Filterable(FilterType.Exact)]
     public string CurrencyCode { get; set; } = null!;
 
-    public string? ProofUrl { get; set; }
+
 
         [Filterable(FilterType.Exact)]
         public PaymentRequestStatus Status { get; set; } = PaymentRequestStatus.Pending;

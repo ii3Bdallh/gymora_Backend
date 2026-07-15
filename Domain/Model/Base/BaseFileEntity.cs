@@ -15,7 +15,7 @@ namespace Domain.Model.Base
         /// <summary>
         /// The actual path in Bunny Storage (e.g. public/gyms/logo.jpg or private/receipts/abc123.pdf)
         /// </summary>
-        public string StoredFileName { get; set; } = string.Empty;
+        public string StoredFilePath { get; set; } = string.Empty;
 
         /// <summary>
         /// Determines if the file is publicly accessible without token

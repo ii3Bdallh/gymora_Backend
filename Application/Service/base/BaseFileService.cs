@@ -8,6 +8,7 @@ using AutoMapper;
 using Domain.Events;
 using Domain.Model.Base;
 using MassTransit;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Service
@@ -38,35 +39,26 @@ namespace Application.Service
             _storageService = storageService;
         }
 
-
-        protected virtual async Task ReplaceFileAsync(
-            T entity,
-            BaseFUDTO dto,
-            CancellationToken cancellationToken)
+        protected virtual async Task UploadFileAndSaveFileInfoAsync(
+    T entity,
+    IFormFile file,
+    bool isPublic,
+    CancellationToken ct)
         {
-            var oldStoredFile = entity.StoredFileName;
-
-            var newStoredFile = await _storageService.UploadFileToStorageAsync(
-                dto.File!,
-                entity.IsPublic,
+            entity.StoredFilePath = await _storageService.UploadFileToStorageAsync(
+                file,
+                isPublic,
                 typeof(T).Name.Replace("Entity", ""),
-                cancellationToken);
+                ct);
 
-            _mapper.Map(dto, entity);
+            entity.IsPublic = isPublic;
 
-            entity.StoredFileName = newStoredFile;
-
-            entity.FileUrl = entity.IsPublic
-                ? _storageService.GetFileAccessUrl(newStoredFile, true)
+            entity.FileUrl = isPublic
+                ? _storageService.GetFileAccessUrl(entity.StoredFilePath, true)
                 : null;
-
-            if (!string.IsNullOrWhiteSpace(oldStoredFile))
-            {
-                await _storageService.DeleteFileFromStorageAsync(
-                    oldStoredFile,
-                    cancellationToken);
-            }
         }
+
+
 
 
         #region Read
@@ -76,10 +68,10 @@ namespace Application.Service
         RDTO dto,
         CancellationToken cancellationToken)
         {
-            if (!string.IsNullOrWhiteSpace(entity.StoredFileName))
+            if (!string.IsNullOrWhiteSpace(entity.StoredFilePath))
             {
                 dto.FileUrl = _storageService.GetFileAccessUrl(
-                    entity.StoredFileName,
+                    entity.StoredFilePath,
                     entity.IsPublic);
             }
 
@@ -89,40 +81,22 @@ namespace Application.Service
         #endregion
 
 
-        protected virtual Task BeforeAddFileAsync(
-            CDTO dto,
-            CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-
-        protected virtual Task BeforeUpdateFileAsync(
-            T entity,
-            UDTO dto,
-            CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        protected virtual Task BeforeDeleteFileAsync(
-            T entity,
-            CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
 
         #region Add
 
-        protected override async Task BeforeAddAsync(
+        protected override async Task AfterMapAddAsync(
+    T entity,
     CDTO dto,
     CancellationToken cancellationToken)
         {
-            // اعملها لو في الاب حاجه عاوز اعملها االاول 
-            // await base.BeforeAddAsync(dto, cancellationToken); 
+            if (dto.File is not null)
+            {
+                await UploadFileAndSaveFileInfoAsync(entity, dto.File, dto.IsPublic, cancellationToken);
+                // await ReplaceFileAsync(entity, dto, cancellationToken);
+            }
 
-            await BeforeAddFileAsync(dto, cancellationToken);
         }
+
 
         #endregion
 
@@ -133,42 +107,39 @@ namespace Application.Service
     UDTO dto,
     CancellationToken cancellationToken)
         {
-            // اعملها لو في الاب حاجه عاوز اعملها االاول 
-            // await base.AfterMapUpdateAsync(entity, dto, cancellationToken);
 
-            await BeforeUpdateFileAsync(entity, dto, cancellationToken);
+
 
             if (dto.File is not null)
             {
-                await ReplaceFileAsync(entity, dto, cancellationToken);
+                string? oldStoredFilePath = entity.StoredFilePath;
+                await UploadFileAndSaveFileInfoAsync(entity, dto.File, entity.IsPublic, cancellationToken);
+                // await ReplaceFileAsync(entity, dto, cancellationToken);
+
+                if (!string.IsNullOrWhiteSpace(oldStoredFilePath))
+                {
+                    await _storageService.DeleteFileFromStorageAsync(oldStoredFilePath, cancellationToken);
+                    _logger.LogInformation("Old file deleted for {EntityType} with ID {Id}", typeof(T).Name, entity.Id);
+                }
             }
         }
         #endregion
 
         #region Delete
 
-        protected override async Task BeforeDeleteAsync(
-    T entity,
-    CancellationToken cancellationToken)
-        {
-            // اعملها لو في الاب حاجه عاوز اعملها االاول 
-            // await base.BeforeDeleteAsync(entity, cancellationToken);
 
-            await BeforeDeleteFileAsync(entity, cancellationToken);
-        }
 
         protected override async Task AfterDeleteAsync(
     T entity,
     CancellationToken cancellationToken)
         {
-            if (!string.IsNullOrWhiteSpace(entity.StoredFileName))
+            if (!string.IsNullOrWhiteSpace(entity.StoredFilePath))
             {
                 await _storageService.DeleteFileFromStorageAsync(
-                    entity.StoredFileName,
+                    entity.StoredFilePath,
                     cancellationToken);
             }
-            // اعملها لو في الاب حاجه عاوز اعملها االاول 
-            // await base.AfterDeleteAsync(entity, cancellationToken);
+
         }
         #endregion
     }

@@ -43,7 +43,6 @@ namespace Application.Service.Base
     CDTO dto,
     CancellationToken cancellationToken)
         {
-            await base.BeforeAddAsync(dto, cancellationToken);
 
             dto.CreatedById = CurrentUserId;
         }
@@ -53,7 +52,6 @@ namespace Application.Service.Base
     UDTO dto,
     CancellationToken cancellationToken)
         {
-            await base.BeforeUpdateAsync(entity, dto, cancellationToken);
 
             if (!CanModify(entity))
                 throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
@@ -65,7 +63,6 @@ namespace Application.Service.Base
             T entity,
             CancellationToken cancellationToken)
         {
-            await base.BeforeDeleteAsync(entity, cancellationToken);
 
             if (!CanModify(entity))
                 throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
@@ -75,6 +72,8 @@ namespace Application.Service.Base
         {
             return CanAccess(entity.CreatedById);
         }
+
+
 
     }
 }

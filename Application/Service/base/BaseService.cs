@@ -77,8 +77,6 @@ namespace Application.Service
 
         #region Update
 
-
-
         public virtual async Task<RDTO> UpdateAsync(
             int id,
             UDTO dto,
