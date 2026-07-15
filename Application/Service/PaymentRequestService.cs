@@ -133,7 +133,7 @@ namespace Application.Service
 
             await _unitOfWork.SaveChangesAsync(ct);
 
-            await _publishEndpoint.Publish(new PaymentApprovedEvent(entity.Id, entity.CreatedById), ct);
+            await _publishEndpoint.Publish(new PaymentApprovedEvent(entity.Id, entity.CreatedById , entity.CouponId, entity.DiscountAmount), ct);
 
             return _mapper.Map<PaymentRequestRDTO>(entity);
         }

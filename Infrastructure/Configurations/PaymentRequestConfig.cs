@@ -21,7 +21,6 @@ namespace Infrastructure.Config
 
       builder.Property(x => x.CurrencyCode).HasMaxLength(3).IsFixedLength().IsRequired();
       builder.Property(x => x.CouponCode).HasMaxLength(50);
-      builder.Property(x => x.ProofUrl).HasMaxLength(500);
       builder.Property(x => x.ReviewNotes).HasMaxLength(1000);
       builder.Property(x => x.RejectionReason).HasMaxLength(1000);
 
