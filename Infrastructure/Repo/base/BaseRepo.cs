@@ -11,7 +11,6 @@ using Microsoft.Extensions.Logging;
 using Application.DTO;
 using Application.Model;
 using Domain.Interface;
-
 namespace Infrastructure.Repo.Base
 {
     public abstract class BaseRepo<T> : IBaseRepo<T> where T : BaseEntity
@@ -30,6 +29,11 @@ namespace Infrastructure.Repo.Base
             this.logger = logger;
             this.queryCache = queryCache;
             this.currentUser = currentUser;
+        }
+
+        protected virtual Func<IQueryable<T>, IQueryable<T>>? Includes()
+        {
+            return null;
         }
 
         public DbSet<T> DbSet => context.Set<T>();

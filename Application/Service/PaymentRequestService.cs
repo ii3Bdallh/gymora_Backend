@@ -27,6 +27,8 @@ namespace Application.Service
         private readonly IPaymentRequestRepo _paymentRepo;
         private readonly ISubscriptionPlanRepo _subscriptionPlanRepo;
         private readonly ICouponService _couponService;
+
+        private readonly IOwnerSubscriptionRepo _ownerSubscriptionRepo;
         public PaymentRequestService(
             IPaymentRequestRepo repo,
             IUnitOfWork unitOfWork,
@@ -37,13 +39,15 @@ namespace Application.Service
             ILogger<PaymentRequestService> logger,
             IStorageService storageService,
             ISubscriptionPlanRepo subscriptionPlanRepo,
-            ICouponService couponService
+            ICouponService couponService,
+            IOwnerSubscriptionRepo ownerSubscriptionRepo
             )
             : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser, storageService, logger)
         {
             _paymentRepo = repo;
             _subscriptionPlanRepo = subscriptionPlanRepo;
             _couponService = couponService;
+            _ownerSubscriptionRepo = ownerSubscriptionRepo;
         }
         public override async Task<PaymentRequestRDTO> AddAsync(PaymentRequestCDTO dto, CancellationToken ct = default)
         {
@@ -53,6 +57,10 @@ namespace Application.Service
             var planPrice = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(dto.PlanPriceId, true, false, ct);
             if (planPrice == null)
                 throw new ApplicationException("Invalid subscription plan.");
+
+            bool hasActiveSubscription = await _ownerSubscriptionRepo.HasActiveSubscriptionAsync(_currentUser.UserId, ct);
+            if (hasActiveSubscription)
+                throw new ApplicationException("You already have an active subscription. You cannot create a new payment request until your current subscription expires.");
 
             decimal discountAmount = 0m;
             int? couponId = null;
@@ -115,7 +123,7 @@ namespace Application.Service
             if (entity.Status != PaymentRequestStatus.Pending)
                 throw new ApplicationException("Only pending payment requests can be approved.");
 
-            entity.Status = dto.Status;
+            entity.Status = PaymentRequestStatus.Approved;
             entity.ReviewNotes = dto.ReviewNotes;
             entity.ReviewedBy = _currentUser.UserId;
             entity.ReviewedAt = DateTime.UtcNow;
@@ -139,7 +147,7 @@ namespace Application.Service
             try
             {
                 await _unitOfWork.BeginTransactionAsync(ct);
-                entity.Status = dto.Status;
+                entity.Status = PaymentRequestStatus.Rejected;
                 entity.RejectionReason = dto.RejectionReason;
                 entity.ReviewedBy = _currentUser.UserId;
                 entity.ReviewedAt = DateTime.UtcNow;

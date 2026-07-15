@@ -180,9 +180,11 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
         services.AddMassTransit(x =>
    {
        // 1. تسجيل الـ Consumers
-       //x.AddConsumer<NotificationConsumer>();
-       //x.AddConsumer<EmailConsumer>();
+       x.AddConsumer<NotificationConsumer>();
+       x.AddConsumer<EmailConsumer>();
        x.AddConsumer<CacheInvalidationConsumer>();
+       x.AddConsumer<PaymentRequestApprovedConsumer>();
+
 
        // 2. تهيئة الـ Entity Framework Outbox
        //    x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>

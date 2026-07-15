@@ -3,27 +3,33 @@ using Application.Interface.Service;
 using Application.StaticTexts;
 using Domain.Events;
 using MassTransit;
+using Microsoft.Extensions.Logging;
 
 namespace Application.EventConsumer;
 
 public class NotificationConsumer :
    IConsumer<PaymentCreatedEvent>
-   , IConsumer<PaymentApprovedEvent>
+   , IConsumer<SubscriptionActivatedEvent>
    , IConsumer<PaymentRejectedEvent>
-//    , IConsumer<EntityChangedEvent>
+   , IConsumer<TestNotificationEvent>
+
 
 {
     private readonly INotificationService _notificationService;
+    private readonly ILogger<NotificationConsumer> _logger;
 
-    public NotificationConsumer(INotificationService notificationService)
+    public NotificationConsumer(INotificationService notificationService, ILogger<NotificationConsumer> logger)
     {
         _notificationService = notificationService;
+        _logger = logger;
     }
 
     public async Task Consume(ConsumeContext<PaymentCreatedEvent> context)
     {
         var message = context.Message;
 
+        _logger.LogInformation("====================================================================");
+        _logger.LogInformation("🔔 Sending notification for PaymentCreatedEvent → PaymentRequestId: {PaymentRequestId}", message.PaymentRequestId);
         await _notificationService.SendToTopicAsync(
             NotificationTopic.AdminTopic,
             new NotificationDTO
@@ -33,16 +39,16 @@ public class NotificationConsumer :
             });
     }
 
-    public async Task Consume(ConsumeContext<PaymentApprovedEvent> context)
+    public async Task Consume(ConsumeContext<SubscriptionActivatedEvent> context)
     {
         var message = context.Message;
 
         await _notificationService.SendNotificationAsync(
-            context.Message.UserId,
+            context.Message.OwnerUserId,
             new NotificationDTO
             {
-                Title = "Payment Approved",
-                Body = $"Payment request {message.PaymentRequestId} has been approved \n You can now enjoy your subscription."
+                Title = "Subscription Activated",
+                Body = $"Your subscription has been activated."
             });
     }
 
@@ -59,6 +65,20 @@ public class NotificationConsumer :
             });
     }
 
- 
+    public Task Consume(ConsumeContext<TestNotificationEvent> context)
+    {
+        var message = context.Message;
+
+        _logger.LogInformation("====================================================================");
+        _logger.LogInformation("🔔 Sending test notification → Message: {Message}", message.Message);
+        return _notificationService.SendToTopicAsync(
+            NotificationTopic.AdminTopic,
+            new NotificationDTO
+            {
+                Title = "Test Notification",
+                Body = message.Message
+            });
+    }
+
 }
 

@@ -48,14 +48,12 @@ namespace Application.DTO.Model
 
     public record PaymentRequestApprove
     {
-        public PaymentRequestStatus Status { get; set; } = PaymentRequestStatus.Approved;
 
         public string? ReviewNotes { get; set; }
     }
 
     public record PaymentRequestReject
     {
-        public PaymentRequestStatus Status { get; set; } = PaymentRequestStatus.Rejected;
 
         [Required(ErrorMessage = "Rejection reason is required.")]
         public string RejectionReason { get; set; } = null!;

@@ -91,9 +91,6 @@ namespace Application.Service
             _logger.LogInformation("Fetching {EntityType} with ID {Id}", typeof(T).Name, id);
 
 
-
-
-
             T? entity = await _repo.GetByIdAsync(id, isActive: true, trackChanges: false, cancellationToken: cancellationToken);   // أفضل من FindAsync مع الفلتر
 
             if (entity is null)
@@ -137,7 +134,7 @@ namespace Application.Service
 
 
 
-            var page = await _repo.GetPageAsync(searchReq, isActive, trackChanges, cancellationToken, Includes());
+            var page = await _repo.GetPageAsync(searchReq, isActive, trackChanges, cancellationToken);
             // إذا كان GetPageAsync في الـ Repo يدعم IQueryable، يفضل تعديله لاحقًا
 
             var dtoPage = new PaginatedRes<RDTO>
@@ -155,9 +152,6 @@ namespace Application.Service
             return dtoPage;
         }
 
-        protected virtual Func<IQueryable<T>, IQueryable<T>>? Includes()
-        {
-            return null;
-        }
+
     }
 }

@@ -25,9 +25,10 @@ namespace Infrastructure.Config
       builder.Property(x => x.ReviewNotes).HasMaxLength(1000);
       builder.Property(x => x.RejectionReason).HasMaxLength(1000);
 
-      builder.Property(x => x.OriginalAmount).HasColumnType("decimal(18,2)");
-      builder.Property(x => x.DiscountAmount).HasColumnType("decimal(18,2)");
-      builder.Property(x => x.FinalAmount).HasColumnType("decimal(18,2)");
+      builder.Property(x => x.OriginalAmount) .HasPrecision(18, 2);
+      builder.Property(x => x.DiscountAmount) .HasPrecision(18, 2);
+      builder.Property(x => x.FinalAmount) .HasPrecision(18, 2);
+
 
 
       builder.HasOne<ApplicationUser>()

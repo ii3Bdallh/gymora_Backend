@@ -70,7 +70,7 @@ namespace Application.Service.Base
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId),
+                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
                 cancellationToken);
 
             _logger.LogInformation("{EntityType} with ID {Id} updated successfully", typeof(T).Name, id);
@@ -93,7 +93,7 @@ namespace Application.Service.Base
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId),
+                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
                 cancellationToken);
 
             _logger.LogInformation("{EntityType} with ID {Id} deleted successfully", typeof(T).Name, id);

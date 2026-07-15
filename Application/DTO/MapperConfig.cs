@@ -15,6 +15,20 @@ namespace Application.DTO
 
             // Script will Add After Here MapperConfig
             
+            CreateMap<OwnerSubscription, OwnerSubscriptionRDTO>()
+                .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>()
+                .ReverseMap();
+
+            CreateMap<OwnerSubscription, OwnerSubscriptionCDTO>()
+                .IncludeBase<BaseAuditableEntity, BaseAuditableCDTO>()
+                .ReverseMap();
+
+            CreateMap<OwnerSubscription, OwnerSubscriptionUDTO>()
+                .IncludeBase<BaseAuditableEntity, BaseAuditableUDTO>()
+                .ReverseMap();
+
+                
+            
             CreateMap<Coupon, CouponRDTO>()
                 .IncludeBase<BaseEntity, BaseRDTO>()
                 .ReverseMap();

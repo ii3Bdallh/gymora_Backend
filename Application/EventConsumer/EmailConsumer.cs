@@ -6,7 +6,7 @@ namespace Application.EventConsumer;
 
 public class EmailConsumer :
    IConsumer<PaymentCreatedEvent>
-//    ,IConsumer<UserRegisteredEvent>
+   , IConsumer<PaymentRejectedEvent>
 //    ,IConsumer<PasswordResetEvent>
 {
     private readonly IEmailService _emailService;
@@ -25,21 +25,29 @@ public class EmailConsumer :
       $"A new payment has been created for request {context.Message.PaymentRequestId}.");
     }
 
-    //    public async Task Consume(ConsumeContext<UserRegisteredEvent> context)
-    //    {
-    //        var message = context.Message;
+    public async Task Consume(ConsumeContext<PaymentRejectedEvent> context)
+    {
+        await _emailService.SendEmailAsync(
+        "Abdallhmamdouh079@gmail.com",
+        "Payment Rejected",
+        $"Your payment request {context.Message.PaymentRequestId} has been rejected.");
+    }
 
-    //        await _emailService.SendWelcomeEmailAsync(
-    //            message.Email,
-    //            message.FullName);
-    //    }
+        //    public async Task Consume(ConsumeContext<UserRegisteredEvent> context)
+        //    {
+        //        var message = context.Message;
 
-    //    public async Task Consume(ConsumeContext<PasswordResetEvent> context)
-    //    {
-    //        var message = context.Message;
+        //        await _emailService.SendWelcomeEmailAsync(
+        //            message.Email,
+        //            message.FullName);
+        //    }
 
-    //        await _emailService.SendPasswordResetEmailAsync(
-    //            message.Email,
-    //            message.ResetLink);
-    //    }
-}
+        //    public async Task Consume(ConsumeContext<PasswordResetEvent> context)
+        //    {
+        //        var message = context.Message;
+
+        //        await _emailService.SendPasswordResetEmailAsync(
+        //            message.Email,
+        //            message.ResetLink);
+        //    }
+    }

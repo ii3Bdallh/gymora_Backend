@@ -35,11 +35,6 @@ namespace Application.Service.Entity
             _subscriptionPlanRepo = repo;
         }
 
-        protected override Func<IQueryable<SubscriptionPlan>, IQueryable<SubscriptionPlan>>? Includes()
-        {
-            return query => query
-                .Include(x => x.Prices);
-        }
 
         public async Task<PlanPriceRDTO> AddPlanPriceAsync(int PlanId, PlanPriceCDTO dto, CancellationToken cancellationToken = default)
         {

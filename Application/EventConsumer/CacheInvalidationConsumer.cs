@@ -25,7 +25,7 @@ public class CacheInvalidationConsumer : IConsumer<EntityChangedEvent>
             entityName, e.EntityId, e.GymId);
 
         // Remove single entity
-        await _cacheService.RemoveAsync(CacheKeyGenerator.ById(entityName, e.EntityId, e.GymId));
+        await _cacheService.RemoveAsync(CacheKeyGenerator.ById(entityName, e.EntityId, e.GymId , e.UserId));
 
         // Remove pages
         if (e.GymId.HasValue)

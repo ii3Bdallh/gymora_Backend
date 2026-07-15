@@ -51,7 +51,7 @@ namespace Application.Service
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), added.Id, CurrentGymId),
+                new EntityChangedEvent(CacheEntityNames.ForType<T>(), added.Id, CurrentGymId , CurrentUser.UserId),
                 cancellationToken);
 
             _logger.LogInformation("{EntityType} with ID {Id} added successfully by user {UserId}", typeof(T).Name, added.Id, CurrentUserId);
@@ -75,7 +75,7 @@ namespace Application.Service
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId),
+                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
                 cancellationToken);
 
             _logger.LogInformation("{EntityType} with ID {Id} updated successfully by user {UserId}", typeof(T).Name, id, CurrentUserId);
@@ -97,7 +97,7 @@ namespace Application.Service
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId),
+                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
                 cancellationToken);
 
             _logger.LogInformation("{EntityType} with ID {Id} deleted successfully by user {UserId}", typeof(T).Name, id, CurrentUserId);

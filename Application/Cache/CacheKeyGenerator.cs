@@ -27,10 +27,10 @@ namespace Application.Cache
         /// القرار "هل أبعت userId ولا لأ" بياخده الـ Caller (BaseReadService)
         /// مش الميثود دي، لأنها هي بس اللي عارفة نوع الـ Entity.
         /// </summary>
-        public static string ById(string entityName, int id, int? gymId = null, int? userId = null)
+        public static string ById(string entityName, int entityId, int? gymId = null, int? userId = null)
         {
             var scope = ScopeSegment(gymId, userId);
-            return $"{Prefix}:{scope}:{entityName}:id:{id}";
+            return $"{Prefix}:{scope}:{entityName}:id:{entityId}";
         }
 
         /// <summary>

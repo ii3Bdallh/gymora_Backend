@@ -154,7 +154,7 @@ namespace Application.Service
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId),
+                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
                 cancellationToken);
 
             _logger.LogInformation("{EntityType} file entity with ID {Id} updated successfully", typeof(T).Name, id);
@@ -175,7 +175,7 @@ namespace Application.Service
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             await _publishEndpoint.Publish(
-                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId),
+                new EntityChangedEvent(CacheEntityNames.ForType<T>(), id, CurrentGymId , CurrentUser.UserId),
                 cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(entity.StoredFileName))

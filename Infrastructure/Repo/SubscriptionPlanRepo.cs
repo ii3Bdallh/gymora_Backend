@@ -16,9 +16,27 @@ using System.Linq.Dynamic.Core;
 
 namespace Infrastructure.Repo.Entity
 {
-    public class SubscriptionPlanRepo(ApplicationDbContext context, ILogger<SubscriptionPlanRepo> logger, QueryCache queryCache , CurrentUser currentUser)
-    : BaseRepo<SubscriptionPlan>(context, logger, queryCache , currentUser), ISubscriptionPlanRepo
+    public class SubscriptionPlanRepo(ApplicationDbContext context, ILogger<SubscriptionPlanRepo> logger, QueryCache queryCache, CurrentUser currentUser)
+    : BaseRepo<SubscriptionPlan>(context, logger, queryCache, currentUser), ISubscriptionPlanRepo
     {
+
+        protected override Func<IQueryable<SubscriptionPlan>, IQueryable<SubscriptionPlan>>? Includes()
+        {
+            return query => query
+                .Include(x => x.Prices);
+        }
+
+        public override Task<PaginatedRes<SubscriptionPlan>> GetPageAsync(PaginatedSearchReq searchReq,
+         bool isActive = true,
+          bool trackChanges = false,
+           CancellationToken cancellationToken = default,
+            Func<IQueryable<SubscriptionPlan>, IQueryable<SubscriptionPlan>>? include = null)
+
+        {
+            include ??= Includes();
+            return base.GetPageAsync(searchReq, isActive, trackChanges, cancellationToken, include);
+        }
+
 
         public Task<PlanPrice> AddPlanPriceAsync(PlanPrice planPrice, CancellationToken cancellationToken = default)
         {
