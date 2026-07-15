@@ -27,5 +27,14 @@ namespace Infrastructure.Repo
                 x.Status == PaymentRequestStatus.Pending &&
                 x.IsActive, ct);
         }
+
+        public async Task<bool> HasUsedThisCouponBeforeAsync(int UserId, int CouponId, CancellationToken ct = default)
+        {
+            return await DbSet.AnyAsync(x =>
+                x.CreatedById == UserId &&
+                x.CouponId == CouponId &&
+                x.Status == PaymentRequestStatus.Approved &&
+                x.IsActive, ct);
+        }
     }
 }

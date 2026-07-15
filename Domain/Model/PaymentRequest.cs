@@ -57,8 +57,7 @@ namespace Domain.Model
     public int PlanPriceId { get; set; }
     public PlanPrice PlanPrice { get; set; } = null!;
 
-    // public int? SubscriptionId { get; set; } // FK added - missing in original SQL
-    // public OwnerSubscription? Subscription { get; set; }
+
 
     public int? CouponId { get; set; }
     public Coupon? Coupon { get; set; }

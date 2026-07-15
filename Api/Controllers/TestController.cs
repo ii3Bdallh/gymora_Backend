@@ -56,15 +56,15 @@ Notification
             return Ok();
         }
 
-        [HttpGet("CreateOwnerSubscription")]
-        public async Task<IActionResult> TestCreateOwnerSubscription([FromServices] MassTransit.IPublishEndpoint publishEndpoint)
+        [HttpGet("CreateOwnerSubscription/{paymentRequestId}")]
+        public async Task<IActionResult> TestCreateOwnerSubscription([FromServices] IOwnerSubscriptionService ownerSubscriptionService, int paymentRequestId)
         {
             var Notification = new NotificationDTO
             {
                 Title = "test Notification",
                 Body = "This is a test notification.",
             };
-            await publishEndpoint.Publish(new Domain.Events.PaymentApprovedEvent(10, 2)); // Replace 1 with the actual payment request ID
+            await ownerSubscriptionService.CreateFromApprovedPaymentAsync(paymentRequestId); // Replace 1 with the actual payment request ID
 
             return Ok();
         }

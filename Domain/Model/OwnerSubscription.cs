@@ -38,7 +38,7 @@ namespace Domain.Model
     public DateTime EndDate { get; set; }
 
     [Filterable(FilterType.Between)]
-    public DateTime GraceEndDate { get; set; }
+    public DateTime GraceEndDate { get; set; } 
 
     [NotMapped]
     public OwnerSubscriptionStatus Status

@@ -17,7 +17,7 @@ namespace Infrastructure.Config
     {
       // Auditing not enabled for this entity
 
-      builder.ConfigureAuditing();
+      builder.ConfigureFileAuditing();
 
       builder.Property(x => x.CurrencyCode).HasMaxLength(3).IsFixedLength().IsRequired();
       builder.Property(x => x.CouponCode).HasMaxLength(50);
@@ -25,9 +25,9 @@ namespace Infrastructure.Config
       builder.Property(x => x.ReviewNotes).HasMaxLength(1000);
       builder.Property(x => x.RejectionReason).HasMaxLength(1000);
 
-      builder.Property(x => x.OriginalAmount) .HasPrecision(18, 2);
-      builder.Property(x => x.DiscountAmount) .HasPrecision(18, 2);
-      builder.Property(x => x.FinalAmount) .HasPrecision(18, 2);
+      builder.Property(x => x.OriginalAmount).HasPrecision(18, 2);
+      builder.Property(x => x.DiscountAmount).HasPrecision(18, 2);
+      builder.Property(x => x.FinalAmount).HasPrecision(18, 2);
 
 
 
@@ -40,10 +40,6 @@ namespace Infrastructure.Config
       builder.HasOne(x => x.PlanPrice).WithMany().HasForeignKey(x => x.PlanPriceId).OnDelete(DeleteBehavior.Restrict);
       builder.HasOne(x => x.Coupon).WithMany().HasForeignKey(x => x.CouponId).OnDelete(DeleteBehavior.Restrict);
 
-      // builder.HasOne(x => x.Subscription)
-      //        .WithOne()
-      //        .HasForeignKey<PaymentRequest>(x => x.SubscriptionId)
-      //        .OnDelete(DeleteBehavior.Restrict);
 
       builder.HasIndex(x => new { x.CreatedById, x.Status });
 

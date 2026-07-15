@@ -153,6 +153,20 @@ namespace Infrastructure.Repo.Base
                 .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 
+        public Task<T?> GetByIdIgnoringSecurityAsync(int id, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<T>, IQueryable<T>>? include = null)
+        {
+            IQueryable<T> query = trackChanges
+                ? DbSet
+                : DbSet.AsNoTracking();
+
+            query = query.Where(x => x.IsActive == isActive);
+
+            if (include != null)
+                query = include(query);
+
+            return query.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        }
+
         public virtual Task<T> AddAsync(T item, CancellationToken cancellationToken = default)
         {
             // العملية تتم في الـ Memory فقط
@@ -182,6 +196,7 @@ namespace Infrastructure.Repo.Base
             DbSet.Remove(item);
             return Task.FromResult(item);
         }
+
 
     }
 }

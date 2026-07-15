@@ -46,7 +46,7 @@ namespace Application.Service
         }
         public async Task<OwnerSubscriptionRDTO> CreateFromApprovedPaymentAsync(int paymentRequestId, CancellationToken ct = default)
         {
-            var payment = await _paymentRequestRepo.GetByIdAsync(paymentRequestId, true, false, ct);
+            var payment = await _paymentRequestRepo.GetByIdIgnoringSecurityAsync(paymentRequestId, true, false, ct);
             if (payment == null || payment.Status != PaymentRequestStatus.Approved)
                 throw new ApplicationException("Payment request is not approved.");
 
@@ -59,7 +59,7 @@ namespace Application.Service
                 throw new ApplicationException("Invalid subscription plan price.");
 
             var startDate = DateTime.UtcNow;
-            var endDate = startDate.AddMonths(planPrice.DurationMonths); 
+            var endDate = startDate.AddMonths(planPrice.DurationMonths);
 
             var subscription = new OwnerSubscription
             {
@@ -71,13 +71,18 @@ namespace Application.Service
                 CurrencyCode = payment.CurrencyCode,
                 StartDate = startDate,
                 EndDate = endDate,
+                GraceEndDate = endDate.AddDays(7)
 
             };
 
-            var result = await base.AddAsync(_mapper.Map<OwnerSubscriptionCDTO>(subscription), ct);
+            await _repo.AddAsync(subscription, ct);
+
+            await _unitOfWork.SaveChangesAsync(ct);
+
+            var result = _mapper.Map<OwnerSubscriptionRDTO>(subscription);
 
             // نشر Event
-            await _publishEndpoint.Publish(new SubscriptionActivatedEvent(result.Id, payment.CreatedById), ct);
+            await _publishEndpoint.Publish(new SubscriptionActivatedEvent(result.Id, payment.Id, payment.CreatedById), ct);
 
             return result;
         }

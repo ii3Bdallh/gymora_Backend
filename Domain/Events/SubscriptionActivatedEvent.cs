@@ -1,3 +1,3 @@
 namespace Domain.Events;
 
-public record SubscriptionActivatedEvent(int SubscriptionId, int OwnerUserId);
+public record SubscriptionActivatedEvent(int SubscriptionId, int PaymentRequestId, int OwnerUserId);

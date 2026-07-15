@@ -11,5 +11,7 @@ namespace Application.Interface.Repo
     {
 
         Task<bool> HasPendingRequestAsync(int UserId, CancellationToken ct = default);
+
+        Task<bool> HasUsedThisCouponBeforeAsync(int UserId, int CouponId, CancellationToken ct = default);
     }
 }

@@ -44,7 +44,6 @@ namespace Domain.Model
     [Timestamp]
     public byte[] RowVersion { get; set; } = null!;
 
-    // public ICollection<CouponPlan> CouponPlans { get; set; } = new List<CouponPlan>();
   }
 
 

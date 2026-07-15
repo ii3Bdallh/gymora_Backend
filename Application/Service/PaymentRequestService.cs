@@ -76,6 +76,9 @@ namespace Application.Service
                 if (!couponResult.IsValid)
                     throw new ApplicationException(couponResult.Message);
 
+                if (await _paymentRepo.HasUsedThisCouponBeforeAsync(_currentUser.UserId, couponResult.CouponId!.Value, ct))
+                    throw new ApplicationException("You have already used this coupon before.");
+
                 discountAmount = couponResult.DiscountAmount;
                 couponId = couponResult.CouponId;
 
