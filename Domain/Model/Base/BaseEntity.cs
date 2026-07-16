@@ -17,4 +17,6 @@ namespace Domain.Model.Base
 
         public bool IsActive { get; set; } = true;
     }
+
+
 }

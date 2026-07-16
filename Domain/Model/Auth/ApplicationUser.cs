@@ -1,4 +1,5 @@
 using Domain.Model;
+using Domain.Model.Base;
 using Microsoft.AspNetCore.Identity;
 
 namespace Domain.Model.Auth;

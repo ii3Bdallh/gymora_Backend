@@ -91,6 +91,16 @@ namespace Application.DTO.Model
 
     public sealed record SwitchGymDTO
     {
+        [Required]
         public int GymId { get; init; }
+    }
+
+    public sealed record ChangeOwnerDTO
+    {
+        [Required]
+        public int GymId { get; init; }
+
+        [Required]
+        public int NewOwnerUserId { get; init; }
     }
 }

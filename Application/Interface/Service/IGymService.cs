@@ -16,5 +16,9 @@ namespace Application.Interface.Service
         Task<LoginResDto> SwitchGymAsync(
     int gymId,
     CancellationToken ct = default);
+
+
+        Task ChangeOwnerOfGymAsync(int gymId, int newOwnerUserId, CancellationToken ct = default);
+
     }
 }

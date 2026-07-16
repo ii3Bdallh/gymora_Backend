@@ -2,16 +2,16 @@
   "info": {
     "_postman_id": "b7a1c2d3-e4f5-6789-abcd-ef0123456789",
     "name": "Gymora API",
-    "description": "# Gymora API Postman Collection\n\n## Overview\n\nComplete Postman collection for the Gymora ASP.NET Core 9.0 REST API.\n\n## Architecture\n\n- **Authentication:** JWT Bearer Token with Refresh Tokens\n- **Identity:** ASP.NET Core Identity with `ApplicationUser` (int PK)\n- **Roles:** `SuperAdmin`, `User`\n- **Rate Limiting:** IP-based fixed window policies\n- **Global Exception Handling:** Custom middleware returning `Result<T>` envelope\n- **ORM:** Entity Framework Core with SQL Server\n- **Background Jobs:** Hangfire + MassTransit InMemory + EF Outbox\n- **File Storage:** Bunny.net (Stream + Storage)\n- **Payment:** Paymob integration\n- **Validation:** DataAnnotations\n\n## Authentication Flow\n\n1. `POST /api/Auth/register` — Creates account + sends confirmation OTP\n2. `POST /api/Auth/confirm-email` — Confirms with OTP (or use GET variant)\n3. `POST /api/Auth/login` — Returns JWT + Refresh Token\n4. All protected requests automatically use `Authorization: Bearer {{accessToken}}`\n5. `POST /api/Auth/refresh-token` — When access token expires\n6. `POST /api/Auth/logout` — Revokes refresh token\n\n## Rate Limiting Policies\n\n| Policy Name | Limit | Window | Endpoints |\n|------------|-------|--------|-----------|\n| `Ip_5Limit_1Min` | 5 requests | 1 minute | POST /api/Auth/login |\n| `Ip_3Limit_5Min` | 3 requests | 5 minutes | POST resend-confirmation-email, POST forgot-password |\n| `Ip_10Limit_1Min` | 10 requests | 1 minute | POST verify-otp, POST reset-password, GET confirm-email |\n\n## Standard Response Envelope\n\n### Success\n```json\n{\n  \"isSuccess\": true,\n  \"data\": { ... }\n}\n```\n\n### Error\n```json\n{\n  \"isSuccess\": false,\n  \"error\": {\n    \"code\": \"ERROR_CODE\",\n    \"message\": \"Description\"\n  }\n}\n```\n\n### Error Codes\n\n| HTTP Status | Code | Description |\n|------------|------|-------------|\n| 400 | `BAD_REQUEST` | Invalid input / business rule violation |\n| 400 | `VALIDATION_ERROR` | Model state validation failed |\n| 401 | `UNAUTHORIZED` | Missing or invalid JWT |\n| 403 | `FORBIDDEN` | Insufficient role permissions |\n| 404 | `NOT_FOUND` | Resource not found |\n| 409 | `CONFLICT` | Duplicate resource |\n| 429 | `RATE_LIMIT_EXCEEDED` | Too many requests |\n| 500 | `SERVER_ERROR` | Internal server error |\n\n## Token Variables\n\n| Variable | Description |\n|----------|-------------|\n| `accessToken` / `refreshToken` | Default tokens (set by Login) |\n| `superAdminAccessToken` / `superAdminRefreshToken` | SuperAdmin role tokens |\n| `userAccessToken` / `userRefreshToken` | User role tokens |",
+    "description": "# Gymora API Postman Collection\n\n## Overview\n\nComplete Postman collection for the Gymora ASP.NET Core 9.0 REST API.\n\n## Architecture\n\n- **Authentication:** JWT Bearer Token with Refresh Tokens\n- **Identity:** ASP.NET Core Identity with `ApplicationUser` (int PK)\n- **Roles:** `SuperAdmin`, `User`\n- **Rate Limiting:** IP-based fixed window policies\n- **Global Exception Handling:** Custom middleware returning `Result<T>` envelope\n- **ORM:** Entity Framework Core with SQL Server\n- **Background Jobs:** Hangfire + MassTransit InMemory + EF Outbox\n- **File Storage:** Bunny.net (Stream + Storage)\n- **Payment:** Paymob integration\n- **Validation:** DataAnnotations\n\n## Token Variables\n\n| Variable | Description |\n|----------|-------------|\n| `accessToken` / `refreshToken` | Default tokens (set by Login) |\n| `superAdminAccessToken` / `superAdminRefreshToken` | SuperAdmin role tokens |\n| `userAccessToken` / `userRefreshToken` | User 1 role tokens |\n| `user2AccessToken` / `user2RefreshToken` | User 2 role tokens |",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "03 Payment Requests",
-      "description": "Payment Request management with CRUD, approval workflow, and file uploads.",
+      "name": "08 Gyms",
+      "description": "Gym management with full CRUD, file uploads, gym switching, and ownership transfer.",
       "item": [
         {
-          "name": "Get Payment Requests (Paged)",
+          "name": "Get Gyms (Paged)",
           "event": [
             {
               "listen": "test",
@@ -43,6 +43,9 @@
             }
           ],
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
               {
@@ -55,15 +58,15 @@
               "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": null,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"createdById\": null,\n  \"filters\": null\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/PaymentRequest",
+              "raw": "{{baseUrl}}/api/Gym",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "PaymentRequest"]
+              "path": ["api", "Gym"]
             },
-            "description": "Get a paginated list of payment requests with optional search, sorting, and filtering.\n\n### Requires Roles: SuperAdmin"
+            "description": "Get a paginated list of gyms with optional search, sorting, and filtering.\n\n### Requires Authentication: No (AllowAnonymous)"
           }
         },
         {
-          "name": "Get Payment Request by ID",
+          "name": "Get Gym by ID",
           "event": [
             {
               "listen": "test",
@@ -78,15 +81,11 @@
                   "    pm.expect(json.isSuccess).to.be.true;",
                   "});",
                   "",
-                  "pm.test(\"Payment request has required fields\", () => {",
+                  "pm.test(\"Gym has required fields\", () => {",
                   "    var data = pm.response.json().data;",
                   "    pm.expect(data).to.be.an('object');",
                   "    pm.expect(data.id).to.be.a('number');",
-                  "    pm.expect(data.planId).to.be.a('number');",
-                  "    pm.expect(data.planPriceId).to.be.a('number');",
-                  "    pm.expect(data.originalAmount).to.be.a('number');",
-                  "    pm.expect(data.finalAmount).to.be.a('number');",
-                  "    pm.expect(data.currencyCode).to.be.a('string');",
+                  "    pm.expect(data.name).to.be.a('string');",
                   "    pm.expect(data.status).to.be.a('number');",
                   "});"
                 ],
@@ -95,18 +94,21 @@
             }
           ],
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/PaymentRequest/{{createdEntityId}}",
+              "raw": "{{baseUrl}}/api/Gym/{{createdEntityId}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "PaymentRequest", "{{createdEntityId}}"]
+              "path": ["api", "Gym", "{{createdEntityId}}"]
             },
-            "description": "Get a single payment request by its ID.\n\n### Requires Authentication: Yes"
+            "description": "Get a single gym by its ID.\n\n### Requires Authentication: No (AllowAnonymous)"
           }
         },
         {
-          "name": "Create Payment Request",
+          "name": "Create Gym",
           "event": [
             {
               "listen": "test",
@@ -121,7 +123,7 @@
                   "    pm.expect(json.isSuccess).to.be.true;",
                   "});",
                   "",
-                  "pm.test(\"Created payment request has an ID\", () => {",
+                  "pm.test(\"Created gym has an ID\", () => {",
                   "    var data = pm.response.json().data;",
                   "    pm.expect(data.id).to.be.a('number');",
                   "    pm.collectionVariables.set(\"createdEntityId\", data.id.toString());",
@@ -138,18 +140,53 @@
               "mode": "formdata",
               "formdata": [
                 {
-                  "key": "PlanId",
-                  "value": "1",
+                  "key": "Name",
+                  "value": "FitZone Gym",
                   "type": "text"
                 },
                 {
-                  "key": "PlanPriceId",
-                  "value": "1",
+                  "key": "Description",
+                  "value": "Premium fitness center with modern equipment",
                   "type": "text"
                 },
                 {
-                  "key": "CouponCode",
-                  "value": "",
+                  "key": "PhoneNumber",
+                  "value": "+201001234567",
+                  "type": "text"
+                },
+                {
+                  "key": "Email",
+                  "value": "info@fitzone.com",
+                  "type": "text"
+                },
+                {
+                  "key": "AddressLine1",
+                  "value": "123 Main Street",
+                  "type": "text"
+                },
+                {
+                  "key": "City",
+                  "value": "Cairo",
+                  "type": "text"
+                },
+                {
+                  "key": "PostalCode",
+                  "value": "11511",
+                  "type": "text"
+                },
+                {
+                  "key": "Latitude",
+                  "value": "30.0444",
+                  "type": "text"
+                },
+                {
+                  "key": "Longitude",
+                  "value": "31.2357",
+                  "type": "text"
+                },
+                {
+                  "key": "Status",
+                  "value": "1",
                   "type": "text"
                 },
                 {
@@ -160,15 +197,15 @@
               ]
             },
             "url": {
-              "raw": "{{baseUrl}}/api/PaymentRequest/Create",
+              "raw": "{{baseUrl}}/api/Gym/Create",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "PaymentRequest", "Create"]
+              "path": ["api", "Gym", "Create"]
             },
-            "description": "Submit a new payment request with proof of payment.\n\nUses `multipart/form-data` (`[FromForm]`). On success, **createdEntityId** is auto-set.\n\n### Requires Authentication: Yes"
+            "description": "Create a new gym with details and optional logo image.\n\nUses `multipart/form-data` (`[FromForm]`). On success, **createdEntityId** is auto-set.\n\n### Requires Authentication: Yes"
           }
         },
         {
-          "name": "Approve Payment Request",
+          "name": "Update Gym",
           "event": [
             {
               "listen": "test",
@@ -183,9 +220,9 @@
                   "    pm.expect(json.isSuccess).to.be.true;",
                   "});",
                   "",
-                  "pm.test(\"Approved payment request has status Approved\", () => {",
+                  "pm.test(\"Updated gym has modified name\", () => {",
                   "    var data = pm.response.json().data;",
-                  "    pm.expect(data.status).to.eql(2);",
+                  "    pm.expect(data.name).to.eql(\"FitZone Pro Gym\");",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -194,26 +231,47 @@
           ],
           "request": {
             "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"reviewNotes\": \"Payment verified. Subscription activated.\"\n}"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "Name",
+                  "value": "FitZone Pro Gym",
+                  "type": "text"
+                },
+                {
+                  "key": "Description",
+                  "value": "Upgraded premium fitness center",
+                  "type": "text"
+                },
+                {
+                  "key": "PhoneNumber",
+                  "value": "+201009876543",
+                  "type": "text"
+                },
+                {
+                  "key": "Status",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "File",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
             },
             "url": {
-              "raw": "{{baseUrl}}/api/PaymentRequest/Approve/{{createdEntityId}}",
+              "raw": "{{baseUrl}}/api/Gym/{{createdEntityId}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "PaymentRequest", "Approve", "{{createdEntityId}}"]
+              "path": ["api", "Gym", "{{createdEntityId}}"]
             },
-            "description": "Approve a pending payment request. Creates the owner subscription and coupon redemption automatically.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `reviewNotes` | string | No | Admin review notes |\n\n### Requires Roles: SuperAdmin"
+            "description": "Update an existing gym's details.\n\nUses `multipart/form-data` (`[FromForm]`).\n\n### Requires Authentication: Yes"
           }
         },
         {
-          "name": "Reject Payment Request",
+          "name": "Delete Gym",
           "event": [
             {
               "listen": "test",
@@ -226,11 +284,6 @@
                   "pm.test(\"Response is success\", () => {",
                   "    var json = pm.response.json();",
                   "    pm.expect(json.isSuccess).to.be.true;",
-                  "});",
-                  "",
-                  "pm.test(\"Rejected payment request has status Rejected\", () => {",
-                  "    var data = pm.response.json().data;",
-                  "    pm.expect(data.status).to.eql(3);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -238,7 +291,33 @@
             }
           ],
           "request": {
-            "method": "PUT",
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Gym/{{createdEntityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Gym", "{{createdEntityId}}"]
+            },
+            "description": "Delete a gym by its ID.\n\n### Requires Authentication: Yes"
+          }
+        },
+        {
+          "name": "Switch Gym",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
@@ -247,14 +326,49 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"rejectionReason\": \"Invalid payment proof. Please upload a clear screenshot.\"\n}"
+              "raw": "{\n  \"gymId\": {{createdEntityId}}\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/PaymentRequest/Reject/{{createdEntityId}}",
+              "raw": "{{baseUrl}}/api/Gym/switch",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "PaymentRequest", "Reject", "{{createdEntityId}}"]
+              "path": ["api", "Gym", "switch"]
             },
-            "description": "Reject a pending payment request.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `rejectionReason` | string | Yes | Reason for rejection |\n\n### Requires Roles: SuperAdmin"
+            "description": "Switch the current active gym context to the specified gym.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `gymId` | int | Yes | Target gym ID |\n\n### Requires Authentication: No"
+          }
+        },
+        {
+          "name": "Change Gym Owner",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gymId\": {{createdEntityId}},\n  \"newOwnerUserId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Gym/change-owner",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Gym", "change-owner"]
+            },
+            "description": "Transfer gym ownership to another user.\n\n## Request Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `gymId` | int | Yes | Gym ID to transfer |\n| `newOwnerUserId` | int | Yes | New owner's user ID |\n\n### Requires Authentication: No"
           }
         }
       ]
@@ -297,6 +411,16 @@
       "type": "string"
     },
     {
+      "key": "user2AccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user2RefreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
       "key": "currentUserId",
       "value": "",
       "type": "string"
@@ -307,17 +431,7 @@
       "type": "string"
     },
     {
-      "key": "userRefreshToken",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "user2AccessToken",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "user2RefreshToken",
+      "key": "createdPlanPriceId",
       "value": "",
       "type": "string"
     }

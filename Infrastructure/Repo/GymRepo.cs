@@ -19,6 +19,7 @@ namespace Infrastructure.Repo
     public class GymRepo(ApplicationDbContext context, ILogger<GymRepo> logger, QueryCache queryCache, CurrentUser currentUser)
     : BaseRepo<Gym>(context, logger, queryCache, currentUser), IGymRepo
     {
+
         public async Task<int> CountOwnedByOwnerAsync(
     int ownerUserId,
     CancellationToken ct = default)

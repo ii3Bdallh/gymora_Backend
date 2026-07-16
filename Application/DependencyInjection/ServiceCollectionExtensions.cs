@@ -28,6 +28,7 @@ public static class ServiceCollectionExtensions
             services.AddScoped<CurrentUser>();
 
             // Script will Add After Here DependencyInjectionService
+services.AddScoped<IUsersService, UsersService>();
 services.AddScoped<IGymService, GymService>();
 services.AddScoped<ICouponRedemptionService, CouponRedemptionService>();
 services.AddScoped<IOwnerSubscriptionService, OwnerSubscriptionService>();

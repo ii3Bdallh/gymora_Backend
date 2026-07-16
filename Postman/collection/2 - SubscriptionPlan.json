@@ -409,6 +409,16 @@
       "key": "userRefreshToken",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "user2AccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user2RefreshToken",
+      "value": "",
+      "type": "string"
     }
   ],
   "auth": {

@@ -151,7 +151,7 @@
           }
         },
         {
-          "name": "Login",
+          "name": "Login as User (abdallhmamdouh079)",
           "event": [
             {
               "listen": "test",
@@ -192,8 +192,35 @@
               }
             }
           ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"abdallhmamdouh079@gmail.com\",\n  \"password\": \"P@ssw0rd123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "login"
+              ]
+            },
+            "description": "Authenticate as regular User.\n\nOn success, **accessToken**, **refreshToken**, **userAccessToken**, and **userRefreshToken** are automatically saved.\n\n### Rate Limiting\n\n`Ip_5Limit_1Min`: **5 requests per 1 minute** per IP."
+          },
           "response": [
-     
             {
               "name": "Login Failure",
               "originalRequest": {
@@ -233,7 +260,7 @@
           ]
         },
         {
-          "name": "Login as SuperAdmin",
+          "name": "Login as SuperAdmin (abdallhmamdouh619)",
           "event": [
             {
               "listen": "test",
@@ -285,34 +312,6 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"superadmin@gymora.com\",\n  \"password\": \"SuperAdminP@ss1\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/Auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "Auth",
-                "login"
-              ]
-            },
-            "description": "Authenticate as SuperAdmin to obtain a JWT token with SuperAdmin role claims.\n\nOn success, **superAdminAccessToken** and **superAdminRefreshToken** collection variables are automatically set.\n\nUse this endpoint before testing SuperAdmin-restricted endpoints.\n\n## Credentials\n\nThe default credentials shown are placeholders — replace with actual SuperAdmin credentials for your environment.\n\n## Validation Rules\n\n| Field | Rule |\n|-------|------|\n| `email` | Required |\n| `password` | Required |\n\n### Rate Limiting\n\n`Ip_5Limit_1Min`: **5 requests per 1 minute** per IP."
-          }
-        },
-        {
-          "name": "Login",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
               "raw": "{\n  \"email\": \"abdallhmamdouh619@gmail.com\",\n  \"password\": \"P@ssw0rd123\"\n}"
             },
             "url": {
@@ -326,47 +325,79 @@
                 "login"
               ]
             },
-            "description": "Authenticate with email and password."
-          },
-          "response": [
-
+            "description": "Authenticate as SuperAdmin.\n\nOn success, **superAdminAccessToken** and **superAdminRefreshToken** collection variables are automatically set.\n\n### Rate Limiting\n\n`Ip_5Limit_1Min`: **5 requests per 1 minute** per IP."
+          }
+        },
+        {
+          "name": "Login as User 2 (abdallhmamdouh267)",
+          "event": [
             {
-              "name": "Login Failure",
-              "originalRequest": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": ""
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/Auth/login"
-                }
-              },
-              "status": "Bad Request",
-              "code": 400,
-              "header": [],
-              "body": "{\n  \"isSuccess\": false,\n  \"error\": {\n    \"code\": \"BAD_REQUEST\",\n    \"message\": \"Invalid email or password\"\n  }\n}"
-            },
-            {
-              "name": "Rate Limited",
-              "originalRequest": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": ""
-                },
-                "url": {
-                  "raw": "{{baseUrl}}/api/Auth/login"
-                }
-              },
-              "status": "Too Many Requests",
-              "code": 429,
-              "header": [],
-              "body": "{\"success\":false,\"error\":{\"code\":\"RATE_LIMIT_EXCEEDED\",\"message\":\"Too many requests. Please try again later.\"}}"
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "    pm.expect(json.data).to.be.an('object');",
+                  "});",
+                  "",
+                  "pm.test(\"Login response has all required fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data.id).to.be.a('number');",
+                  "    pm.expect(data.email).to.be.a('string');",
+                  "    pm.expect(data.personName).to.be.a('string');",
+                  "    pm.expect(data.token).to.be.a('string');",
+                  "    pm.expect(data.expiresIn).to.be.a('number');",
+                  "    pm.expect(data.refreshtoken).to.be.a('string');",
+                  "    pm.expect(data.roles).to.be.an('array');",
+                  "    pm.expect(data.refreshTokenExpirationDate).to.be.a('string');",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200 && pm.response.json().isSuccess) {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.collectionVariables.set(\"accessToken\", data.token);",
+                  "    pm.collectionVariables.set(\"refreshToken\", data.refreshtoken);",
+                  "    pm.collectionVariables.set(\"currentUserId\", data.id.toString());",
+                  "    pm.collectionVariables.set(\"user2AccessToken\", data.token);",
+                  "    pm.collectionVariables.set(\"user2RefreshToken\", data.refreshtoken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
             }
-          ]
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"abdallhmamdouh267@gmail.com\",\n  \"password\": \"P@ssw0rd123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Auth",
+                "login"
+              ]
+            },
+            "description": "Authenticate as second regular User.\n\nOn success, **accessToken**, **refreshToken**, **user2AccessToken**, and **user2RefreshToken** are automatically saved.\n\n### Rate Limiting\n\n`Ip_5Limit_1Min`: **5 requests per 1 minute** per IP."
+          }
         },
         {
           "name": "Login with Google",
@@ -866,6 +897,16 @@
     },
     {
       "key": "userRefreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user2AccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user2RefreshToken",
       "value": "",
       "type": "string"
     }

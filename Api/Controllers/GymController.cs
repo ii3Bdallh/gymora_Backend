@@ -98,6 +98,13 @@ namespace Api.Controllers
             return Ok(result);
         }
 
+        [HttpPost("change-owner")]
+        public async Task<IActionResult> ChangeOwnerAsync([FromBody] ChangeOwnerDTO dto, CancellationToken ct)
+        {
+            await service.ChangeOwnerOfGymAsync(dto.GymId, dto.NewOwnerUserId, ct);
+
+            return Ok("Owner changed successfully.");
+        }
 
     }
 }

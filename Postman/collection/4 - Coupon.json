@@ -257,11 +257,18 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/Coupon/Validate/{{couponCode}}",
+              "raw": "{{baseUrl}}/api/Coupon/Validate/{{couponCode}}?orderAmount=1000",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "Coupon", "Validate", "{{couponCode}}"]
+              "path": ["api", "Coupon", "Validate", "{{couponCode}}"],
+              "query": [
+                {
+                  "key": "orderAmount",
+                  "value": "1000",
+                  "description": "Order amount to calculate discount against"
+                }
+              ]
             },
-            "description": "Validate a coupon by its code.\n\nReturns whether the coupon is valid and the calculated discount amount.\n\n## Route Parameters\n\n| Parameter | Type | Description |\n|-----------|------|-------------|\n| `code` | string | Coupon code to validate |\n\n## Response Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `isValid` | boolean | Whether the coupon is valid |\n| `message` | string | Validation message / error reason |\n| `couponId` | number | Coupon ID (if valid) |\n| `discountAmount` | number | Calculated discount (if valid) |\n\n### Requires Roles: SuperAdmin"
+            "description": "Validate a coupon by its code.\n\nReturns whether the coupon is valid and the calculated discount amount.\n\n## Route Parameters\n\n| Parameter | Type | Description |\n|-----------|------|-------------|\n| `code` | string | Coupon code to validate |\n\n## Query Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `orderAmount` | decimal | Yes | Order amount to calculate discount against |\n\n## Response Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `isValid` | boolean | Whether the coupon is valid |\n| `message` | string | Validation message / error reason |\n| `couponId` | number | Coupon ID (if valid) |\n| `discountAmount` | number | Calculated discount (if valid) |\n\n### Requires Roles: SuperAdmin"
           }
         }
       ]
@@ -300,6 +307,16 @@
     },
     {
       "key": "userRefreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user2AccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user2RefreshToken",
       "value": "",
       "type": "string"
     },

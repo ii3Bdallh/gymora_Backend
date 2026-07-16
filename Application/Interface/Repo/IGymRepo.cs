@@ -12,5 +12,7 @@ namespace Application.Interface.Repo
         Task<int> CountOwnedByOwnerAsync(
     int ownerUserId,
     CancellationToken ct = default);
+
+
     }
 }

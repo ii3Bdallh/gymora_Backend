@@ -17,6 +17,8 @@ using MassTransit;
 using Application.Model;
 using Application.DTO.Exceptions;
 using Application.DTO;
+using Domain.Model.Auth;
+using Application.Interface.Repo.Shared;
 
 namespace Application.Service
 {
@@ -24,6 +26,8 @@ namespace Application.Service
     {
 
         private readonly ICurrentPlanService _currentPlanService;
+
+        private readonly IUserRepo _usersRepo;
         public GymService(
             IGymRepo repo,
             IUnitOfWork unitOfWork,
@@ -33,11 +37,13 @@ namespace Application.Service
             CurrentUser currentUser,
             ILogger<GymService> logger,
             IStorageService storageService,
-            ICurrentPlanService currentPlanService
+            ICurrentPlanService currentPlanService,
+            IUserRepo usersRepo
             )
             : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser, storageService, logger)
         {
             _currentPlanService = currentPlanService;
+            _usersRepo = usersRepo;
         }
         protected override async Task BeforeAddAsync(GymCDTO dto, CancellationToken cancellationToken)
         {
@@ -55,6 +61,36 @@ namespace Application.Service
         {
             throw new NotImplementedException();
 
+        }
+
+        public async Task ChangeOwnerOfGymAsync(int gymId, int newOwnerUserId, CancellationToken ct = default)
+        {
+            Gym? gym = await _repo.GetByIdAsync(gymId, true, true, ct);
+
+            if (gym == null)
+                throw new NotFoundException($"Gym with ID {gymId} was not found.");
+
+            if (gym.CreatedById == newOwnerUserId)
+                throw new InvalidOperationException("The new owner is already the current owner of the gym.");
+
+            if (gym.CreatedById != CurrentUserId)
+                throw new UnauthorizedAccessException("You do not have permission to change the owner of this gym.");
+
+            ApplicationUser ? newOwner = await _usersRepo.GetByIdAsync(newOwnerUserId, true, ct);
+
+            if (newOwner == null)
+                throw new NotFoundException($"User with ID {newOwnerUserId} was not found.");
+
+            bool canCreateNewGym = await _currentPlanService.HasAvailableGymSlotAsync(newOwner.Id, ct);
+
+            if (!canCreateNewGym)
+                throw new InvalidOperationException("The new owner has exceeded the maximum number of gyms allowed for their current subscription plan.");
+
+            gym.CreatedById = newOwnerUserId;
+
+            await _unitOfWork.SaveChangesAsync(ct);
+
+            await PublishEntityChangedAsync(gym.Id, ct);
         }
     }
 }

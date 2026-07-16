@@ -60,6 +60,18 @@
       "value": "",
       "type": "default",
       "enabled": true
+    },
+    {
+      "key": "user2AccessToken",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "user2RefreshToken",
+      "value": "",
+      "type": "default",
+      "enabled": true
     }
   ],
   "_postman_variable_scope": "environment",

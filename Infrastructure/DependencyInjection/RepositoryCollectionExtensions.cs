@@ -26,6 +26,7 @@ public static class RepositoryCollectionExtensions
             sp.GetRequiredService<ILoggerFactory>().CreateLogger("App"));
 
         // Script will Add After Here DependencyInjectionRepo
+services.AddScoped<IUsersRepo, UsersRepo>();
 services.AddScoped<IGymRepo, GymRepo>();
 services.AddScoped<ICouponRedemptionRepo, CouponRedemptionRepo>();
         services.AddScoped<IOwnerSubscriptionRepo, OwnerSubscriptionRepo>();

@@ -10,6 +10,8 @@ public static class CacheEntityNames
     public const string UserDevice = "user_device";
 
     // Script will Add After Here CacheEntityNames
+    public const string Users = "users";
+
     public const string Gym = "gym";
 
     public const string CouponRedemption = "couponredemption";
@@ -30,6 +32,8 @@ public static class CacheEntityNames
         if (type == typeof(UserDevice)) return UserDevice;
 
         // Script will Add After Here ForType
+        if (type == typeof(Users)) return Users;
+
         if (type == typeof(Gym)) return Gym;
 
         if (type == typeof(CouponRedemption)) return CouponRedemption;
