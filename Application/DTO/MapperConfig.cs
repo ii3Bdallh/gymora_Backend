@@ -14,6 +14,19 @@ namespace Application.DTO
 
 
             // Script will Add After Here MapperConfig
+            CreateMap<Gym, GymRDTO>()
+                .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>()
+                .ReverseMap();
+
+            CreateMap<Gym, GymCDTO>()
+                .IncludeBase<BaseAuditableFileEntity, BaseAuditableFCDTO>()
+                .ReverseMap();
+
+            CreateMap<Gym, GymUDTO>()
+                .IncludeBase<BaseAuditableFileEntity, BaseAuditableFUDTO>()
+                .ReverseMap();
+
+
             
             CreateMap<CouponRedemption, CouponRedemptionRDTO>()
                 .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>()

@@ -15,8 +15,8 @@ namespace Application.DTO.Model
 
         public string? Description { get; set; }
         public int MaxOwnedGyms { get; set; }
-        public int MaxCoachesPerGym { get; set; }
-        public int MaxMembersPerGym { get; set; }
+        public int MaxCoachesGym { get; set; }
+        public int MaxMembersGym { get; set; }
         public string? FeaturesJson { get; set; }
 
         public ICollection<PlanPriceCDTO> Prices { get; set; } = new List<PlanPriceCDTO>();
@@ -29,8 +29,8 @@ namespace Application.DTO.Model
 
         public string? Description { get; set; }
         public int MaxOwnedGyms { get; set; }
-        public int MaxCoachesPerGym { get; set; }
-        public int MaxMembersPerGym { get; set; }
+        public int MaxCoachesGym { get; set; }
+        public int MaxMembersGym { get; set; }
         public string? FeaturesJson { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedOn { get; set; }
@@ -46,8 +46,8 @@ namespace Application.DTO.Model
 
         public string? Description { get; set; }
         public int MaxOwnedGyms { get; set; }
-        public int MaxCoachesPerGym { get; set; }
-        public int MaxMembersPerGym { get; set; }
+        public int MaxCoachesGym { get; set; }
+        public int MaxMembersGym { get; set; }
         public string? FeaturesJson { get; set; }
         public bool IsActive { get; set; }
 

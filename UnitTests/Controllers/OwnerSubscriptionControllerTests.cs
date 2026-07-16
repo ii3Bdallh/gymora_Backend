@@ -107,8 +107,8 @@ public class OwnerSubscriptionControllerTests
             PlanName = "Basic",
             IsFree = false,
             MaxOwnedGyms = 1,
-            MaxMembersPerGym = 50,
-            MaxCoachesPerGym = 5,
+            MaxMembersGym = 50,
+            MaxCoachesGym = 5,
             SubscriptionStatus = OwnerSubscriptionStatus.Active
         };
 
@@ -132,8 +132,8 @@ public class OwnerSubscriptionControllerTests
             PlanName = "Free",
             IsFree = true,
             MaxOwnedGyms = 1,
-            MaxMembersPerGym = 10,
-            MaxCoachesPerGym = 2
+            MaxMembersGym = 10,
+            MaxCoachesGym = 2
         };
 
         _currentPlanService.Setup(s => s.GetCurrentPlanAsync(1, It.IsAny<CancellationToken>()))

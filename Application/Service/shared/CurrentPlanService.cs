@@ -14,25 +14,37 @@ namespace Application.Service.shared
         private readonly IOwnerSubscriptionRepo _subscriptionRepo;
         private readonly ISubscriptionPlanRepo _planRepo;
 
+        private readonly IGymRepo _gymRepo;
+
         public CurrentPlanService(
             IOwnerSubscriptionRepo subscriptionRepo,
-            ISubscriptionPlanRepo planRepo)
+            ISubscriptionPlanRepo planRepo,
+            IGymRepo gymRepo
+            )
         {
             _subscriptionRepo = subscriptionRepo;
             _planRepo = planRepo;
+            _gymRepo = gymRepo;
         }
 
-        public Task CheckCoachLimitAsync(int gymId, CancellationToken ct = default)
+        public Task<bool> CheckCoachLimitAsync(int ownerUserId, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task CheckGymLimitAsync(int ownerUserId, CancellationToken ct = default)
+        public async Task<bool> HasAvailableGymSlotAsync(
+            int ownerUserId,
+            CancellationToken ct = default)
         {
-            throw new NotImplementedException();
+            var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
+
+            var currentGymCount =
+                await _gymRepo.CountOwnedByOwnerAsync(ownerUserId, ct);
+
+            return currentGymCount < currentPlan.MaxOwnedGyms;
         }
 
-        public Task CheckMemberLimitAsync(int gymId, CancellationToken ct = default)
+        public Task<bool> CheckMemberLimitAsync(int ownerUserId, CancellationToken ct = default)
         {
             throw new NotImplementedException();
         }
@@ -54,8 +66,8 @@ namespace Application.Service.shared
                     PlanName = subscription.Plan.Name,
 
                     MaxOwnedGyms = subscription.Plan.MaxOwnedGyms,
-                    MaxMembersPerGym = subscription.Plan.MaxMembersPerGym,
-                    MaxCoachesPerGym = subscription.Plan.MaxCoachesPerGym,
+                    MaxMembersGym = subscription.Plan.MaxMembersGym,
+                    MaxCoachesGym = subscription.Plan.MaxCoachesGym,
 
                     Subscription = subscription,
                     SubscriptionStatus = subscription.Status,
@@ -74,8 +86,8 @@ namespace Application.Service.shared
                 PlanName = freePlan.Name,
 
                 MaxOwnedGyms = freePlan.MaxOwnedGyms,
-                MaxMembersPerGym = freePlan.MaxMembersPerGym,
-                MaxCoachesPerGym = freePlan.MaxCoachesPerGym,
+                MaxMembersGym = freePlan.MaxMembersGym,
+                MaxCoachesGym = freePlan.MaxCoachesGym,
 
                 IsFree = true,
                 Subscription = null,

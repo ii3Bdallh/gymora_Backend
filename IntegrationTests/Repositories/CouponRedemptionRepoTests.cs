@@ -53,7 +53,7 @@ public class CouponRedemptionRepoTests : IDisposable
         var plan = new SubscriptionPlan
         {
             Name = "Basic", IsFree = false,
-            MaxOwnedGyms = 1, MaxCoachesPerGym = 5, MaxMembersPerGym = 50,
+            MaxOwnedGyms = 1, MaxCoachesGym = 5, MaxMembersGym = 50,
             IsActive = true, CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -114,7 +114,7 @@ public class CouponRedemptionRepoTests : IDisposable
         var plan = new SubscriptionPlan
         {
             Name = "Basic", IsFree = false,
-            MaxOwnedGyms = 1, MaxCoachesPerGym = 5, MaxMembersPerGym = 50,
+            MaxOwnedGyms = 1, MaxCoachesGym = 5, MaxMembersGym = 50,
             IsActive = true, CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -180,7 +180,7 @@ public class CouponRedemptionRepoTests : IDisposable
         var plan = new SubscriptionPlan
         {
             Name = "P", IsFree = false,
-            MaxOwnedGyms = 1, MaxCoachesPerGym = 5, MaxMembersPerGym = 50,
+            MaxOwnedGyms = 1, MaxCoachesGym = 5, MaxMembersGym = 50,
             IsActive = true, CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -241,7 +241,7 @@ public class CouponRedemptionRepoTests : IDisposable
         var plan = new SubscriptionPlan
         {
             Name = "P", IsFree = false,
-            MaxOwnedGyms = 1, MaxCoachesPerGym = 5, MaxMembersPerGym = 50,
+            MaxOwnedGyms = 1, MaxCoachesGym = 5, MaxMembersGym = 50,
             IsActive = true, CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
