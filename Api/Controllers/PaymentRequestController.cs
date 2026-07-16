@@ -100,18 +100,18 @@ namespace Api.Controllers
             return Ok(Result<PaymentRequestRDTO>.Success(rejectedPaymentRequest));
         }
 
-        [HttpDelete("{id}")]
-        [Authorize(Roles = $"{AppRole.SuperAdmin}")]
+        // [HttpDelete("{id}")]
+        // [Authorize(Roles = $"{AppRole.SuperAdmin}")]
 
-        public async Task<ActionResult> DeleteAsync(int id, PaymentRequestReject dto)
-        {
-            logger.LogInformation("Deleting PaymentRequest with Id: {Id}", id);
+        // public async Task<ActionResult> DeleteAsync(int id, PaymentRequestReject dto)
+        // {
+        //     logger.LogInformation("Deleting PaymentRequest with Id: {Id}", id);
 
-            var deletedPaymentRequest = await service.DeleteAsync(id);
+        //     var deletedPaymentRequest = await service.DeleteAsync(id);
 
-            logger.LogInformation("Successfully deleted PaymentRequest with Id: {Id}", id);
-            return Ok(Result<PaymentRequestRDTO>.Success(deletedPaymentRequest));
-        }
+        //     logger.LogInformation("Successfully deleted PaymentRequest with Id: {Id}", id);
+        //     return Ok(Result<PaymentRequestRDTO>.Success(deletedPaymentRequest));
+        // }
 
 
     }

@@ -1,0 +1,242 @@
+{
+  "info": {
+    "_postman_id": "b7a1c2d3-e4f5-6789-abcd-ef0123456789",
+    "name": "Gymora API",
+    "description": "# Gymora API Postman Collection\n\n## Overview\n\nComplete Postman collection for the Gymora ASP.NET Core 9.0 REST API.\n\n## Architecture\n\n- **Authentication:** JWT Bearer Token with Refresh Tokens\n- **Identity:** ASP.NET Core Identity with `ApplicationUser` (int PK)\n- **Roles:** `SuperAdmin`, `User`\n- **Rate Limiting:** IP-based fixed window policies\n- **Global Exception Handling:** Custom middleware returning `Result<T>` envelope\n- **ORM:** Entity Framework Core with SQL Server\n- **Background Jobs:** Hangfire + MassTransit InMemory + EF Outbox\n- **File Storage:** Bunny.net (Stream + Storage)\n- **Payment:** Paymob integration\n- **Validation:** DataAnnotations\n\n## Authentication Flow\n\n1. `POST /api/Auth/register` — Creates account + sends confirmation OTP\n2. `POST /api/Auth/confirm-email` — Confirms with OTP (or use GET variant)\n3. `POST /api/Auth/login` — Returns JWT + Refresh Token\n4. All protected requests automatically use `Authorization: Bearer {{accessToken}}`\n5. `POST /api/Auth/refresh-token` — When access token expires\n6. `POST /api/Auth/logout` — Revokes refresh token\n\n## Rate Limiting Policies\n\n| Policy Name | Limit | Window | Endpoints |\n|------------|-------|--------|-----------|\n| `Ip_5Limit_1Min` | 5 requests | 1 minute | POST /api/Auth/login |\n| `Ip_3Limit_5Min` | 3 requests | 5 minutes | POST resend-confirmation-email, POST forgot-password |\n| `Ip_10Limit_1Min` | 10 requests | 1 minute | POST verify-otp, POST reset-password, GET confirm-email |\n\n## Standard Response Envelope\n\n### Success\n```json\n{\n  \"isSuccess\": true,\n  \"data\": { ... }\n}\n```\n\n### Error\n```json\n{\n  \"isSuccess\": false,\n  \"error\": {\n    \"code\": \"ERROR_CODE\",\n    \"message\": \"Description\"\n  }\n}\n```\n\n### Error Codes\n\n| HTTP Status | Code | Description |\n|------------|------|-------------|\n| 400 | `BAD_REQUEST` | Invalid input / business rule violation |\n| 400 | `VALIDATION_ERROR` | Model state validation failed |\n| 401 | `UNAUTHORIZED` | Missing or invalid JWT |\n| 403 | `FORBIDDEN` | Insufficient role permissions |\n| 404 | `NOT_FOUND` | Resource not found |\n| 409 | `CONFLICT` | Duplicate resource |\n| 429 | `RATE_LIMIT_EXCEEDED` | Too many requests |\n| 500 | `SERVER_ERROR` | Internal server error |\n\n## Token Variables\n\n| Variable | Description |\n|----------|-------------|\n| `accessToken` / `refreshToken` | Default tokens (set by Login) |\n| `superAdminAccessToken` / `superAdminRefreshToken` | SuperAdmin role tokens |\n| `userAccessToken` / `userRefreshToken` | User role tokens |",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "06 Owner Subscriptions",
+      "description": "Owner Subscription management. Paged listing and single retrieval are public; the `get-my-current-subscription` endpoint requires user authentication.",
+      "item": [
+        {
+          "name": "Get Owner Subscriptions (Paged)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Response has pagination fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    pm.expect(data.totalCount).to.be.a('number');",
+                  "    pm.expect(data.pageSize).to.be.a('number');",
+                  "    pm.expect(data.pageNumber).to.be.a('number');",
+                  "    pm.expect(data.totalPages).to.be.a('number');",
+                  "    pm.expect(data.hasPrevious).to.be.a('boolean');",
+                  "    pm.expect(data.hasNext).to.be.a('boolean');",
+                  "    pm.expect(data.items).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": null,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"createdById\": null,\n  \"filters\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/OwnerSubscription",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OwnerSubscription"]
+            },
+            "description": "Get a paginated list of owner subscriptions with optional search, sorting, and filtering.\n\n## Request Body Fields\n\n| Field | Type | Default | Description |\n|-------|------|---------|-------------|\n| `pageNumber` | int | 1 | Page number (1-based) |\n| `pageSize` | int | 10 | Page size (max 50) |\n| `searchTerm` | string | null | Search term (max 100 chars) |\n| `orderBy` | string | \"Id\" | Property to order by |\n| `orderDirection` | string | \"asc\" | Sort direction: \"asc\" or \"desc\" |\n| `isActive` | bool | true | Filter by active status |\n| `createdById` | int | null | Filter by creator |\n| `filters` | object | null | Advanced filtering |\n\n## Pagination Response\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `totalCount` | number | Total items matching query |\n| `pageSize` | number | Items per page |\n| `pageNumber` | number | Current page |\n| `totalPages` | number | Total pages |\n| `hasPrevious` | boolean | Previous page exists |\n| `hasNext` | boolean | Next page exists |\n| `items` | array | OwnerSubscription items |\n\n### Requires Authentication: No (AllowAnonymous)"
+          }
+        },
+        {
+          "name": "Get Owner Subscription by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"OwnerSubscription has required fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    pm.expect(data.id).to.be.a('number');",
+                  "    pm.expect(data.planId).to.be.a('number');",
+                  "    pm.expect(data.planPriceId).to.be.a('number');",
+                  "    pm.expect(data.amountPaid).to.be.a('number');",
+                  "    pm.expect(data.currencyCode).to.be.a('string');",
+                  "    pm.expect(data.startDate).to.be.a('string');",
+                  "    pm.expect(data.endDate).to.be.a('string');",
+                  "    pm.expect(data.status).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/OwnerSubscription/{{createdEntityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OwnerSubscription", "{{createdEntityId}}"]
+            },
+            "description": "Get a single owner subscription by its ID.\n\n## Route Parameters\n\n| Parameter | Type | Description |\n|-----------|------|-------------|\n| `id` | int | Owner Subscription ID |\n\n## Response Fields\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `id` | number | Subscription ID |\n| `planId` | number | Subscription Plan ID |\n| `planPriceId` | number | Plan Price ID |\n| `paymentRequestId` | number | Associated payment request ID |\n| `amountPaid` | number | Amount paid |\n| `currencyCode` | string | ISO currency code |\n| `startDate` | string | Subscription start (ISO-8601) |\n| `endDate` | string | Subscription end (ISO-8601) |\n| `graceEndDate` | string | Grace period end (ISO-8601) |\n| `status` | number | 1=Active, 2=Grace, 3=Expired |\n| `createdOn` | string | Creation timestamp |\n| `createdById` | number | Creator user ID |\n| `modifiedOn` | string | Last modification timestamp |\n\n### Requires Authentication: No (AllowAnonymous)"
+          }
+        },
+        {
+          "name": "Get My Current Subscription",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is success\", () => {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Current plan result has required fields\", () => {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.expect(data).to.be.an('object');",
+                  "    pm.expect(data.planId).to.be.a('number');",
+                  "    pm.expect(data.planName).to.be.a('string');",
+                  "    pm.expect(data.maxOwnedGyms).to.be.a('number');",
+                  "    pm.expect(data.maxMembersPerGym).to.be.a('number');",
+                  "    pm.expect(data.maxCoachesPerGym).to.be.a('number');",
+                  "    pm.expect(data.isFree).to.be.a('boolean');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/OwnerSubscription/get-my-current-subscription",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OwnerSubscription", "get-my-current-subscription"]
+            },
+            "description": "Get the current subscription plan for the authenticated user.\n\n## Response Fields (`CurrentPlanResult`)\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `planId` | number | Current plan ID |\n| `planName` | string | Plan display name |\n| `maxOwnedGyms` | number | Max owned gyms allowed |\n| `maxMembersPerGym` | number | Max members per gym |\n| `maxCoachesPerGym` | number | Max coaches per gym |\n| `isFree` | boolean | Whether the current plan is the free plan |\n| `subscriptionStatus` | number | 1=Active, 2=Grace, 3=Expired |\n| `subscription` | object | Full subscription object (if any) |\n\n### Requires Authentication: Yes"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:7059",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "superAdminAccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "superAdminRefreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userAccessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userRefreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "currentUserId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "createdEntityId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "createdPlanPriceId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ]
+}

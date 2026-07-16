@@ -1,0 +1,184 @@
+{
+  "info": {
+    "_postman_id": "b7a1c2d3-e4f5-6789-abcd-ef0123456789",
+    "name": "Gymora API",
+    "description": "# Gymora API Postman Collection\n\n## Overview\n\nComplete Postman collection for the Gymora ASP.NET Core 9.0 REST API.\n\n## Architecture\n\n- **Authentication:** JWT Bearer Token with Refresh Tokens\n- **Identity:** ASP.NET Core Identity with `ApplicationUser` (int PK)\n- **Roles:** `SuperAdmin`, `User`\n- **Rate Limiting:** IP-based fixed window policies\n- **Global Exception Handling:** Custom middleware returning `Result<T>` envelope\n- **ORM:** Entity Framework Core with SQL Server\n- **Background Jobs:** Hangfire + MassTransit InMemory + EF Outbox\n- **File Storage:** Bunny.net (Stream + Storage)\n- **Payment:** Paymob integration\n- **Validation:** DataAnnotations\n\n## Authentication Flow\n\n1. `POST /api/Auth/register` — Creates account + sends confirmation OTP\n2. `POST /api/Auth/confirm-email` — Confirms with OTP (or use GET variant)\n3. `POST /api/Auth/login` — Returns JWT + Refresh Token\n4. All protected requests automatically use `Authorization: Bearer {{accessToken}}`\n5. `POST /api/Auth/refresh-token` — When access token expires\n6. `POST /api/Auth/logout` — Revokes refresh token\n\n## Standard Response Envelope\n\n### Success\n```json\n{\n  \"isSuccess\": true,\n  \"data\": { ... }\n}\n```\n\n### Error\n```json\n{\n  \"isSuccess\": false,\n  \"error\": {\n    \"code\": \"ERROR_CODE\",\n    \"message\": \"Description\"\n  }\n}\n```\n\n## Token Variables\n\n| Variable | Description |\n|----------|-------------|\n| `accessToken` / `refreshToken` | Default tokens (set by Login) |\n\n> **Note:** Test endpoints are all `[AllowAnonymous]` and return plain `200 OK` (no response body envelope).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "07 Test & Utilities",
+      "description": "Diagnostic and utility endpoints for testing email, push notifications, and subscription creation workflows. All endpoints are publicly accessible (`AllowAnonymous`).",
+      "item": [
+        {
+          "name": "Test Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Test/Email",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Test", "Email"]
+            },
+            "description": "Send a test email to a predefined address.\n\nTriggers `IEmailService.SendEmailAsync` with hardcoded recipient, subject, and body.\n\n### Requires Authentication: No (AllowAnonymous)"
+          }
+        },
+        {
+          "name": "Test Notification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Test/Notification",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Test", "Notification"]
+            },
+            "description": "Send a test push notification to the admin topic.\n\nTriggers `INotificationService.SendToTopicAsync` with a hardcoded notification payload.\n\n### Requires Authentication: No (AllowAnonymous)"
+          }
+        },
+        {
+          "name": "Test Notification Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Test/NotificationEvent",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Test", "NotificationEvent"]
+            },
+            "description": "Send a test notification via MassTransit outbox event.\n\nPublishes a `TestNotificationEvent` through `IPublishEndpoint` which triggers the MassTransit consumer pipeline.\n\n### Requires Authentication: No (AllowAnonymous)"
+          }
+        },
+        {
+          "name": "Test Create Owner Subscription",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Test/CreateOwnerSubscription/{{createdEntityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "Test", "CreateOwnerSubscription", "{{createdEntityId}}"]
+            },
+            "description": "Manually trigger owner subscription creation from an approved payment request.\n\nCalls `IOwnerSubscriptionService.CreateFromApprovedPaymentAsync(paymentRequestId)`.\n\n## Route Parameters\n\n| Parameter | Type | Description |\n|-----------|------|-------------|\n| `paymentRequestId` | int | Approved payment request ID |\n\n### Requires Authentication: No (AllowAnonymous)"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:7059",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "createdEntityId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          ""
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ]
+}

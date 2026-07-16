@@ -29,7 +29,7 @@ namespace Application.DTO.Pagintion
         public string OrderDirection { get; set; } = "asc";
 
         public bool IsActive { get; set; } = true;
-        public int? CreatedById { get; set; }
+
 
         public FilterRequest? Filters { get; set; }
     }

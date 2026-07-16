@@ -1,3 +1,5 @@
+using Application.DTO.Model;
+using Application.DTO.Pagintion;
 using Domain.Model;
 using System;
 using System.Collections.Generic;
@@ -12,6 +14,7 @@ namespace Application.Interface.Repo
         Task<Coupon?> GetByCodeAsync(string code, CancellationToken ct = default);
 
         Task<Coupon?> IncrementUsageAsync(Coupon entity, CancellationToken ct = default);
+
 
 
     }

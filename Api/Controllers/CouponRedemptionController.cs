@@ -36,53 +36,53 @@ namespace Api.Controllers
             return Ok(Result<CouponRedemptionRDTO>.Success(CouponRedemption));
         }
 
-        [HttpPost("Create")]
-        public async Task<ActionResult<CouponRedemptionRDTO>> CreateAsync([FromBody] CouponRedemptionCDTO CouponRedemptionDto)
-        {
-            if (!ModelState.IsValid)
-            {
-                logger.LogWarning("Invalid ModelState while creating CouponRedemption: {@CouponRedemptionDto}", CouponRedemptionDto);
-                return BadRequest(ModelState);
-            }
+        // [HttpPost("Create")]
+        // public async Task<ActionResult<CouponRedemptionRDTO>> CreateAsync([FromBody] CouponRedemptionCDTO CouponRedemptionDto)
+        // {
+        //     if (!ModelState.IsValid)
+        //     {
+        //         logger.LogWarning("Invalid ModelState while creating CouponRedemption: {@CouponRedemptionDto}", CouponRedemptionDto);
+        //         return BadRequest(ModelState);
+        //     }
 
-            logger.LogInformation("Creating a new CouponRedemption: {@CouponRedemptionDto}", CouponRedemptionDto);
+        //     logger.LogInformation("Creating a new CouponRedemption: {@CouponRedemptionDto}", CouponRedemptionDto);
 
-            var createdCouponRedemption = await service.AddAsync(CouponRedemptionDto);
+        //     var createdCouponRedemption = await service.AddAsync(CouponRedemptionDto);
 
 
-            return Ok(Result<CouponRedemptionRDTO>.Success(createdCouponRedemption));
-        }
+        //     return Ok(Result<CouponRedemptionRDTO>.Success(createdCouponRedemption));
+        // }
 
-        [HttpPut("{id}")]
+        // [HttpPut("{id}")]
 
-        public async Task<ActionResult> UpdateAsync(int id, [FromBody] CouponRedemptionUDTO CouponRedemptionDto )
-        {
+        // public async Task<ActionResult> UpdateAsync(int id, [FromBody] CouponRedemptionUDTO CouponRedemptionDto )
+        // {
 
-            if (!ModelState.IsValid)
-            {
-                logger.LogWarning("Invalid ModelState while updating CouponRedemption Id: {Id}", id);
-                return BadRequest(ModelState);
-            }
+        //     if (!ModelState.IsValid)
+        //     {
+        //         logger.LogWarning("Invalid ModelState while updating CouponRedemption Id: {Id}", id);
+        //         return BadRequest(ModelState);
+        //     }
 
-            logger.LogInformation("Updating CouponRedemption with Id: {Id}", id);
+        //     logger.LogInformation("Updating CouponRedemption with Id: {Id}", id);
 
-            var updatedCouponRedemption = await service.UpdateAsync(id, CouponRedemptionDto);
+        //     var updatedCouponRedemption = await service.UpdateAsync(id, CouponRedemptionDto);
 
-            logger.LogInformation("Successfully updated CouponRedemption with Id: {Id}", id);
-            return Ok(Result<CouponRedemptionRDTO>.Success(updatedCouponRedemption));
-        }
+        //     logger.LogInformation("Successfully updated CouponRedemption with Id: {Id}", id);
+        //     return Ok(Result<CouponRedemptionRDTO>.Success(updatedCouponRedemption));
+        // }
 
-        [HttpDelete("{id}")]
+        // [HttpDelete("{id}")]
 
-        public async Task<ActionResult> DeleteAsync(int id)
-        {
-            logger.LogInformation("Deleting CouponRedemption with Id: {Id}", id);
+        // public async Task<ActionResult> DeleteAsync(int id)
+        // {
+        //     logger.LogInformation("Deleting CouponRedemption with Id: {Id}", id);
 
-            var deletedCouponRedemption = await service.DeleteAsync(id );
+        //     var deletedCouponRedemption = await service.DeleteAsync(id );
 
-            logger.LogInformation("Successfully deleted CouponRedemption with Id: {Id}", id);
-            return Ok(Result<CouponRedemptionRDTO>.Success(deletedCouponRedemption));
-        }
+        //     logger.LogInformation("Successfully deleted CouponRedemption with Id: {Id}", id);
+        //     return Ok(Result<CouponRedemptionRDTO>.Success(deletedCouponRedemption));
+        // }
 
 
     }

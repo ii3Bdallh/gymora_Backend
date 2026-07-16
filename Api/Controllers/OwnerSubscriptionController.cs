@@ -2,6 +2,8 @@ using Application.DTO;
 using Application.DTO.Model;
 using Application.DTO.Pagintion;
 using Application.Interface.Service;
+using Application.Interface.Service.Shared;
+using Application.Model;
 using Domain.Enum;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,15 +14,15 @@ namespace Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class OwnerSubscriptionController(ILogger<OwnerSubscriptionController> logger, IOwnerSubscriptionService service) : ControllerBase
+    public class OwnerSubscriptionController(ILogger<OwnerSubscriptionController> logger, IOwnerSubscriptionService service, ICurrentPlanService currentPlanService, CurrentUser currentUser) : ControllerBase
     {
 
- 
+
         [HttpPost]
-        public async Task <ActionResult<IEnumerable<OwnerSubscriptionRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
+        public async Task<ActionResult<IEnumerable<OwnerSubscriptionRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
         {
             logger.LogInformation("Fetching all OwnerSubscriptions");
-            PaginatedRes<OwnerSubscriptionRDTO> OwnerSubscriptions = await service.GetPageAsync(searchReq , true);
+            PaginatedRes<OwnerSubscriptionRDTO> OwnerSubscriptions = await service.GetPageAsync(searchReq, true);
             logger.LogInformation("Successfully fetched all OwnerSubscriptions");
             return Ok(Result<PaginatedRes<OwnerSubscriptionRDTO>>.Success(OwnerSubscriptions));
         }
@@ -35,56 +37,68 @@ namespace Api.Controllers
             return Ok(Result<OwnerSubscriptionRDTO>.Success(OwnerSubscription));
         }
 
-        [HttpPost("Create")]
+        [HttpGet("get-my-current-subscription")]
         [Authorize]
-        public async Task<ActionResult<OwnerSubscriptionRDTO>> CreateAsync([FromBody] OwnerSubscriptionCDTO OwnerSubscriptionDto)
+        public async Task<ActionResult<CurrentPlanResult>> GetMySubscriptionsAsync(CancellationToken cancellationToken = default)
         {
-            if (!ModelState.IsValid)
-            {
-                logger.LogWarning("Invalid ModelState while creating OwnerSubscription: {@OwnerSubscriptionDto}", OwnerSubscriptionDto);
-                return BadRequest(ModelState);
-            }
+            logger.LogInformation("Fetching my OwnerSubscriptions");
 
-            logger.LogInformation("Creating a new OwnerSubscription: {@OwnerSubscriptionDto}", OwnerSubscriptionDto);
+            CurrentPlanResult OwnerSubscriptions = await currentPlanService.GetCurrentPlanAsync(currentUser.UserId, ct: cancellationToken);
 
-            var createdOwnerSubscription = await service.AddAsync(OwnerSubscriptionDto);
-
-
-            return Ok(Result<OwnerSubscriptionRDTO>.Success(createdOwnerSubscription));
+            logger.LogInformation("Successfully fetched my OwnerSubscriptions");
+            return Ok(Result<CurrentPlanResult>.Success(OwnerSubscriptions));
         }
 
-        [HttpPut("{id}")]
-        [Authorize]
+        // [HttpPost("Create")]
+        // [Authorize]
+        // public async Task<ActionResult<OwnerSubscriptionRDTO>> CreateAsync([FromBody] OwnerSubscriptionCDTO OwnerSubscriptionDto)
+        // {
+        //     if (!ModelState.IsValid)
+        //     {
+        //         logger.LogWarning("Invalid ModelState while creating OwnerSubscription: {@OwnerSubscriptionDto}", OwnerSubscriptionDto);
+        //         return BadRequest(ModelState);
+        //     }
 
-        public async Task<ActionResult> UpdateAsync(int id, [FromBody] OwnerSubscriptionUDTO OwnerSubscriptionDto )
-        {
+        //     logger.LogInformation("Creating a new OwnerSubscription: {@OwnerSubscriptionDto}", OwnerSubscriptionDto);
 
-            if (!ModelState.IsValid)
-            {
-                logger.LogWarning("Invalid ModelState while updating OwnerSubscription Id: {Id}", id);
-                return BadRequest(ModelState);
-            }
+        //     var createdOwnerSubscription = await service.AddAsync(OwnerSubscriptionDto);
 
-            logger.LogInformation("Updating OwnerSubscription with Id: {Id}", id);
 
-            var updatedOwnerSubscription = await service.UpdateAsync(id, OwnerSubscriptionDto);
+        //     return Ok(Result<OwnerSubscriptionRDTO>.Success(createdOwnerSubscription));
+        // }
 
-            logger.LogInformation("Successfully updated OwnerSubscription with Id: {Id}", id);
-            return Ok(Result<OwnerSubscriptionRDTO>.Success(updatedOwnerSubscription));
-        }
+        // [HttpPut("{id}")]
+        // [Authorize]
 
-        [HttpDelete("{id}")]
-        [Authorize]
+        // public async Task<ActionResult> UpdateAsync(int id, [FromBody] OwnerSubscriptionUDTO OwnerSubscriptionDto )
+        // {
 
-        public async Task<ActionResult> DeleteAsync(int id)
-        {
-            logger.LogInformation("Deleting OwnerSubscription with Id: {Id}", id);
+        //     if (!ModelState.IsValid)
+        //     {
+        //         logger.LogWarning("Invalid ModelState while updating OwnerSubscription Id: {Id}", id);
+        //         return BadRequest(ModelState);
+        //     }
 
-            var deletedOwnerSubscription = await service.DeleteAsync(id );
+        //     logger.LogInformation("Updating OwnerSubscription with Id: {Id}", id);
 
-            logger.LogInformation("Successfully deleted OwnerSubscription with Id: {Id}", id);
-            return Ok(Result<OwnerSubscriptionRDTO>.Success(deletedOwnerSubscription));
-        }
+        //     var updatedOwnerSubscription = await service.UpdateAsync(id, OwnerSubscriptionDto);
+
+        //     logger.LogInformation("Successfully updated OwnerSubscription with Id: {Id}", id);
+        //     return Ok(Result<OwnerSubscriptionRDTO>.Success(updatedOwnerSubscription));
+        // }
+
+        // [HttpDelete("{id}")]
+        // [Authorize]
+
+        // public async Task<ActionResult> DeleteAsync(int id)
+        // {
+        //     logger.LogInformation("Deleting OwnerSubscription with Id: {Id}", id);
+
+        //     var deletedOwnerSubscription = await service.DeleteAsync(id );
+
+        //     logger.LogInformation("Successfully deleted OwnerSubscription with Id: {Id}", id);
+        //     return Ok(Result<OwnerSubscriptionRDTO>.Success(deletedOwnerSubscription));
+        // }
 
 
     }
