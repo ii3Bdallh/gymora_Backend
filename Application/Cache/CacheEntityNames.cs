@@ -1,4 +1,5 @@
 using Domain.Model;
+using Domain.Model.Auth;
 
 namespace Application.Cache;
 
@@ -10,7 +11,9 @@ public static class CacheEntityNames
     public const string UserDevice = "user_device";
 
     // Script will Add After Here CacheEntityNames
-    public const string Users = "users";
+    public const string GymStaff = "gymstaff";
+
+    public const string ApplicationUsers = "users";
 
     public const string Gym = "gym";
 
@@ -32,7 +35,9 @@ public static class CacheEntityNames
         if (type == typeof(UserDevice)) return UserDevice;
 
         // Script will Add After Here ForType
-        if (type == typeof(Users)) return Users;
+        if (type == typeof(GymStaff)) return GymStaff;
+
+        if (type == typeof(ApplicationUser)) return ApplicationUsers;
 
         if (type == typeof(Gym)) return Gym;
 

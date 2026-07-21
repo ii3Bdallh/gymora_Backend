@@ -3,17 +3,17 @@ using Application.DTO.Base;
 
 namespace Application.DTO.Model
 {
-    public record UsersCDTO : BaseCDTO
+    public record ApplicationUserCDTO : BaseCDTO
     {
 
     }
 
-    public record UsersUDTO : BaseUDTO
+    public record ApplicationUserUDTO : BaseUDTO
     {
 
     }
 
-    public record UsersRDTO : BaseRDTO
+    public record ApplicationUserRDTO : BaseRDTO
     {
 
     }

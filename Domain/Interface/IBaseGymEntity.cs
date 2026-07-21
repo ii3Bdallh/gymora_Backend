@@ -5,13 +5,8 @@ using System.Threading.Tasks;
 
 namespace Domain.Interface
 {
-    public interface IOwnedEntity
+    public interface IBaseGymEntity
     {
-        public int CreatedById { get; set; }
-    }
-
-    public interface ICacheableEntity
-    {
-        
+         int GymId { get; set; }
     }
 }

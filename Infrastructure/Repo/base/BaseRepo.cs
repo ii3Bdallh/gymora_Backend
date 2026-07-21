@@ -48,6 +48,8 @@ namespace Infrastructure.Repo.Base
 
             query = ApplySecurityFilter(query);
 
+            query = ApplyGymFilter(query, currentUser.CurrentGymId);
+
             return query;
         }
 
@@ -62,6 +64,21 @@ namespace Infrastructure.Repo.Base
             }
 
             return query;
+        }
+
+        protected virtual IQueryable<T> ApplyGymFilter(IQueryable<T> query, int? gymId)
+        {
+            if (!typeof(IBaseGymEntity).IsAssignableFrom(typeof(T)))
+                return query;
+
+            if (currentUser.IsSuperAdmin)
+                return query;
+
+            if (!gymId.HasValue)
+                return query.Where(_ => false);
+
+            return query.Where(x =>
+                EF.Property<int>(x, nameof(IBaseGymEntity.GymId)) == gymId.Value);
         }
 
         #endregion

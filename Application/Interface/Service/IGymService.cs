@@ -20,5 +20,6 @@ namespace Application.Interface.Service
 
         Task ChangeOwnerOfGymAsync(int gymId, int newOwnerUserId, CancellationToken ct = default);
 
+
     }
 }

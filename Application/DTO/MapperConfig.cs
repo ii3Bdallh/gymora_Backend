@@ -2,6 +2,7 @@ using Application.DTO.Base;
 using Application.DTO.Model;
 using AutoMapper;
 using Domain.Model;
+using Domain.Model.Auth;
 using Domain.Model.Base;
 
 namespace Application.DTO
@@ -15,15 +16,29 @@ namespace Application.DTO
 
             // Script will Add After Here MapperConfig
             
-            CreateMap<Users, UsersRDTO>()
+            CreateMap<GymStaff, GymStaffRDTO>()
                 .IncludeBase<BaseEntity, BaseRDTO>()
                 .ReverseMap();
 
-            CreateMap<Users, UsersCDTO>()
+            CreateMap<GymStaff, GymStaffCDTO>()
                 .IncludeBase<BaseEntity, BaseCDTO>()
                 .ReverseMap();
 
-            CreateMap<Users, UsersUDTO>()
+            CreateMap<GymStaff, GymStaffUDTO>()
+                .IncludeBase<BaseEntity, BaseUDTO>()
+                .ReverseMap();
+
+
+            
+            CreateMap<ApplicationUser, ApplicationUserRDTO>()
+                .IncludeBase<BaseEntity, BaseRDTO>()
+                .ReverseMap();
+
+            CreateMap<ApplicationUser, ApplicationUserCDTO>()
+                .IncludeBase<BaseEntity, BaseCDTO>()
+                .ReverseMap();
+
+            CreateMap<ApplicationUser, ApplicationUserUDTO>()
                 .IncludeBase<BaseEntity, BaseUDTO>()
                 .ReverseMap();
 
