@@ -9,7 +9,7 @@ using Application.Model;
 namespace Infrastructure.Repo.Base
 {
     public abstract class BaseAuditableGymRepo<T> : BaseGymRepo<T>
-        where T : BaseAuditableGymEntity
+        where T : class,IBaseEntity,IBaseGymEntity , IBaseAuditableGymEntity
     {
 
         protected BaseAuditableGymRepo(ApplicationDbContext context, ILogger<BaseRepo<T>> logger, QueryCache queryCache, CurrentUser currentUser)

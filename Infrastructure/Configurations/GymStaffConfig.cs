@@ -23,7 +23,8 @@ namespace Infrastructure.Config
       builder.Property(x => x.Salary).HasPrecision(18, 2);
       builder.Property(x => x.JoinedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
       builder.Property(x => x.RowVersion).IsRowVersion();
-      builder.Property(x => x.SalaryEffectiveFrom).HasDefaultValueSql("CURRENT_TIMESTAMP");
+      builder.Property(x => x.SalaryValidFrom).HasDefaultValueSql("CURRENT_TIMESTAMP");
+      builder.Property(x => x.SalaryValidUntil);
       builder.Property(x => x.GymRole).HasConversion<int>();
       
 

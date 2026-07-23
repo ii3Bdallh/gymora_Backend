@@ -9,6 +9,7 @@ using Application.Interface.Service.Shared;
 using Application.Model;
 using AutoMapper;
 using Domain.Interface;
+using Domain.Model.Base;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 

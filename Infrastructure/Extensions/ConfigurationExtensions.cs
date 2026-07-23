@@ -31,6 +31,17 @@ public static class ConfigurationExtensions
     }
 
     public static void ConfigureGymAuditing<T>(this EntityTypeBuilder<T> builder)
+    where T : BaseAuditableGymEntity
+    {
+        builder.HasOne<GymStaff>()
+               .WithMany()
+               .HasForeignKey(e => e.CreatedByStaffId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(e => e.IsActive);
+    }
+
+    public static void ConfigureGymOwned<T>(this EntityTypeBuilder<T> builder)
         where T : BaseGymEntity
     {
         builder.HasOne<Gym>()

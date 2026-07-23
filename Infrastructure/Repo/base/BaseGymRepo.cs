@@ -9,7 +9,7 @@ using Application.Model;
 namespace Infrastructure.Repo.Base
 {
     public abstract class BaseGymRepo<T> : BaseRepo<T>
-        where T : BaseGymEntity, IBaseGymEntity
+        where T : class, IBaseEntity, IBaseGymEntity
     {
         protected readonly CurrentUser currentUser;
 

@@ -1,4 +1,4 @@
-
+using System;
 using Application.DTO.Base;
 using Domain.Enum;
 
@@ -17,6 +17,10 @@ namespace Application.DTO.Model
 
         public decimal? Salary { get; set; }
 
+        public DateTime? SalaryValidFrom { get; set; }
+
+        public DateTime? SalaryValidUntil { get; set; }
+
     }
 
     public record GymStaffUDTO : BaseUDTO
@@ -30,6 +34,10 @@ namespace Application.DTO.Model
         public GymRole GymRole { get; set; }
 
         public decimal? Salary { get; set; }
+
+        public DateTime? SalaryValidFrom { get; set; }
+
+        public DateTime? SalaryValidUntil { get; set; }
     }
 
     public record GymStaffRDTO : BaseRDTO
@@ -45,7 +53,10 @@ namespace Application.DTO.Model
 
         public decimal? Salary { get; set; }
         public Guid StaffInviteCode { get; set; }
-        public DateTime? SalaryEffectiveFrom { get; set; }
+
+        public DateTime? SalaryValidFrom { get; set; }
+
+        public DateTime? SalaryValidUntil { get; set; }
 
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
 

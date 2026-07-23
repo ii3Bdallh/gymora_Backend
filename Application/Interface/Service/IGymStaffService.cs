@@ -17,5 +17,7 @@ namespace Application.Interface.Service
 
         public Task<GymStaffRDTO> LinkAccountToGymAsync(int gymId, Guid inviteCode, CancellationToken ct = default);
 
+        public Task PaySalaryAsync(int staffId, DateTime? salaryValidFrom, DateTime? salaryValidUntil, CancellationToken ct = default);
+
     }
 }

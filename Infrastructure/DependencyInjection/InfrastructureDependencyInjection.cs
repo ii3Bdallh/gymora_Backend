@@ -1,4 +1,4 @@
-﻿using Application.DTO;
+using Application.DTO;
 using Application.EventConsumer;
 using Application.Interface.Service;
 using Application.Interface.Service.Shared;
@@ -184,6 +184,7 @@ sp.GetRequiredService<IOptions<HangfireOptions>>().Value);
        x.AddConsumer<EmailConsumer>();
        x.AddConsumer<CacheInvalidationConsumer>();
        x.AddConsumer<PaymentRequestApprovedConsumer>();
+       x.AddConsumer<SalaryPaidConsumer>();
 
 
        // 2. تهيئة الـ Entity Framework Outbox

@@ -35,7 +35,10 @@ namespace Domain.Model
     [Filterable(FilterType.Between)]
     public decimal? Salary { get; set; }
 
-    public DateTime? SalaryEffectiveFrom { get; set; }
+
+    public DateTime? SalaryValidFrom { get; set; }
+
+    public DateTime? SalaryValidUntil { get; set; }
 
     [Filterable(FilterType.Between)]
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;

@@ -93,6 +93,19 @@ namespace Api.Controllers
             return Ok(Result<GymStaffRDTO>.Success(linkedGymStaff));
         }
 
+        [HttpPost("{id}/pay-salary")]
+        public async Task<ActionResult> PaySalaryAsync(
+            int id, 
+            [FromQuery] DateTime? salaryValidFrom, 
+            [FromQuery] DateTime? salaryValidUntil, 
+            CancellationToken ct = default)
+        {
+            logger.LogInformation("Paying salary for GymStaff with Id: {Id}", id);
+            await service.PaySalaryAsync(id, salaryValidFrom, salaryValidUntil, ct);
+            logger.LogInformation("Successfully initiated salary payment for GymStaff with Id: {Id}", id);
+            return Ok(Result<string>.Success("Salary payment initiated successfully."));
+        }
+
 
     }
 }
