@@ -14,7 +14,7 @@ namespace Domain.Model
 {
   // Dont Forget to add [Searchable] , [Filterable] , 
   // Dont Forget to add Config , UDTO , CDTO , RDTO
-  public class OwnerSubscription : BaseAuditableEntity // , IOwnedEntity , IPublicEntity
+  public class OwnerSubscription : BaseAuditableEntity // , IOnlyMeCanSee , IPublicEntity
   {
     public int PlanId { get; set; }
     public SubscriptionPlan Plan { get; set; } = null!;
@@ -38,7 +38,7 @@ namespace Domain.Model
     public DateTime EndDate { get; set; }
 
     [Filterable(FilterType.Between)]
-    public DateTime GraceEndDate { get; set; } 
+    public DateTime GraceEndDate { get; set; }
 
     [NotMapped]
     public OwnerSubscriptionStatus Status

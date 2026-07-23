@@ -76,7 +76,7 @@ namespace Application.Service
             if (gym.CreatedById != CurrentUserId)
                 throw new UnauthorizedAccessException("You do not have permission to change the owner of this gym.");
 
-            ApplicationUser ? newOwner = await _usersRepo.GetByIdAsync(newOwnerUserId, true, ct);
+            ApplicationUser? newOwner = await _usersRepo.GetByIdAsync(newOwnerUserId, true, ct);
 
             if (newOwner == null)
                 throw new NotFoundException($"User with ID {newOwnerUserId} was not found.");

@@ -13,7 +13,7 @@ namespace Domain.Model
 {
   // Dont Forget to add [Searchable] , [Filterable] , 
   // Dont Forget to add Config , UDTO , CDTO , RDTO
-  public class PaymentRequest : BaseAuditableFileEntity, IOwnedEntity
+  public class PaymentRequest : BaseAuditableFileEntity, IOnlyMeCanSee
   {
 
 
@@ -37,8 +37,8 @@ namespace Domain.Model
 
 
 
-        [Filterable(FilterType.Exact)]
-        public PaymentRequestStatus Status { get; set; } = PaymentRequestStatus.Pending;
+    [Filterable(FilterType.Exact)]
+    public PaymentRequestStatus Status { get; set; } = PaymentRequestStatus.Pending;
 
     public string? ReviewNotes { get; set; }
     public string? RejectionReason { get; set; }

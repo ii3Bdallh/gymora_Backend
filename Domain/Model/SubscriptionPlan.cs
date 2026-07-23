@@ -17,7 +17,7 @@ namespace Domain.Model
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
 
-        public bool IsFree { get; set; }
+    public bool IsFree { get; set; }
 
 
     [Filterable(FilterType.Between)]

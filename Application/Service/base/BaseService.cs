@@ -59,7 +59,6 @@ namespace Application.Service
 
             return _mapper.Map<RDTO>(entity);
         }
-
         protected virtual Task BeforeAddAsync(
     CDTO dto,
     CancellationToken cancellationToken)

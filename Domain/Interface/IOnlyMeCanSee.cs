@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Interface
 {
-    public interface IOwnedEntity
+    public interface IOnlyMeCanSee
     {
         public int CreatedById { get; set; }
     }

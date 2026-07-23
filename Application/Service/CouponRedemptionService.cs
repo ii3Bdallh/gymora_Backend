@@ -18,7 +18,7 @@ using Application.Model;
 
 namespace Application.Service
 {
-        public class CouponRedemptionService : BaseAuditableService<CouponRedemption, CouponRedemptionRDTO, CouponRedemptionCDTO, CouponRedemptionUDTO>, ICouponRedemptionService
+    public class CouponRedemptionService : BaseAuditableService<CouponRedemption, CouponRedemptionRDTO, CouponRedemptionCDTO, CouponRedemptionUDTO>, ICouponRedemptionService
     {
         public CouponRedemptionService(
             ICouponRedemptionRepo repo,

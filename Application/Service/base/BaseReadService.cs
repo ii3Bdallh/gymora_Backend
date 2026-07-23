@@ -66,7 +66,7 @@ namespace Application.Service
         /// لأن دول هما الحالة الوحيدة اللي محتاجة عزل الكاش لكل يوزر لوحده.
         /// </summary>
         protected virtual int? CacheUserScope =>
-            typeof(IOwnedEntity).IsAssignableFrom(typeof(T)) && !HasFullAccess
+            typeof(IOnlyMeCanSee).IsAssignableFrom(typeof(T)) && !HasFullAccess
                 ? CurrentUserId
                 : null;
 
@@ -141,7 +141,7 @@ namespace Application.Service
                     if (entity is null)
                         throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
 
-                    if (entity is IOwnedEntity owned &&
+                    if (entity is IOnlyMeCanSee owned &&
                        !CanAccess(owned.CreatedById))
                     {
                         throw new UnauthorizedAccessException(

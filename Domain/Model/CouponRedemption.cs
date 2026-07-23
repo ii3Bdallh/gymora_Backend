@@ -12,7 +12,7 @@ namespace Domain.Model
 {
   // Dont Forget to add [Searchable] , [Filterable] , 
   // Dont Forget to add Config , UDTO , CDTO , RDTO
-  public class CouponRedemption : BaseAuditableEntity  , IOwnedEntity //  , IPublicEntity
+  public class CouponRedemption : BaseAuditableEntity, IOnlyMeCanSee //  , IPublicEntity
   {
     public int CouponId { get; set; }
     public Coupon Coupon { get; set; } = null!;
