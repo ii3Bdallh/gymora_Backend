@@ -16,7 +16,7 @@ using Application.Model;
 namespace Infrastructure.Repo
 {
     public class CouponRedemptionRepo(ApplicationDbContext context, ILogger<CouponRedemptionRepo> logger, QueryCache queryCache , CurrentUser currentUser)
-    : BaseRepo<CouponRedemption>(context, logger, queryCache , currentUser), ICouponRedemptionRepo
+    : BaseAuditableRepo<CouponRedemption>(context, logger, queryCache, currentUser), ICouponRedemptionRepo
     {
     }
 }

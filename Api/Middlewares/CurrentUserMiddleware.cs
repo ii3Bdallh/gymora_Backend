@@ -22,6 +22,7 @@ namespace Api.Middlewares
             if (context.User.Identity?.IsAuthenticated == true)
             {
                 currentUser.UserId = int.TryParse(context.User.FindFirst("UserId")?.Value, out var uid) ? uid : 0;
+                currentUser.CurrentStaffId = int.TryParse(context.User.FindFirst("CurrentStaffId")?.Value, out var sid) ? sid : null;
                 currentUser.CurrentGymId = int.TryParse(context.User.FindFirst("CurrentGymId")?.Value, out var gid) ? gid : null;
                 currentUser.GymRole = context.User.FindFirst("GymRole")?.Value;
                 currentUser.PlatformRole = context.User.FindFirst(ClaimTypes.Role)?.Value ?? context.User.FindFirst("Role")?.Value;

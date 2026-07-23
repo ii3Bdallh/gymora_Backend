@@ -17,7 +17,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Repo
 {
     public class OwnerSubscriptionRepo(ApplicationDbContext context, ILogger<OwnerSubscriptionRepo> logger, QueryCache queryCache, CurrentUser currentUser)
-    : BaseRepo<OwnerSubscription>(context, logger, queryCache, currentUser), IOwnerSubscriptionRepo
+    : BaseAuditableRepo<OwnerSubscription>(context, logger, queryCache, currentUser), IOwnerSubscriptionRepo
     {
         public async Task<bool> HasActiveSubscriptionAsync(int ownerUserId, CancellationToken ct = default)
         {

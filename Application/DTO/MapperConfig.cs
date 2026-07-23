@@ -30,18 +30,12 @@ namespace Application.DTO
 
 
             
-            CreateMap<ApplicationUser, ApplicationUserRDTO>()
-                .IncludeBase<BaseEntity, BaseRDTO>()
-                .ReverseMap();
 
-            CreateMap<ApplicationUser, ApplicationUserCDTO>()
-                .IncludeBase<BaseEntity, BaseCDTO>()
-                .ReverseMap();
 
-            CreateMap<ApplicationUser, ApplicationUserUDTO>()
-                .IncludeBase<BaseEntity, BaseUDTO>()
-                .ReverseMap();
 
+            CreateMap<ApplicationUser, ApplicationUserRDTO>().ReverseMap();
+            CreateMap<ApplicationUser, ApplicationUserCDTO>().ReverseMap();
+            CreateMap<ApplicationUser, ApplicationUserUDTO>().ReverseMap();
 
             CreateMap<Gym, GymRDTO>()
                 .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>()

@@ -17,7 +17,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Repo
 {
     public class GymRepo(ApplicationDbContext context, ILogger<GymRepo> logger, QueryCache queryCache, CurrentUser currentUser)
-    : BaseRepo<Gym>(context, logger, queryCache, currentUser), IGymRepo
+    : BaseAuditableRepo<Gym>(context, logger, queryCache, currentUser), IGymRepo
     {
 
         public async Task<int> CountOwnedByOwnerAsync(

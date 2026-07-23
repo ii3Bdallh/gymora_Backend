@@ -1,0 +1,125 @@
+﻿{
+    "info":  {
+                 "_postman_id":  "8e4a9fc3-7bdf-405b-b74f-7a45223c3bc4",
+                 "name":  "Test",
+                 "description":  "Endpoints to trigger notifications, emails and helper actions for testing purposes.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Test Email",
+                     "request":  {
+                                     "auth":  {
+                                                  "type":  "noauth"
+                                              },
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Test/Email",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Test",
+                                                              "Email"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Test Notification",
+                     "request":  {
+                                     "auth":  {
+                                                  "type":  "noauth"
+                                              },
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Test/Notification",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Test",
+                                                              "Notification"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Test Notification Event",
+                     "request":  {
+                                     "auth":  {
+                                                  "type":  "noauth"
+                                              },
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Test/NotificationEvent",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Test",
+                                                              "NotificationEvent"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Test Create Owner Subscription",
+                     "request":  {
+                                     "auth":  {
+                                                  "type":  "noauth"
+                                              },
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Test/CreateOwnerSubscription/{{paymentRequestId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Test",
+                                                              "CreateOwnerSubscription",
+                                                              "{{paymentRequestId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 }
+             ],
+    "auth":  {
+                 "type":  "bearer",
+                 "bearer":  [
+                                {
+                                    "key":  "token",
+                                    "value":  "{{token}}",
+                                    "type":  "string"
+                                }
+                            ]
+             }
+}

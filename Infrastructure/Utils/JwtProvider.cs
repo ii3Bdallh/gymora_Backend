@@ -32,13 +32,15 @@ namespace Infrastructure.Utils
             ApplicationUser appUser,
             IList<string> roles,
             int? currentGymId = null,
-            string? gymRole = null)
+            string? gymRole = null,
+            int? currentStaffId = null)
         {
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, appUser.Id.ToString()),
                 new Claim(ClaimTypes.Email, appUser.Email ?? string.Empty),
                 new Claim("UserId", appUser.Id.ToString()),
+                new Claim("CurrentStaffId", currentStaffId?.ToString() ?? string.Empty)
             };
 
             // App Roles (SuperAdmin, PlatformAdmin, ...)
@@ -80,9 +82,10 @@ namespace Infrastructure.Utils
             ApplicationUser appUser,
             IList<string> roles,
             int currentGymId,
-            string gymRole)
+            string gymRole,
+            int? currentStaffId = null)
         {
-            return GenerateToken(appUser, roles, currentGymId, gymRole);
+            return GenerateToken(appUser, roles, currentGymId, gymRole, currentStaffId);
         }
 
         public string? GetUserIdByToken(string token, bool validateLifetime = true)

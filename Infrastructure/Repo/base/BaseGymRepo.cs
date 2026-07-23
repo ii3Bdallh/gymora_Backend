@@ -1,0 +1,36 @@
+using Domain.Interface;
+using Domain.Model.Base;
+using Infrastructure.Cache;
+using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Application.Model;
+
+namespace Infrastructure.Repo.Base
+{
+    public abstract class BaseGymRepo<T> : BaseRepo<T>
+        where T : BaseGymEntity, IBaseGymEntity
+    {
+        protected readonly CurrentUser currentUser;
+
+        protected BaseGymRepo(ApplicationDbContext context, ILogger<BaseRepo<T>> logger, QueryCache queryCache, CurrentUser currentUser)
+            : base(context, logger, queryCache)
+        {
+            this.currentUser = currentUser;
+        }
+
+        protected override IQueryable<T> ApplyExtraFilters(IQueryable<T> query)
+        {
+            query = base.ApplyExtraFilters(query);
+
+            if (currentUser.IsSuperAdmin)
+                return query;
+
+            if (!currentUser.CurrentGymId.HasValue)
+                return query.Where(_ => false);
+
+            return query.Where(x =>
+                EF.Property<int>(x, nameof(IBaseGymEntity.GymId)) == currentUser.CurrentGymId.Value);
+        }
+    }
+}

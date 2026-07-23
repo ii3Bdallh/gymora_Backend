@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using System.Linq.Dynamic.Core;
 using Application.DTO.Pagintion;
 using Application.Interface.Repo;
@@ -9,88 +8,49 @@ using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Application.DTO;
-using Application.Model;
 using Domain.Interface;
+
 namespace Infrastructure.Repo.Base
 {
-    public abstract class BaseRepo<T> : IBaseRepo<T> where T : BaseEntity
+    public abstract class BaseRepo<T> : IBaseRepo<T> where T : class, IBaseEntity
     {
         protected readonly ApplicationDbContext context;
         protected readonly ILogger<BaseRepo<T>> logger;
         protected readonly QueryCache queryCache;
 
-        protected readonly CurrentUser currentUser;
-
-
-
-        protected BaseRepo(ApplicationDbContext context, ILogger<BaseRepo<T>> logger, QueryCache queryCache, CurrentUser currentUser)
+        protected BaseRepo(ApplicationDbContext context, ILogger<BaseRepo<T>> logger, QueryCache queryCache)
         {
             this.context = context;
             this.logger = logger;
             this.queryCache = queryCache;
-            this.currentUser = currentUser;
         }
+
         #region Protected Methods
-        protected virtual Func<IQueryable<T>, IQueryable<T>>? Includes()
-        {
-            return null;
-        }
+        protected virtual Func<IQueryable<T>, IQueryable<T>>? Includes() => null;
 
-        protected virtual IQueryable<T> BuildQuery(
-    bool isActive = true,
-    bool trackChanges = false)
+        protected virtual IQueryable<T> BuildQuery(bool isActive = true, bool trackChanges = false)
         {
-            IQueryable<T> query = trackChanges
-                ? DbSet
-                : DbSet.AsNoTracking();
-
+            IQueryable<T> query = trackChanges ? DbSet : DbSet.AsNoTracking();
             query = query.Where(x => x.IsActive == isActive);
 
-            query = ApplySecurityFilter(query);
-
-            query = ApplyGymFilter(query, currentUser.CurrentGymId);
-
-            return query;
-        }
-
-        protected virtual IQueryable<T> ApplySecurityFilter(IQueryable<T> query)
-        {
-            if (typeof(IOwnedEntity).IsAssignableFrom(typeof(T))
-                && !currentUser.IsSuperAdmin)
-            {
-                query = query.Where(x =>
-                    EF.Property<int>(x, nameof(IOwnedEntity.CreatedById))
-                    == currentUser.UserId);
-            }
+            // نقطة التوسّع: كل Repo مشتق يعمل Override ليها لو محتاج فلترة إضافية (Gym/Owned/etc)
+            query = ApplyExtraFilters(query);
 
             return query;
         }
 
-        protected virtual IQueryable<T> ApplyGymFilter(IQueryable<T> query, int? gymId)
+        protected virtual IQueryable<T> ApplyExtraFilters(IQueryable<T> query)
         {
-            if (!typeof(IBaseGymEntity).IsAssignableFrom(typeof(T)))
-                return query;
-
-            if (currentUser.IsSuperAdmin)
-                return query;
-
-            if (!gymId.HasValue)
-                return query.Where(_ => false);
-
-            return query.Where(x =>
-                EF.Property<int>(x, nameof(IBaseGymEntity.GymId)) == gymId.Value);
+            return query; // BaseRepo مش عارف حاجة عن اليوزر ولا الفلاتر الخاصة
         }
-
         #endregion
+
         public DbSet<T> DbSet => context.Set<T>();
 
         public virtual async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
             IQueryable<T> query = BuildQuery(true);
-
-            if (include != null)
-                query = include(query);
-
+            if (include != null) query = include(query);
             return await query.ToListAsync(cancellationToken);
         }
 
@@ -103,23 +63,17 @@ namespace Infrastructure.Repo.Base
         {
             IQueryable<T> query = BuildQuery(isActive, trackChanges);
 
-            // تطبيق الـ Extensions الاحترافية بتاعتك
             if (!string.IsNullOrEmpty(searchReq.SearchTerm))
                 query = query.Search(searchReq.SearchTerm, queryCache);
 
             if (searchReq.Filters is not null)
                 query = query.ApplyFilters(searchReq.Filters, queryCache);
 
-            // الترتيب الديناميكي
             var orderBy = !string.IsNullOrEmpty(searchReq.OrderBy) ? searchReq.OrderBy : "Id";
             var direction = searchReq.OrderDirection?.ToLower() == "desc" ? "descending" : "ascending";
             query = query.OrderBy($"{orderBy} {direction}");
 
-            // دمج الـ Includes لو وُجدت
-            if (include != null)
-            {
-                query = include(query);
-            }
+            if (include != null) query = include(query);
 
             return query;
         }
@@ -129,16 +83,13 @@ namespace Infrastructure.Repo.Base
             bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
-                 Func<IQueryable<T>, IQueryable<T>>? include = null)
+            Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            // 1. بنجيب كويري "خفيفة" من غير Includes عشان نعمل عليها الـ Count بسرعة
             var countQuery = GetAllQuery(searchReq, isActive, trackChanges, cancellationToken);
             var totalCount = await countQuery.CountAsync(cancellationToken);
 
-            // 2. بنجيب الكويري الكاملة بالـ Includes عشان نسحب الداتا مع الـ Children بتوعها
             var dataQuery = GetAllQuery(searchReq, isActive, trackChanges, cancellationToken);
-            if (include != null)
-                dataQuery = include(dataQuery);
+            if (include != null) dataQuery = include(dataQuery);
 
             var pageItems = await dataQuery
                 .Skip((searchReq.PageNumber - 1) * searchReq.PageSize)
@@ -155,52 +106,37 @@ namespace Infrastructure.Repo.Base
         }
 
         public virtual async Task<T?> GetByIdAsync(
-            int id,
-            bool isActive = true,
-            bool trackChanges = false,
+            int id, bool isActive = true, bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
             IQueryable<T> query = BuildQuery(isActive, trackChanges);
-
-            if (include != null)
-                query = include(query);
-
-            return await query
-                .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            if (include != null) query = include(query);
+            return await query.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 
         public Task<T?> GetByIdIgnoringSecurityAsync(int id, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            IQueryable<T> query = trackChanges
-                ? DbSet
-                : DbSet.AsNoTracking();
-
+            IQueryable<T> query = trackChanges ? DbSet : DbSet.AsNoTracking();
             query = query.Where(x => x.IsActive == isActive);
-
-            if (include != null)
-                query = include(query);
-
+            if (include != null) query = include(query);
             return query.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 
         public virtual Task<T> AddAsync(T item, CancellationToken cancellationToken = default)
         {
-            // العملية تتم في الـ Memory فقط
             DbSet.Add(item);
             return Task.FromResult(item);
         }
 
         public virtual Task<T> UpdateAsync(T item, CancellationToken cancellationToken = default)
         {
-            // العملية تتم في الـ Memory فقط
             DbSet.Update(item);
             return Task.FromResult(item);
         }
 
         public virtual Task<T> DeleteAsync(T item, CancellationToken cancellationToken = default)
         {
-
             item.IsActive = false;
             DbSet.Update(item);
             return Task.FromResult(item);
@@ -208,12 +144,8 @@ namespace Infrastructure.Repo.Base
 
         public virtual Task<T> HardDeleteAsync(T item, CancellationToken cancellationToken = default)
         {
-
-
             DbSet.Remove(item);
             return Task.FromResult(item);
         }
-
-
     }
 }

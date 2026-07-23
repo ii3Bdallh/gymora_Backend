@@ -1,0 +1,113 @@
+﻿{
+    "info":  {
+                 "_postman_id":  "a91c392d-727d-4d53-a035-623f880bbef8",
+                 "name":  "Owner Subscription",
+                 "description":  "Endpoints to manage owner subscription plans and limits.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Get Paged Owner Subscriptions",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "var jsonData = pm.response.json();",
+                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
+                                                                   "    pm.variables.set(\"ownerSubscriptionId\", jsonData.data.items[0].id);",
+                                                                   "}"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "description":  "### Endpoint Overview\n\nFetches a paginated list of gym owner subscriptions with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `PlanId` | `int` | Exact | Subscribed Plan ID |\n| `PlanPriceId` | `int` | Exact | Plan Price Tier ID |\n| `PaymentRequestId`| `int` | Exact | Approved payment request ID |\n| `AmountPaid` | `decimal` | Between | Cost paid for subscription |\n| `CurrencyCode` | `string` | Exact | ISO currency code (e.g. EGP, USD) |\n| `StartDate` | `DateTime` | Between | ISO start date |\n| `EndDate` | `DateTime` | Between | ISO end date |\n| `GraceEndDate` | `DateTime` | Between | ISO grace period end date |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Subscriber ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"CurrencyCode\": [\"USD\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"AmountPaid\": { \"min\": \"500\", \"max\": \"2000\" } }`",
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/OwnerSubscription",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "OwnerSubscription"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Get Owner Subscription By Id",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/OwnerSubscription/{{ownerSubscriptionId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "OwnerSubscription",
+                                                              "{{ownerSubscriptionId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Get My Current Subscription",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/OwnerSubscription/get-my-current-subscription",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "OwnerSubscription",
+                                                              "get-my-current-subscription"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 }
+             ],
+    "auth":  {
+                 "type":  "bearer",
+                 "bearer":  [
+                                {
+                                    "key":  "token",
+                                    "value":  "{{token}}",
+                                    "type":  "string"
+                                }
+                            ]
+             }
+}

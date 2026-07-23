@@ -16,8 +16,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repo
 {
-    public class CouponRepo(ApplicationDbContext context, ILogger<CouponRepo> logger, QueryCache queryCache, CurrentUser currentUser)
-    : BaseRepo<Coupon>(context, logger, queryCache, currentUser), ICouponRepo
+    public class CouponRepo(ApplicationDbContext context, ILogger<CouponRepo> logger, QueryCache queryCache)
+    : BaseRepo<Coupon>(context, logger, queryCache), ICouponRepo
     {
         public async Task<Coupon?> GetByCodeAsync(string code, CancellationToken ct = default)
         {
@@ -25,7 +25,7 @@ namespace Infrastructure.Repo
                 .FirstOrDefaultAsync(x => x.Code.ToUpper() == code.ToUpper() && x.IsActive, ct);
         }
 
-        public async Task<Coupon?> IncrementUsageAsync(Coupon entity, CancellationToken ct = default)
+        public  Coupon IncrementUsageAsync(Coupon entity, CancellationToken ct = default)
         {
 
 

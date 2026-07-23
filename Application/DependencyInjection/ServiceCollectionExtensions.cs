@@ -15,26 +15,27 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(
         this IServiceCollection services)
     {
-            // Auth & Core Services
-            services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IEmailService, EmailService>();
-            services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
+        // Auth & Core Services
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
 
 
-            // Notification Service
-            services.AddScoped<INotificationService, NotificationService>();
+        // Notification Service
+        services.AddScoped<INotificationService, NotificationService>();
 
-            // Trainer Certificate
-            services.AddScoped<CurrentUser>();
+        // Trainer Certificate
+        services.AddScoped<CurrentUser>();
 
-            // Script will Add After Here DependencyInjectionService
-services.AddScoped<IGymStaffService, GymStaffService>();
-services.AddScoped<IUsersService, UsersService>();
-services.AddScoped<IGymService, GymService>();
-services.AddScoped<ICouponRedemptionService, CouponRedemptionService>();
-services.AddScoped<IOwnerSubscriptionService, OwnerSubscriptionService>();
-services.AddScoped<ICouponService, CouponService>();
-services.AddScoped<IPaymentRequestService, PaymentRequestService>();
+        // Script will Add After Here DependencyInjectionService
+        services.AddScoped<ICurrentPlanService, CurrentPlanService>();
+        services.AddScoped<IGymStaffService, GymStaffService>();
+        services.AddScoped<IUsersService, UsersService>();
+        services.AddScoped<IGymService, GymService>();
+        services.AddScoped<ICouponRedemptionService, CouponRedemptionService>();
+        services.AddScoped<IOwnerSubscriptionService, OwnerSubscriptionService>();
+        services.AddScoped<ICouponService, CouponService>();
+        services.AddScoped<IPaymentRequestService, PaymentRequestService>();
 
         return services;
     }

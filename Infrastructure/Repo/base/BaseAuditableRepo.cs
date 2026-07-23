@@ -1,0 +1,33 @@
+using Domain.Interface;
+using Domain.Model.Base;
+using Infrastructure.Cache;
+using Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Application.Model;
+
+namespace Infrastructure.Repo.Base
+{
+    public abstract class BaseAuditableRepo<T> : BaseRepo<T>
+        where T : class, IBaseEntity, IAuditableEntity
+    {
+        protected readonly CurrentUser currentUser;
+
+        protected BaseAuditableRepo(ApplicationDbContext context, ILogger<BaseRepo<T>> logger, QueryCache queryCache, CurrentUser currentUser)
+            : base(context, logger, queryCache)
+        {
+            this.currentUser = currentUser;
+        }
+
+        protected override IQueryable<T> ApplyExtraFilters(IQueryable<T> query)
+        {
+            query = base.ApplyExtraFilters(query);
+
+            if (currentUser.IsSuperAdmin)
+                return query;
+
+            return query.Where(x =>
+                EF.Property<int>(x, nameof(IAuditableEntity.CreatedById)) == currentUser.UserId);
+        }
+    }
+}

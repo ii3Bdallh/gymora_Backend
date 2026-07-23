@@ -5,7 +5,6 @@ using Domain.Enum;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Application.Interface.Service;
 
 
 using Application.DTO.Model;

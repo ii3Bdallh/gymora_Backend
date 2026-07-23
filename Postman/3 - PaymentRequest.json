@@ -1,0 +1,229 @@
+﻿{
+    "info":  {
+                 "_postman_id":  "daa187ba-c58f-4a89-abe5-6dd83357f464",
+                 "name":  "Payment Request",
+                 "description":  "Endpoints to create and moderate plan subscription payment proofs.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Get Paged Payment Requests",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "var jsonData = pm.response.json();",
+                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
+                                                                   "    pm.variables.set(\"paymentRequestId\", jsonData.data.items[0].id);",
+                                                                   "}"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "description":  "### Endpoint Overview\n\nFetches a paginated list of subscription payment requests with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `PlanId` | `int` | Exact | Target subscription plan ID |\n| `PlanPriceId` | `int` | Exact | Target pricing tier ID |\n| `CouponId` | `int` | Exact | Redeemed coupon ID (Nullable) |\n| `CouponCode` | `string` | Searchable | Redeemed coupon code |\n| `OriginalAmount` | `decimal` | Between | Before discount price |\n| `DiscountAmount` | `decimal` | Between | Coupon savings amount |\n| `FinalAmount` | `decimal` | Between | Final price after discount |\n| `CurrencyCode` | `string` | Exact | ISO currency code |\n| `Status` | `Enum (int)` | Exact | `1` = Pending, `2` = Approved, `3` = Rejected |\n| `ReviewNotes` | `string` | - | Admin review notes |\n| `RejectionReason`| `string` | - | Rejection description |\n| `ReviewedBy` | `int` | Exact | Admin user ID |\n| `ReviewedAt` | `DateTime` | Between | ISO admin review date |\n| `FileUrl` | `string` | - | URL of payment receipt receipt |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Requester ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"Status\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"FinalAmount\": { \"min\": \"100\", \"max\": \"500\" } }`",
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/PaymentRequest",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "PaymentRequest"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Get Payment Request By Id",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/PaymentRequest/{{paymentRequestId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "PaymentRequest",
+                                                              "{{paymentRequestId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Create Payment Request",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "var jsonData = pm.response.json();",
+                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
+                                                                   "    pm.variables.set(\"paymentRequestId\", jsonData.data.id);",
+                                                                   "}"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+
+                                                ],
+                                     "body":  {
+                                                  "mode":  "formdata",
+                                                  "formdata":  [
+                                                                   {
+                                                                       "key":  "File",
+                                                                       "type":  "file",
+                                                                       "src":  [
+
+                                                                               ]
+                                                                   },
+                                                                   {
+                                                                       "key":  "PlanId",
+                                                                       "value":  "{{subscriptionPlanId}}",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "PlanPriceId",
+                                                                       "value":  "{{planPriceId}}",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "CouponCode",
+                                                                       "value":  "SUMMER50",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "IsPublic",
+                                                                       "value":  "true",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "CreatedById",
+                                                                       "value":  "1",
+                                                                       "type":  "text"
+                                                                   }
+                                                               ]
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/PaymentRequest/Create",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "PaymentRequest",
+                                                              "Create"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Approve Payment Request",
+                     "request":  {
+                                     "method":  "PUT",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"reviewNotes\": \"Valid payment proof verified.\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/PaymentRequest/Approve/{{paymentRequestId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "PaymentRequest",
+                                                              "Approve",
+                                                              "{{paymentRequestId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Reject Payment Request",
+                     "request":  {
+                                     "method":  "PUT",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"rejectionReason\": \"Proof image is blurry or incorrect.\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/PaymentRequest/Reject/{{paymentRequestId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "PaymentRequest",
+                                                              "Reject",
+                                                              "{{paymentRequestId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 }
+             ],
+    "auth":  {
+                 "type":  "bearer",
+                 "bearer":  [
+                                {
+                                    "key":  "token",
+                                    "value":  "{{token}}",
+                                    "type":  "string"
+                                }
+                            ]
+             }
+}

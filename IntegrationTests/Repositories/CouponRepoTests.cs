@@ -1,3 +1,5 @@
+
+
 using Application.DTO.Pagintion;
 using Application.Model;
 using Domain.Enum;
@@ -21,16 +23,15 @@ public class CouponRepoTests : IDisposable
     {
         _dbName = Guid.NewGuid().ToString();
         _context = InMemoryDbContextFactory.Create(_dbName);
-        var currentUser = InMemoryDbContextFactory.SuperAdminCurrentUser();
         _sut = new CouponRepo(
             _context,
             InMemoryDbContextFactory.Logger<Infrastructure.Repo.CouponRepo>().Object,
-            new QueryCache(),
-            currentUser);
+            new QueryCache());
     }
 
     public void Dispose()
     {
+        
         _context.Database.EnsureDeleted();
         _context.Dispose();
     }

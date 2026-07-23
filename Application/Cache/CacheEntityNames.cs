@@ -26,7 +26,7 @@ public static class CacheEntityNames
     public const string PaymentRequest = "paymentrequest";
 
 
-    public static string ForType<T>() where T : class
+    public static string ForType<T>()
     {
         var type = typeof(T);
         if (type == typeof(SubscriptionPlan)) return SubscriptionPlan;

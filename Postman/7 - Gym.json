@@ -1,0 +1,378 @@
+﻿{
+    "info":  {
+                 "_postman_id":  "5de17f38-df80-4e84-83ba-6148d1ad4e1c",
+                 "name":  "Gym",
+                 "description":  "Endpoints to register, switch, own, and list gyms.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Get Paged Gyms",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "var jsonData = pm.response.json();",
+                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
+                                                                   "    pm.variables.set(\"gymId\", jsonData.data.items[0].id);",
+                                                                   "}"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "description":  "### Endpoint Overview\n\nFetches a paginated list of gyms with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Name` | `string` | Searchable | Gym name |\n| `Description` | `string` | - | Optional description |\n| `PhoneNumber` | `string` | - | Contact phone |\n| `Email` | `string` | - | Contact email |\n| `AddressLine1` | `string` | - | Main address line |\n| `AddressLine2` | `string` | - | Secondary address line |\n| `City` | `string` | - | City |\n| `State` | `string` | - | State |\n| `PostalCode` | `string` | - | Postal/Zip code |\n| `Latitude` | `decimal` | Between | Geographical latitude |\n| `Longitude` | `decimal` | Between | Geographical longitude |\n| `Status` | `Enum (int)` | Exact | `1` = Active, `2` = Inactive, etc. |\n| `FileUrl` | `string` | - | URL to gym logo/image |\n| `CreatedOn` | `DateTime` | Between | ISO format creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"Status\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"Latitude\": { \"min\": \"30.0\", \"max\": \"31.0\" } }`",
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Gym",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Gym"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Get Gym By Id",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Gym/{{gymId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Gym",
+                                                              "{{gymId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Create Gym",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "var jsonData = pm.response.json();",
+                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
+                                                                   "    pm.variables.set(\"gymId\", jsonData.data.id);",
+                                                                   "}"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+
+                                                ],
+                                     "body":  {
+                                                  "mode":  "formdata",
+                                                  "formdata":  [
+                                                                   {
+                                                                       "key":  "File",
+                                                                       "type":  "file",
+                                                                       "src":  [
+
+                                                                               ]
+                                                                   },
+                                                                   {
+                                                                       "key":  "Name",
+                                                                       "value":  "Mega Gym",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "Description",
+                                                                       "value":  "A premium fitness club.",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "PhoneNumber",
+                                                                       "value":  "+1234567890",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "Email",
+                                                                       "value":  "contact@megagym.com",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "AddressLine1",
+                                                                       "value":  "123 Main St",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "AddressLine2",
+                                                                       "value":  "Suite 100",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "City",
+                                                                       "value":  "Cairo",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "PostalCode",
+                                                                       "value":  "12345",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "Latitude",
+                                                                       "value":  "30.0444",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "Longitude",
+                                                                       "value":  "31.2357",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "Status",
+                                                                       "value":  "1",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "IsPublic",
+                                                                       "value":  "true",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "CreatedById",
+                                                                       "value":  "1",
+                                                                       "type":  "text"
+                                                                   }
+                                                               ]
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Gym/Create",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Gym",
+                                                              "Create"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Update Gym",
+                     "request":  {
+                                     "method":  "PUT",
+                                     "header":  [
+
+                                                ],
+                                     "body":  {
+                                                  "mode":  "formdata",
+                                                  "formdata":  [
+                                                                   {
+                                                                       "key":  "Name",
+                                                                       "value":  "Mega Gym Premium",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "Description",
+                                                                       "value":  "Updated premium fitness club.",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "PhoneNumber",
+                                                                       "value":  "+1234567890",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "Email",
+                                                                       "value":  "contact@megagym.com",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "AddressLine1",
+                                                                       "value":  "123 Main St",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "AddressLine2",
+                                                                       "value":  "Suite 200",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "City",
+                                                                       "value":  "Cairo",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "PostalCode",
+                                                                       "value":  "12345",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "Latitude",
+                                                                       "value":  "30.0444",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "Longitude",
+                                                                       "value":  "31.2357",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "Status",
+                                                                       "value":  "1",
+                                                                       "type":  "text"
+                                                                   },
+                                                                   {
+                                                                       "key":  "CreatedById",
+                                                                       "value":  "1",
+                                                                       "type":  "text"
+                                                                   }
+                                                               ]
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Gym/{{gymId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Gym",
+                                                              "{{gymId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Switch Gym",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"gymId\": {{gymId}}\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Gym/switch",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Gym",
+                                                              "switch"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Change Owner",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"gymId\": {{gymId}},\n  \"newOwnerUserId\": 2\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Gym/change-owner",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Gym",
+                                                              "change-owner"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Delete Gym",
+                     "request":  {
+                                     "method":  "DELETE",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Gym/{{gymId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Gym",
+                                                              "{{gymId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 }
+             ],
+    "auth":  {
+                 "type":  "bearer",
+                 "bearer":  [
+                                {
+                                    "key":  "token",
+                                    "value":  "{{token}}",
+                                    "type":  "string"
+                                }
+                            ]
+             }
+}

@@ -18,7 +18,7 @@ using Domain.Enum;
 namespace Infrastructure.Repo
 {
     public class PaymentRequestRepo(ApplicationDbContext context, ILogger<PaymentRequestRepo> logger, QueryCache queryCache, CurrentUser currentUser)
-    : BaseRepo<PaymentRequest>(context, logger, queryCache, currentUser), IPaymentRequestRepo
+    : BaseAuditableRepo<PaymentRequest>(context, logger, queryCache, currentUser), IPaymentRequestRepo
     {
         public async Task<bool> HasPendingRequestAsync(int UserId, CancellationToken ct = default)
         {

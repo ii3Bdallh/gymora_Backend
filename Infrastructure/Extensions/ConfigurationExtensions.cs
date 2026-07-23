@@ -2,6 +2,7 @@ using Domain.Model.Base;
 using Domain.Model.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Domain.Model;
 
 namespace Infrastructure.Extensions;
 
@@ -24,6 +25,17 @@ public static class ConfigurationExtensions
         builder.HasOne<ApplicationUser>()
                .WithMany()
                .HasForeignKey(e => e.CreatedById)
+               .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(e => e.IsActive);
+    }
+
+    public static void ConfigureGymAuditing<T>(this EntityTypeBuilder<T> builder)
+        where T : BaseGymEntity
+    {
+        builder.HasOne<Gym>()
+               .WithMany()
+               .HasForeignKey(e => e.GymId)
                .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(e => e.IsActive);

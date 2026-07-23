@@ -16,8 +16,8 @@ using System.Linq.Dynamic.Core;
 
 namespace Infrastructure.Repo.Entity
 {
-    public class SubscriptionPlanRepo(ApplicationDbContext context, ILogger<SubscriptionPlanRepo> logger, QueryCache queryCache, CurrentUser currentUser)
-    : BaseRepo<SubscriptionPlan>(context, logger, queryCache, currentUser), ISubscriptionPlanRepo
+    public class SubscriptionPlanRepo(ApplicationDbContext context, ILogger<SubscriptionPlanRepo> logger, QueryCache queryCache)
+    : BaseRepo<SubscriptionPlan>(context, logger, queryCache), ISubscriptionPlanRepo
     {
 
         protected override Func<IQueryable<SubscriptionPlan>, IQueryable<SubscriptionPlan>>? Includes()

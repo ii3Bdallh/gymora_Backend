@@ -1,4 +1,5 @@
 using Application.DTO.Base;
+using Domain.Interface;
 using Domain.Model.Base;
 
 namespace Application.Interface.Service
@@ -8,7 +9,7 @@ namespace Application.Interface.Service
     /// can write can also read — but not the other way around.
     /// </summary>
     public interface IBaseService<T, RDTO, CDTO, UDTO> : IBaseReadService<T, RDTO>
-        where T : BaseEntity
+        where T : class, IBaseEntity
         where RDTO : BaseRDTO
         where CDTO : BaseCDTO
         where UDTO : BaseUDTO

@@ -23,8 +23,7 @@ public class SubscriptionPlanRepoTests : IDisposable
         _sut = new SubscriptionPlanRepo(
             _context,
             InMemoryDbContextFactory.Logger<SubscriptionPlanRepo>().Object,
-            new Infrastructure.Cache.QueryCache(),
-            currentUser);
+            new Infrastructure.Cache.QueryCache());
     }
 
     public void Dispose()

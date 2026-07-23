@@ -18,22 +18,22 @@ namespace Api.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<UsersRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
+        public async Task<ActionResult<IEnumerable<ApplicationUserRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
         {
             logger.LogInformation("Fetching all Userss");
-            PaginatedRes<UsersRDTO> Userss = await service.GetPageAsync(searchReq, true);
+            PaginatedRes<ApplicationUserRDTO> Userss = await service.GetPageAsync(searchReq, true);
             logger.LogInformation("Successfully fetched all Userss");
-            return Ok(Result<PaginatedRes<UsersRDTO>>.Success(Userss));
+            return Ok(Result<PaginatedRes<ApplicationUserRDTO>>.Success(Userss));
         }
         [HttpGet("{id}")]
-        public async Task<ActionResult<UsersRDTO>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<ApplicationUserRDTO>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching Users with Id: {Id}", id);
 
             var Users = await service.GetByIdAsync(id, true, cancellationToken: cancellationToken);
 
             logger.LogInformation("Successfully fetched Users with Id: {Id}", id);
-            return Ok(Result<UsersRDTO>.Success(Users));
+            return Ok(Result<ApplicationUserRDTO>.Success(Users));
         }
 
 

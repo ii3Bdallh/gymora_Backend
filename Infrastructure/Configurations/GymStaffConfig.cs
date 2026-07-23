@@ -27,7 +27,7 @@ namespace Infrastructure.Config
       builder.Property(x => x.GymRole).HasConversion<int>();
       
 
-      builder.HasOne<ApplicationUser>()
+      builder.HasOne(x => x.User)
              .WithMany()
              .HasForeignKey(x => x.UserId)
              .OnDelete(DeleteBehavior.Restrict);

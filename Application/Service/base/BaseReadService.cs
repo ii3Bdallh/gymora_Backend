@@ -20,7 +20,7 @@ namespace Application.Service
     /// Public entities are visible to everyone, while owned entities are filtered by CreatedById.
     /// </summary>
     public abstract class BaseReadService<T, RDTO> : IBaseReadService<T, RDTO>
-        where T : BaseEntity
+        where T : class, IBaseEntity
         where RDTO : BaseRDTO
     {
         protected readonly IBaseRepo<T> _repo;
@@ -45,9 +45,11 @@ namespace Application.Service
 
         protected int? CurrentGymId => _currentUser.CurrentGymId;
         protected int CurrentUserId => _currentUser.UserId;
+
+        protected int? CurrentStaffId => _currentUser.CurrentStaffId;
         protected CurrentUser CurrentUser => _currentUser;
         protected virtual bool IsCacheEnabled =>
-             typeof(ICacheTT).IsAssignableFrom(typeof(T));
+             typeof(ICacheableEntity).IsAssignableFrom(typeof(T));
 
 
         protected bool HasFullAccess => CurrentUser.IsSuperAdmin;
@@ -56,6 +58,7 @@ namespace Application.Service
         {
             return HasFullAccess || createdById == CurrentUserId;
         }
+
 
         /// <summary>
         /// بيحدد هل نبعت userId للـ CacheKeyGenerator ولا لأ.

@@ -1,0 +1,564 @@
+﻿{
+    "info":  {
+                 "_postman_id":  "f0e70db9-c428-46ae-ab32-b7b371af6042",
+                 "name":  "Auth",
+                 "description":  "Authentication and user account management endpoints.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Register",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"email\": \"{{user1_email}}\",\n  \"userName\": \"abdallh.dev87\",\n  \"password\": \"{{user1_password}}\",\n  \"phoneNumber\": \"+201234567890\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/register",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "register"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Confirm Email (OTP)",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"email\": \"{{user1_email}}\",\n  \"otp\": \"12345\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/confirm-email",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "confirm-email"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Confirm Email (Link)",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/confirm-email?userId=some-user-id\u0026code=some-code",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "confirm-email"
+                                                          ],
+                                                 "query":  [
+                                                               {
+                                                                   "key":  "userId",
+                                                                   "value":  "some-user-id"
+                                                               },
+                                                               {
+                                                                   "key":  "code",
+                                                                   "value":  "some-code"
+                                                               }
+                                                           ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Resend Confirmation Email",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"email\": \"{{user1_email}}\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/resend-confirmation-email",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "resend-confirmation-email"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Login (Owner)",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "pm.test(\"Token is saved to environment\", function () {",
+                                                                   "    var jsonData = pm.response.json();",
+                                                                   "    pm.expect(jsonData.succeeded).to.eql(true);",
+                                                                   "    if (jsonData.data \u0026\u0026 jsonData.data.token) {",
+                                                                   "        pm.environment.set(\"owner_token\", jsonData.data.token);",
+                                                                   "        pm.environment.set(\"owner_refreshToken\", jsonData.data.refreshToken);",
+                                                                   "        pm.environment.set(\"token\", jsonData.data.token);",
+                                                                   "        pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+                                                                   "    }",
+                                                                   "});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "auth":  {
+                                                  "type":  "noauth"
+                                              },
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"email\": \"{{owner_email}}\",\n  \"password\": \"{{owner_password}}\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/login",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "login"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Login (First User)",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "pm.test(\"Token is saved to environment\", function () {",
+                                                                   "    var jsonData = pm.response.json();",
+                                                                   "    pm.expect(jsonData.succeeded).to.eql(true);",
+                                                                   "    if (jsonData.data \u0026\u0026 jsonData.data.token) {",
+                                                                   "        pm.environment.set(\"user1_token\", jsonData.data.token);",
+                                                                   "        pm.environment.set(\"user1_refreshToken\", jsonData.data.refreshToken);",
+                                                                   "        pm.environment.set(\"token\", jsonData.data.token);",
+                                                                   "        pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+                                                                   "    }",
+                                                                   "});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "auth":  {
+                                                  "type":  "noauth"
+                                              },
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"email\": \"{{user1_email}}\",\n  \"password\": \"{{user1_password}}\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/login",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "login"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Login (Second User)",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "pm.test(\"Token is saved to environment\", function () {",
+                                                                   "    var jsonData = pm.response.json();",
+                                                                   "    pm.expect(jsonData.succeeded).to.eql(true);",
+                                                                   "    if (jsonData.data \u0026\u0026 jsonData.data.token) {",
+                                                                   "        pm.environment.set(\"user2_token\", jsonData.data.token);",
+                                                                   "        pm.environment.set(\"user2_refreshToken\", jsonData.data.refreshToken);",
+                                                                   "        pm.environment.set(\"token\", jsonData.data.token);",
+                                                                   "        pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+                                                                   "    }",
+                                                                   "});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "auth":  {
+                                                  "type":  "noauth"
+                                              },
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"email\": \"{{user2_email}}\",\n  \"password\": \"{{user2_password}}\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/login",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "login"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Get User Profile",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/get-user-profile",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "get-user-profile"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Refresh Token",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "pm.test(\"Token is updated\", function () {",
+                                                                   "    var jsonData = pm.response.json();",
+                                                                   "    if (jsonData.data \u0026\u0026 jsonData.data.token) {",
+                                                                   "        pm.environment.set(\"token\", jsonData.data.token);",
+                                                                   "        pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+                                                                   "    }",
+                                                                   "});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"token\": \"{{token}}\",\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/refresh-token",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "refresh-token"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Logout",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"token\": \"{{token}}\",\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"logoutFromAllDevices\": false\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/logout",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "logout"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Forgot Password",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"email\": \"{{user1_email}}\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/forgot-password",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "forgot-password"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Verify OTP (Reset Password)",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"email\": \"{{user1_email}}\",\n  \"otp\": \"123456\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/verify-otp",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "verify-otp"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Reset Password",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"email\": \"{{user1_email}}\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewPassword123!\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/reset-password",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "reset-password"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Change Password",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"currentPassword\": \"OldPassword123!\",\n  \"newPassword\": \"NewPassword123!\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/change-password",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "change-password"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Login Google",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"idToken\": \"google_token_here\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/login-google",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "login-google"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 }
+             ],
+    "auth":  {
+                 "type":  "bearer",
+                 "bearer":  [
+                                {
+                                    "key":  "token",
+                                    "value":  "{{token}}",
+                                    "type":  "string"
+                                }
+                            ]
+             }
+}

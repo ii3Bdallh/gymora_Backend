@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace Domain.Interface
 {
-    public interface ICacheableETTntity
+    public interface ICacheableEntity
     {
-        
+
     }
 }

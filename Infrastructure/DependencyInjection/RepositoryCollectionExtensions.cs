@@ -6,7 +6,6 @@ using Domain.Model;
 using Infrastructure.Repo;
 using Infrastructure.Repo.Base;
 using Infrastructure.Repo.Entity;
-using Infrastructure.Service;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -20,16 +19,15 @@ public static class RepositoryCollectionExtensions
         services.AddScoped<IAuthRepo, AuthRepo>();
         services.AddScoped<IUserRepo, UserRepo>();
 
-        services.AddScoped<ITransactionManager, TransactionManager>();
 
         services.AddSingleton<ILogger>(sp =>
             sp.GetRequiredService<ILoggerFactory>().CreateLogger("App"));
 
         // Script will Add After Here DependencyInjectionRepo
-services.AddScoped<IGymStaffRepo, GymStaffRepo>();
-services.AddScoped<IUsersRepo, UsersRepo>();
-services.AddScoped<IGymRepo, GymRepo>();
-services.AddScoped<ICouponRedemptionRepo, CouponRedemptionRepo>();
+        services.AddScoped<IGymStaffRepo, GymStaffRepo>();
+        services.AddScoped<IUsersRepo, UsersRepo>();
+        services.AddScoped<IGymRepo, GymRepo>();
+        services.AddScoped<ICouponRedemptionRepo, CouponRedemptionRepo>();
         services.AddScoped<IOwnerSubscriptionRepo, OwnerSubscriptionRepo>();
         services.AddScoped<ICouponRepo, CouponRepo>();
         services.AddScoped<IPaymentRequestRepo, PaymentRequestRepo>();

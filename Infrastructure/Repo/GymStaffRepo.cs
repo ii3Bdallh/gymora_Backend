@@ -17,7 +17,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Repo
 {
     public class GymStaffRepo(ApplicationDbContext context, ILogger<GymStaffRepo> logger, QueryCache queryCache, CurrentUser currentUser)
-    : BaseRepo<GymStaff>(context, logger, queryCache, currentUser), IGymStaffRepo
+    : BaseGymRepo<GymStaff>(context, logger, queryCache, currentUser), IGymStaffRepo
     {
         public async Task<GymStaff?> LinkAccountToGymAsync(
             int gymId,

@@ -7,6 +7,7 @@ using Application.Interface.Service.Shared;
 using Application.Model;
 using AutoMapper;
 using Domain.Events;
+using Domain.Interface;
 using Domain.Model.Base;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -20,7 +21,7 @@ namespace Application.Service
     /// </summary>
     public abstract class BaseService<T, RDTO, CDTO, UDTO>
         : BaseReadService<T, RDTO>, IBaseService<T, RDTO, CDTO, UDTO>
-        where T : BaseEntity
+        where T : class, IBaseEntity
         where RDTO : BaseRDTO
         where CDTO : BaseCDTO
         where UDTO : BaseUDTO

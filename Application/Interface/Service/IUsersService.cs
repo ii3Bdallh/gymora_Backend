@@ -13,15 +13,15 @@ namespace Application.Interface.Service
 {
     public interface IUsersService
     {
-        Task<IEnumerable<UsersRDTO>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<IEnumerable<ApplicationUserRDTO>> GetAllAsync(CancellationToken cancellationToken = default);
 
-        Task<UsersRDTO> GetByIdAsync(
+        Task<ApplicationUserRDTO> GetByIdAsync(
             int id,
             bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default);
 
-        Task<PaginatedRes<UsersRDTO>> GetPageAsync(
+        Task<PaginatedRes<ApplicationUserRDTO>> GetPageAsync(
             PaginatedSearchReq searchReq,
             bool isActive = true,
             bool trackChanges = false,

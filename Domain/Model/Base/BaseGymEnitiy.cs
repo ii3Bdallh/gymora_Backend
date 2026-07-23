@@ -8,3 +8,9 @@ namespace Domain.Model.Base
         public int GymId { get; set; }
     }
 }
+
+
+
+
+
+

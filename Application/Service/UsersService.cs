@@ -28,7 +28,7 @@ namespace Application.Service
     { // <-- تم إضافة قوس البداية المفقود هنا
 
         // تم إضافة async هنا لتتوافق مع await بالداخل
-        public async Task<IEnumerable<UsersRDTO>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<ApplicationUserRDTO>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             // تم استبدال typeof(T).Name بـ nameof(ApplicationUser)
             logger.LogInformation("Fetching all {EntityType} records", nameof(ApplicationUser));
@@ -36,14 +36,14 @@ namespace Application.Service
             var models = await repo.GetAllAsync(cancellationToken: cancellationToken);
 
             // تم تغيير RDTO إلى UsersRDTO
-            var result = mapper.Map<IEnumerable<UsersRDTO>>(models);
+            var result = mapper.Map<IEnumerable<ApplicationUserRDTO>>(models);
 
             logger.LogInformation("Fetched {Count} {EntityType} records", models.Count(), nameof(ApplicationUser));
             return result;
         }
 
         // تم إضافة async وتعديل أسماء المتغيرات لتطابق الـ Constructor
-        public async Task<UsersRDTO> GetByIdAsync(int id, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default)
+        public async Task<ApplicationUserRDTO> GetByIdAsync(int id, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching {EntityType} with ID {Id}", nameof(ApplicationUser), id);
 
@@ -57,14 +57,14 @@ namespace Application.Service
                 throw new Exception($"{nameof(ApplicationUser)} with ID {id} was not found."); // استبدلها بـ NotFoundException الخاصة بك إن وجدت
 
 
-            var dto = mapper.Map<UsersRDTO>(entity);
+            var dto = mapper.Map<ApplicationUserRDTO>(entity);
 
 
             return dto;
         }
 
         // تم إضافة async هنا أيضاً وتعديل الأسماء
-        public async Task<PaginatedRes<UsersRDTO>> GetPageAsync(PaginatedSearchReq searchReq, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default)
+        public async Task<PaginatedRes<ApplicationUserRDTO>> GetPageAsync(PaginatedSearchReq searchReq, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default)
         {
             var page = await repo.GetPageAsync(
                 searchReq,
@@ -72,12 +72,12 @@ namespace Application.Service
                 trackChanges,
                 cancellationToken);
 
-            return new PaginatedRes<UsersRDTO>
+            return new PaginatedRes<ApplicationUserRDTO>
             {
                 PageNumber = page.PageNumber,
                 PageSize = page.PageSize,
                 TotalCount = page.TotalCount,
-                Items = mapper.Map<List<UsersRDTO>>(page.Items)
+                Items = mapper.Map<List<ApplicationUserRDTO>>(page.Items)
             };
         }
 

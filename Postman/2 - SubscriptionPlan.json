@@ -1,0 +1,304 @@
+﻿{
+    "info":  {
+                 "_postman_id":  "2d1b3805-9f9e-4a52-84fc-ac86f72642c9",
+                 "name":  "Subscription Plan",
+                 "description":  "Endpoints to manage and purchase pricing plans.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Get Paged Subscription Plans",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "var jsonData = pm.response.json();",
+                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
+                                                                   "    pm.variables.set(\"subscriptionPlanId\", jsonData.data.items[0].id);",
+                                                                   "    if (jsonData.data.items[0].prices \u0026\u0026 jsonData.data.items[0].prices.length \u003e 0) {",
+                                                                   "        pm.variables.set(\"planPriceId\", jsonData.data.items[0].prices[0].id);",
+                                                                   "    }",
+                                                                   "}"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "auth":  {
+                                                  "type":  "noauth"
+                                              },
+                                     "description":  "### Endpoint Overview\n\nFetches a paginated list of subscription plans with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Name` | `string` | Searchable | Plan display name |\n| `Description` | `string` | - | Detailed plan summary |\n| `IsFree` | `bool` | Exact | Free tier indicator |\n| `MaxOwnedGyms` | `int` | Between | Maximum gyms owner can create |\n| `MaxCoachesGym` | `int` | Between | Max coaches allowed per gym |\n| `MaxMembersGym` | `int` | Between | Max members allowed per gym |\n| `FeaturesJson` | `string` | - | JSON serialized feature lists |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"IsFree\": [\"false\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"MaxOwnedGyms\": { \"min\": \"1\", \"max\": \"10\" } }`",
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/SubscriptionPlan",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "SubscriptionPlan"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Get Subscription Plan By Id",
+                     "request":  {
+                                     "auth":  {
+                                                  "type":  "noauth"
+                                              },
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/SubscriptionPlan/{{subscriptionPlanId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "SubscriptionPlan",
+                                                              "{{subscriptionPlanId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Create Subscription Plan",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "var jsonData = pm.response.json();",
+                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
+                                                                   "    pm.variables.set(\"subscriptionPlanId\", jsonData.data.id);",
+                                                                   "}"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"name\": \"Gold Plan\",\n  \"isFree\": false,\n  \"description\": \"Unlimited gyms and premium features.\",\n  \"maxOwnedGyms\": 5,\n  \"maxCoachesGym\": 20,\n  \"maxMembersGym\": 500,\n  \"featuresJson\": \"[\\\"App Access\\\", \\\"Analytics Dashboard\\\"]\",\n  \"prices\": [\n    {\n      \"countryCode\": \"EG\",\n      \"currencyCode\": \"EGP\",\n      \"durationMonths\": 12,\n      \"amount\": 1200.00\n    }\n  ]\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/SubscriptionPlan/Create",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "SubscriptionPlan",
+                                                              "Create"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Update Subscription Plan",
+                     "request":  {
+                                     "method":  "PUT",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"name\": \"Gold Plan Premium\",\n  \"isFree\": false,\n  \"description\": \"Updated features package.\",\n  \"maxOwnedGyms\": 10,\n  \"maxCoachesGym\": 30,\n  \"maxMembersGym\": 1000,\n  \"featuresJson\": \"[\\\"App Access\\\", \\\"Analytics Dashboard\\\", \\\"API Integration\\\"]\",\n  \"isActive\": true\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/SubscriptionPlan/{{subscriptionPlanId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "SubscriptionPlan",
+                                                              "{{subscriptionPlanId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Create Plan Price",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "var jsonData = pm.response.json();",
+                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
+                                                                   "    pm.variables.set(\"planPriceId\", jsonData.data.id);",
+                                                                   "}"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"planId\": {{subscriptionPlanId}},\n  \"countryCode\": \"US\",\n  \"currencyCode\": \"USD\",\n  \"durationMonths\": 6,\n  \"amount\": 99.99\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/SubscriptionPlan/{{subscriptionPlanId}}/PlanPrices/Create",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "SubscriptionPlan",
+                                                              "{{subscriptionPlanId}}",
+                                                              "PlanPrices",
+                                                              "Create"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Update Plan Price",
+                     "request":  {
+                                     "method":  "PUT",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"countryCode\": \"US\",\n  \"currencyCode\": \"USD\",\n  \"durationMonths\": 6,\n  \"amount\": 109.99\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/SubscriptionPlan/{{subscriptionPlanId}}/PlanPrices/{{planPriceId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "SubscriptionPlan",
+                                                              "{{subscriptionPlanId}}",
+                                                              "PlanPrices",
+                                                              "{{planPriceId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Delete Plan Price",
+                     "request":  {
+                                     "method":  "DELETE",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/SubscriptionPlan/PlanPrices/{{planPriceId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "SubscriptionPlan",
+                                                              "PlanPrices",
+                                                              "{{planPriceId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Delete Subscription Plan",
+                     "request":  {
+                                     "method":  "DELETE",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/SubscriptionPlan/{{subscriptionPlanId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "SubscriptionPlan",
+                                                              "{{subscriptionPlanId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 }
+             ],
+    "auth":  {
+                 "type":  "bearer",
+                 "bearer":  [
+                                {
+                                    "key":  "token",
+                                    "value":  "{{token}}",
+                                    "type":  "string"
+                                }
+                            ]
+             }
+}

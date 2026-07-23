@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Application.DTO;
 using Application.DTO.Pagintion;
+using Domain.Interface;
 using Domain.Model.Base;
 
 namespace Application.Interface.Repo
@@ -9,7 +10,7 @@ namespace Application.Interface.Repo
 
 
 
-    public interface IBaseRepo<T> where T : BaseEntity
+    public interface IBaseRepo<T> where T : class, IBaseEntity
     {
         // إرجاع IQueryable خام بدون أي فلترة (Active/Includes/Ordering)
         // تستخدم في الـ Services اللي عايزة تبني الـ Query بنفسها (زي BaseReadService)

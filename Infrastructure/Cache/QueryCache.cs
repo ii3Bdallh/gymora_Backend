@@ -1,5 +1,6 @@
 using System.Reflection;
 using Domain.Attributes;
+using Domain.Interface;
 using Domain.Model.Base;
 
 namespace Infrastructure.Cache
@@ -21,9 +22,9 @@ namespace Infrastructure.Cache
 
         public QueryCache()
         {
-            var entityTypes = Assembly.GetAssembly(typeof(BaseEntity))!
+            var entityTypes = Assembly.GetAssembly(typeof(IBaseEntity))!
                 .GetTypes()
-                .Where(t => t.IsSubclassOf(typeof(BaseEntity)) && !t.IsAbstract);
+                .Where(t => typeof(IBaseEntity).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
             foreach (var type in entityTypes)
             {

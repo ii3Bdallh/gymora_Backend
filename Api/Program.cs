@@ -10,6 +10,7 @@ using Infrastructure.Hangfire;
 using Infrastructure.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,4 +69,5 @@ app.MapHealthChecks("/healthz");
 
 app.Run();
 
+Log.Information("Application Started");
 #endregion
