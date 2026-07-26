@@ -9,6 +9,9 @@ using System.Text;
 using Domain.Options;
 using Domain.Model.Auth;
 using Microsoft.Extensions.Options;
+using Application.DTO.Model;
+using Infrastructure.Constant;
+using Domain.Model;
 
 namespace Infrastructure.Utils
 {
@@ -29,64 +32,52 @@ namespace Infrastructure.Utils
         }
 
         public (string token, int expireInMinutes) GenerateToken(
-            ApplicationUser appUser,
-            IList<string> roles,
-            int? currentGymId = null,
-            string? gymRole = null,
-            int? currentStaffId = null)
+    ApplicationUser user,
+    IList<string> roles,
+    RefreshToken refreshToken)
         {
             var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, appUser.Id.ToString()),
-                new Claim(ClaimTypes.Email, appUser.Email ?? string.Empty),
-                new Claim("UserId", appUser.Id.ToString()),
-                new Claim("CurrentStaffId", currentStaffId?.ToString() ?? string.Empty)
-            };
+    {
+        new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new(ClaimTypes.Email, user.Email ?? string.Empty),
+        new(JwtClaimsNames.UserId, user.Id.ToString())
+    };
 
-            // App Roles (SuperAdmin, PlatformAdmin, ...)
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            // Gym Specific Claims
-            if (currentGymId.HasValue)
+            if (refreshToken.CurrentGymId > 0)
             {
-                claims.Add(new Claim("CurrentGymId", currentGymId.Value.ToString()));
+                claims.Add(new Claim(
+                    JwtClaimsNames.CurrentGymId,
+                    refreshToken.CurrentGymId.ToString()));
+
+                claims.Add(new Claim(
+                    JwtClaimsNames.CurrentStaffId,
+                    refreshToken.CurrentStaffId.ToString()));
             }
 
-            if (!string.IsNullOrEmpty(gymRole))
-            {
-                claims.Add(new Claim("GymRole", gymRole));
-            }
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_jwtOptions.SecretKey!));
 
-            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey!));
-            var credentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
+            var credentials = new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
                 issuer: _jwtOptions.Issuer,
                 audience: _jwtOptions.Audience,
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenExpirationMinutes),
-                signingCredentials: credentials
-            );
+                signingCredentials: credentials);
 
             return (
-                token: new JwtSecurityTokenHandler().WriteToken(token),
-                expireInMinutes: _jwtOptions.AccessTokenExpirationMinutes
-            );
+                new JwtSecurityTokenHandler().WriteToken(token),
+                _jwtOptions.AccessTokenExpirationMinutes);
         }
 
-        // Generate Token after Switch Gym
-        public (string token, int expireInMinutes) GenerateTokenWithGym(
-            ApplicationUser appUser,
-            IList<string> roles,
-            int currentGymId,
-            string gymRole,
-            int? currentStaffId = null)
-        {
-            return GenerateToken(appUser, roles, currentGymId, gymRole, currentStaffId);
-        }
 
         public string? GetUserIdByToken(string token, bool validateLifetime = true)
         {

@@ -89,10 +89,11 @@ namespace Application.DTO.Model
 
     }
 
-    public sealed record SwitchGymDTO
+    public sealed class SwitchGymRequest
     {
-        [Required]
-        public int GymId { get; init; }
+        public int GymId { get; set; }
+
+        public required RefreshTokenReqDto RefreshToken { get; set; } 
     }
 
     public sealed record ChangeOwnerDTO
@@ -102,5 +103,25 @@ namespace Application.DTO.Model
 
         [Required]
         public int NewOwnerUserId { get; init; }
+    }
+
+    public class MyGymDto
+    {
+        public int GymId { get; set; }
+
+        public string GymName { get; set; } = default!;
+
+        public string GymRole { get; set; } = default!;
+
+    }
+
+    public class SwitchGymResponse
+    {
+
+        public MyGymDto CurrentGym { get; set; } = default!;
+
+        public string AccessToken { get; set; } = default!;
+
+        public string RefreshToken { get; set; } = default!;
     }
 }

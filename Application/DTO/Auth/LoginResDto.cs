@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.DTO.Model;
 
 namespace Application.DTO
 {
@@ -15,7 +16,8 @@ namespace Application.DTO
         int ExpiresIn,
         string Refreshtoken,
         IEnumerable<string> Roles,
-        DateTime RefreshTokenExpirationDate
+        DateTime RefreshTokenExpirationDate,
+        MyGymDto? MyGym
 );
 }
 

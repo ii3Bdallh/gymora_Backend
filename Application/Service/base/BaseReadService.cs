@@ -117,8 +117,7 @@ namespace Application.Service
     bool trackChanges = false,
     CancellationToken cancellationToken = default)
         {
-            var key = CacheKeyGenerator.ById(
-                CacheEntityNames.ForType<T>(),
+            var key = CacheKeyGenerator.ById<T>(
                 id,
                 CurrentGymId,
                 CacheUserScope);
@@ -173,31 +172,19 @@ namespace Application.Service
             bool trackChanges = false,
             CancellationToken cancellationToken = default)
         {
-            var key = CacheKeyGenerator.ByPage(
-                CacheEntityNames.ForType<T>(),
+            var page = await _repo.GetPageAsync(
                 searchReq,
-                CurrentGymId,
-                CacheUserScope);
+                isActive,
+                trackChanges,
+                cancellationToken);
 
-            return await GetOrCreateCacheAsync(
-                key,
-                async () =>
-                {
-                    var page = await _repo.GetPageAsync(
-                        searchReq,
-                        isActive,
-                        trackChanges,
-                        cancellationToken);
-
-                    return new PaginatedRes<RDTO>
-                    {
-                        PageNumber = page.PageNumber,
-                        PageSize = page.PageSize,
-                        TotalCount = page.TotalCount,
-                        Items = _mapper.Map<List<RDTO>>(page.Items)
-                    };
-                },
-                IsCacheEnabled);
+            return new PaginatedRes<RDTO>
+            {
+                PageNumber = page.PageNumber,
+                PageSize = page.PageSize,
+                TotalCount = page.TotalCount,
+                Items = _mapper.Map<List<RDTO>>(page.Items)
+            };
         }
 
 

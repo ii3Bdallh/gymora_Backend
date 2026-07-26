@@ -32,7 +32,6 @@ namespace Domain.Model
 
     public GymRole GymRole { get; set; }
 
-    [Filterable(FilterType.Between)]
     public decimal? Salary { get; set; }
 
 

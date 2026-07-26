@@ -6,6 +6,9 @@ public class RefreshToken
 
     public string Token { get; set; } = string.Empty;
 
+    public int CurrentGymId { get; set; }
+
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime ExpirationAt { get; set; }

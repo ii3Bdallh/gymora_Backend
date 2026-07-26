@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Application.DTO.Pagintion;
+using Domain.Interface;
 
 namespace Application.Cache
 {
@@ -14,68 +16,29 @@ namespace Application.Cache
     {
         private const string Prefix = "gymora";
 
-        /// <summary>
-        /// Key بتاع entity واحدة بالـ Id.
-        /// </summary>
-        /// <returns>
-        /// يرجع نصاً على شكل:
-        /// <list type="bullet">
-        ///   <item><description><c>gymora:gym:5:user:12:subscription:id:1</c> (يوزر معين جوه جيم)</description></item>
-        ///   <item><description><c>gymora:gym:5:subscription:id:1</c> (كاش عام لكل يوزرات الجيم)</description></item>
-        ///   <item><description><c>gymora:global:subscription:id:1</c> (كاش عام للنظام بالكامل)</description></item>
-        /// </list>
-        /// </returns>
+
         public static string ById(string entityName, int entityId, int? gymId = null, int? userId = null)
         {
             var scope = ScopeSegment(gymId: gymId, userId: userId);
             return $"{Prefix}:{scope}:{entityName}:id:{entityId}";
         }
 
-        /// <summary>
-        /// Key بتاع صفحة (Pagination) يعتمد على الـ Hash الخاص بالفلاتر والبحث.
-        /// </summary>
-        /// <returns>
-        /// يرجع نصاً على شكل:
-        /// <list type="bullet">
-        ///   <item><description><c>gymora:gym:5:user:12:subscription:page:h:a1b2c3d4e5f6g7h8</c></description></item>
-        ///   <item><description><c>gymora:global:subscription:page:h:fa307e5b2298cde1</c></description></item>
-        /// </list>
-        /// </returns>
-        public static string ByPage(string entityName, PaginatedSearchReq req, int? gymId = null, int? userId = null)
+        public static string ById<T>(int entityId, int? gymId = null, int? userId = null)
         {
-            var hash = ComputeHash(req: req);
-            var scope = ScopeSegment(gymId: gymId, userId: userId);
-            return $"{Prefix}:{scope}:{entityName}:page:h:{hash}";
+            var entityName = CacheEntityNames.ForType<T>();
+            var finalGymId = typeof(IBaseGymEntity).IsAssignableFrom(typeof(T)) ? gymId : null;
+            var finalUserId = typeof(IOnlyMeCanSee).IsAssignableFrom(typeof(T)) ? userId : null;
+
+            var scope = ScopeSegment(gymId: finalGymId, userId: finalUserId);
+            return $"{Prefix}:{scope}:{entityName}:id:{entityId}";
         }
 
-        /// <summary>
-        /// Key بتاع قايمة كاملة (زي GetAllAsync) تحت تصنيف/تاج معين.
-        /// </summary>
-        /// <returns>
-        /// يرجع نصاً على شكل:
-        /// <list type="bullet">
-        ///   <item><description><c>gymora:gym:5:subscription:list:tag:active</c></description></item>
-        ///   <item><description><c>gymora:global:subscription:list:tag:all</c></description></item>
-        /// </list>
-        /// </returns>
-        public static string ByList(string entityName, int? gymId = null, int? userId = null, string tag = "all")
+        public static string PrefixSegment(int? gymId = null, int? userId = null)
         {
-            var scope = ScopeSegment(gymId: gymId, userId: userId);
-            return $"{Prefix}:{scope}:{entityName}:list:tag:{tag}";
+            var scope = ScopeSegment(gymId, userId);
+            return $"{Prefix}:{scope}";
         }
 
-        /// <summary>
-        /// بتبني جزء الـ "نطاق" (scope) من الـ key ديناميكياً.
-        /// </summary>
-        /// <returns>
-        /// يرجع أحد الأشكال التالية فقط:
-        /// <list type="number">
-        ///   <item><description><c>gym:5:user:12</c> (لو الجيم واليوزر ممررين)</description></item>
-        ///   <item><description><c>global:user:12</c> (لو اليوزر فقط ممرر)</description></item>
-        ///   <item><description><c>gym:5</c> (لو الجيم فقط ممرر)</description></item>
-        ///   <item><description><c>global</c> (لو القيمة عامة تماماً)</description></item>
-        /// </list>
-        /// </returns>
         private static string ScopeSegment(int? gymId, int? userId)
         {
             if (gymId.HasValue && userId.HasValue)
@@ -90,36 +53,7 @@ namespace Application.Cache
             return "global";
         }
 
-        /// <summary>
-        /// بيحول شكل الـ Search Request (صفحة، فلاتر، ترتيب) لبصمة (hash) قصيرة من 16 حرف.
-        /// </summary>
-        /// <returns>
-        /// سلسلة نصية مكونة من 16 حرفاً هكسا-ديسيمال (Hexadecimal) صغيرة، مثل:
-        /// <c>9f86d081884c7d65</c>
-        /// </returns>
-        private static string ComputeHash(PaginatedSearchReq req)
-        {
-            var key = $"{req.PageNumber}_{req.PageSize}_{req.SearchTerm}_{req.OrderBy}_{req.OrderDirection ?? ""}";
-            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(key));
-            return Convert.ToHexString(bytes)[..16].ToLower();
-        }
 
-        /// <summary>
-        /// للـ Invalidation السريع: مسح كل كاش خاص بجيم معين دفعة واحدة.
-        /// </summary>
-        /// <returns>
-        /// يرجع نصاً ثابتاً مثل: <c>gymora:gym:5</c>
-        /// </returns>
-        public static string GymPrefix(int gymId)
-            => $"{Prefix}:gym:{gymId}";
 
-        /// <summary>
-        /// للـ Invalidation السريع: مسح الكاش العام (Global) للنظام بالكامل.
-        /// </summary>
-        /// <returns>
-        /// يرجع نصاً ثابتاً: <c>gymora:global</c>
-        /// </returns>
-        public static string GlobalPrefix()
-            => $"{Prefix}:global";
     }
 }

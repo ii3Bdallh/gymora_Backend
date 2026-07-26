@@ -1,6 +1,7 @@
 using Application.DTO;
 using Application.DTO.Auth;
 using Application.DTO.Exceptions;
+using Application.DTO.Model;
 using Application.Interface.Repo;
 using Application.Interface.Repo.Shared;
 using Application.Interface.Service.Shared;
@@ -28,6 +29,8 @@ namespace Infrastructure.Repo
         private readonly IUnitOfWork _unitOfWork;
         private readonly int _refreshTokenDays;
 
+        private readonly IGymAccessRepo _gymAccessRepo;
+
         public AuthRepo(
             UserManager<ApplicationUser> userManager,
             JwtProvider jwtProvider,
@@ -35,7 +38,8 @@ namespace Infrastructure.Repo
             IEmailService emailSender,
             IConfiguration configuration,
             ILogger<AuthRepo> logger,
-            IUnitOfWork unitOfWork
+            IUnitOfWork unitOfWork,
+            IGymAccessRepo gymAccessRepo
             )
         {
             _userManager = userManager;
@@ -46,6 +50,7 @@ namespace Infrastructure.Repo
             _logger = logger;
             _unitOfWork = unitOfWork;
             _refreshTokenDays = int.TryParse(configuration["Jwt:RefreshTokenExpirationInDays"], out var days) ? days : 7;
+            _gymAccessRepo = gymAccessRepo;
         }
 
         public async Task<GetUserProfileDto> GetUserProfileAsync(int userId, CancellationToken cancellationToken)
@@ -114,6 +119,8 @@ namespace Infrastructure.Repo
 
             var roles = await _userManager.GetRolesAsync(user);
 
+
+
             try
             {
                 // ---- حد أقصى لعدد الأجهزة المسجلة (Refresh Tokens) ----
@@ -125,17 +132,25 @@ namespace Infrastructure.Repo
                 string refreshToken = GenerateRefreshToken();
                 var refreshTokenExpiry = DateTime.UtcNow.AddDays(_refreshTokenDays);
 
-                user.RefreshTokens.Add(new RefreshToken
+                RefreshToken refresh = new RefreshToken
                 {
                     Token = refreshToken,
-                    ExpirationAt = refreshTokenExpiry
-                });
+                    ExpirationAt = refreshTokenExpiry,
+                };
 
-                var (token, expiresIn) = _jwtProvider.GenerateToken(user, roles);
+                user.RefreshTokens.Add(refresh);
+
+
+                var (token, expiresIn) = _jwtProvider.GenerateToken(
+     user,
+     roles,
+     refresh
+ );
                 await _userManager.UpdateAsync(user);
 
                 return new LoginResDto(user.Id, user.Email!, user.PersonName, token, expiresIn,
-                    refreshToken, roles, refreshTokenExpiry);
+                    refreshToken, roles, refreshTokenExpiry, null
+                );
             }
             catch (Exception ex)
             {
@@ -180,18 +195,26 @@ namespace Infrastructure.Repo
 
             string newRefreshToken = GenerateRefreshToken();
             DateTime refreshTokenExpirationDate = DateTime.UtcNow.AddDays(_refreshTokenDays);
+            var currentGym = await _gymAccessRepo.GetGymAccessAsync(user.Id, existingRefreshToken.CurrentGymId,
+              cancellationToken);
 
-            user.RefreshTokens.Add(new RefreshToken
+            
+
+
+            RefreshToken newRefreshTokenRecord = new RefreshToken
             {
                 Token = newRefreshToken,
                 ExpirationAt = refreshTokenExpirationDate,
-                CreatedAt = DateTime.UtcNow
-            });
+                CreatedAt = DateTime.UtcNow,
+                CurrentGymId = currentGym?.GymId ?? 0,
+            };
+            user.RefreshTokens.Add(newRefreshTokenRecord);
+
 
             await _userManager.UpdateAsync(user);
 
             var roles = await _userManager.GetRolesAsync(user);
-            (string newAccessToken, int expiresIn) = _jwtProvider.GenerateToken(user, roles);
+            (string newAccessToken, int expiresIn) = _jwtProvider.GenerateToken(user, roles, newRefreshTokenRecord);
 
             return new LoginResDto(
                 Id: user.Id,
@@ -201,11 +224,17 @@ namespace Infrastructure.Repo
                 ExpiresIn: expiresIn,
                 Refreshtoken: newRefreshToken,
                 Roles: roles,
-                RefreshTokenExpirationDate: refreshTokenExpirationDate
+                RefreshTokenExpirationDate: refreshTokenExpirationDate,
+                MyGym: new MyGymDto
+                {
+                    GymId = currentGym?.GymId ?? 0,
+                    GymName = currentGym?.GymName ?? string.Empty,
+                    GymRole = currentGym?.GymRole ?? string.Empty,
+                }
             );
         }
 
-
+        #region ConfirmEmailAsync
         public async Task ConfirmEmailAsync(string email, string otp, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByEmailAsync(email);
@@ -250,7 +279,9 @@ namespace Infrastructure.Repo
             await _emailSender.SendEmailAsync(user.Email!, "Confirm your email",
                 $"Your confirmation code is: <b>{otp}</b>. It expires in 10 minutes.");
         }
+        #endregion
 
+        #region Logout
         public async Task LogoutAsync(LogoutRequest logoutRequest, CancellationToken cancellationToken)
         {
             if (logoutRequest.LogoutFromAllDevices)
@@ -278,8 +309,9 @@ namespace Infrastructure.Repo
                 }
             }
         }
+        #endregion
 
-
+        #region ChangePasswordAsync
         public async Task ChangePasswordAsync(int userId, string currentPassword, string newPassword, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
@@ -315,6 +347,9 @@ namespace Infrastructure.Repo
                 throw;
             }
         }
+        #endregion
+
+        #region GeneratePasswordResetOtpAsync
         public async Task<string> GeneratePasswordResetOtpAsync(string email, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByEmailAsync(email);
@@ -333,6 +368,7 @@ namespace Infrastructure.Repo
 
             return otp;
         }
+
         public async Task<bool> VerifyOtpAsync(VerifyOtpRequest verifyOtpRequest, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByEmailAsync(verifyOtpRequest.Email);
@@ -394,17 +430,21 @@ namespace Infrastructure.Repo
                 throw;
             }
         }
+        #endregion
 
+        #region GetUserByEmailAsync
         public async Task<ApplicationUser?> GetUserByEmailAsync(string email, CancellationToken cancellationToken)
         {
             return await _userManager.FindByEmailAsync(email);
         }
+        #endregion
 
         public async Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return await _userManager.GenerateEmailConfirmationTokenAsync((ApplicationUser)user);
         }
+
 
         public async Task<LoginResDto> LoginWithGoogle(GoogleLoginRequest googleLoginRequest, CancellationToken cancellationToken)
         {
@@ -439,13 +479,14 @@ namespace Infrastructure.Repo
             {
                 string refreshToken = GenerateRefreshToken();
                 var refreshTokenExpiry = DateTime.UtcNow.AddDays(_refreshTokenDays);
-                user.RefreshTokens.Add(new RefreshToken
+                RefreshToken refreshTokenRecord = new RefreshToken
                 {
                     Token = refreshToken,
                     ExpirationAt = refreshTokenExpiry
-                });
+                };
+                user.RefreshTokens.Add(refreshTokenRecord);
                 await _userManager.UpdateAsync(user);
-                var (token, expiresIn) = _jwtProvider.GenerateToken(user, roles);
+                var (token, expiresIn) = _jwtProvider.GenerateToken(user, roles, refreshTokenRecord);
                 await _unitOfWork.CommitTransactionAsync(cancellationToken);
                 return new LoginResDto(
                     Id: user.Id,
@@ -455,7 +496,8 @@ namespace Infrastructure.Repo
                     ExpiresIn: expiresIn,
                     Refreshtoken: refreshToken,
                     Roles: roles,
-                    RefreshTokenExpirationDate: refreshTokenExpiry
+                    RefreshTokenExpirationDate: refreshTokenExpiry,
+                    MyGym: null
                 );
             }
             catch (Exception ex)
@@ -480,7 +522,7 @@ namespace Infrastructure.Repo
             return otp;
         }
 
-
+        #region Helper
         private static string GenerateRefreshToken()
         {
             return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64))
@@ -507,5 +549,6 @@ namespace Infrastructure.Repo
             );
             return string.Equals(hash, hashedValue, StringComparison.Ordinal);
         }
+        #endregion
     }
 }

@@ -5,6 +5,7 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 
 namespace Application.EventConsumer;
+
 public class CacheInvalidationConsumer : IConsumer<EntityChangedEvent>
 {
     private readonly ICacheService _cacheService;
@@ -16,16 +17,17 @@ public class CacheInvalidationConsumer : IConsumer<EntityChangedEvent>
         _logger = logger;
     }
 
-public async Task Consume(ConsumeContext<EntityChangedEvent> context)
-{
-    var e = context.Message;
+    public async Task Consume(ConsumeContext<EntityChangedEvent> context)
+    {
+        var e = context.Message;
+        string key = CacheKeyGenerator.ById(
+            e.EntityName,
+            e.EntityId,
+            e.GymId,
+            e.UserId);
 
-    await _cacheService.InvalidateEntityAsync(
-        e.EntityName,
-        e.EntityId,
-        e.GymId,
-        e.UserId);
-}
+        await _cacheService.RemoveAsync(key);
+    }
 
 }
 

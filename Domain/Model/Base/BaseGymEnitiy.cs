@@ -6,6 +6,8 @@ namespace Domain.Model.Base
     public abstract class BaseGymEntity : BaseEntity, IBaseGymEntity
     {
         public int GymId { get; set; }
+
+        public Gym Gym { get; set; } = default!;
     }
 }
 

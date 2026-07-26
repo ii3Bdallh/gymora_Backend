@@ -8,11 +8,6 @@ public interface ICacheService
 
     Task RemoveAsync(string key);
 
-    Task RemoveByPrefixAsync(string prefix);
 
-    Task InvalidateEntityAsync(
-    string entityName,
-    int entityId,
-    int? gymId,
-    int? userId);
+
 }

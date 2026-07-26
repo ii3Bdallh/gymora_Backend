@@ -4,7 +4,6 @@ public sealed class CacheOptions
 {
     public const string SectionName = "Cache";
 
-    public bool IsEnabled { get; init; } = true;
 
     public int DefaultAbsoluteExpirationMinutes { get; init; } = 10;
 

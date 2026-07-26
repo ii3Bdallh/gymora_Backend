@@ -56,53 +56,6 @@ public class CacheService : ICacheService
         return Task.CompletedTask;
     }
 
-    public async Task InvalidateEntityAsync(
-    string entityName,
-    int entityId,
-    int? gymId,
-    int? userId)
-    {
-        entityName = entityName.ToLower();
 
-        await RemoveAsync(
-            CacheKeyGenerator.ById(
-                entityName,
-                entityId,
-                gymId,
-                userId));
 
-        if (gymId.HasValue)
-        {
-            await RemoveByPrefixAsync(
-                $"{CacheKeyGenerator.GymPrefix(gymId.Value)}:{entityName}:");
-        }
-        else
-        {
-            await RemoveByPrefixAsync(
-                $"{CacheKeyGenerator.GlobalPrefix()}:{entityName}:");
-        }
-
-        _logger.LogInformation(
-            "Cache invalidated for {Entity}",
-            entityName);
-    }
-
-    public Task RemoveByPrefixAsync(string prefix)
-    {
-        if (string.IsNullOrEmpty(prefix)) return Task.CompletedTask;
-
-        // فلترة المفاتيح التي تبدأ بالـ Prefix المطلوب
-        var keysToRemove = CacheKeys.Keys
-            .Where(k => k.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
-        foreach (var key in keysToRemove)
-        {
-            _cache.Remove(key);
-            CacheKeys.TryRemove(key, out _);
-        }
-
-        _logger.LogInformation("Cache prefix cleared: {Prefix}. Removed {Count} keys.", prefix, keysToRemove.Count);
-        return Task.CompletedTask;
-    }
 }
