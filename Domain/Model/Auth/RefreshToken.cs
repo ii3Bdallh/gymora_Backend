@@ -8,6 +8,10 @@ public class RefreshToken
 
     public int CurrentGymId { get; set; }
 
+    public int? CurrentGymPeopleId { get; set; }
+
+    public string? GymRole { get; set; }
+
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

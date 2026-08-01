@@ -1,37 +1,34 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 
 namespace Application.DTO.Auth
 {
-
-    public record ConfirmEmailRequest(
+    public class ConfirmEmailRequest
+    {
         [Required(ErrorMessage = "Email is required")]
-    [EmailAddress(ErrorMessage = "Invalid email format")]
-    string Email,
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string Email { get; set; } = null!;
 
         [Required(ErrorMessage = "OTP is required")]
-    [StringLength(5, MinimumLength = 5, ErrorMessage = "OTP must be 5 digits")]
-    [RegularExpression(@"^\d{5}$", ErrorMessage = "OTP must contain only digits")]
-    string Otp
-    );
+        [StringLength(5, MinimumLength = 5, ErrorMessage = "OTP must be 5 digits")]
+        [RegularExpression(@"^\d{5}$", ErrorMessage = "OTP must contain only digits")]
+        public string Otp { get; set; } = null!;
+    }
 
-    public record ResendConfirmationRequest(
+    public class ResendConfirmationRequest
+    {
         [Required(ErrorMessage = "Email is required")]
-    [EmailAddress(ErrorMessage = "Invalid email format")]
-    string Email
-    );
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string Email { get; set; } = null!;
+    }
 
-
-
-    public record ChangePasswordRequest(
+    public class ChangePasswordRequest
+    {
         [Required(ErrorMessage = "Current password is required")]
-    string CurrentPassword,
+        public string CurrentPassword { get; set; } = null!;
 
         [Required(ErrorMessage = "New password is required")]
-    [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
-    string NewPassword
-    );
+        [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
+        public string NewPassword { get; set; } = null!;
+    }
 }

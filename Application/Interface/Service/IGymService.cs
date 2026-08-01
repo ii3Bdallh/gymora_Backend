@@ -13,11 +13,8 @@ namespace Application.Interface.Service
 {
     public interface IGymService : IBaseService<Gym, GymRDTO, GymCDTO, GymUDTO>
     {
-        Task<LoginResDto> SwitchGymAsync(
-    int gymId,
-    CancellationToken ct = default);
 
-
+        Task<SelectGymRDTO> SwitchGymAsync(SwitchGymRequest request, CancellationToken ct = default);
         Task ChangeOwnerOfGymAsync(int gymId, int newOwnerUserId, CancellationToken ct = default);
 
 

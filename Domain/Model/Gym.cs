@@ -2,7 +2,7 @@ using Domain.Attributes;
 using Domain.Enum;
 using Domain.Interface;
 using Domain.Model.Base;
-using Domain.Model.Base.Domain.Model.Enums;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

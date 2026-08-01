@@ -54,9 +54,19 @@ namespace Infrastructure.Utils
                     JwtClaimsNames.CurrentGymId,
                     refreshToken.CurrentGymId.ToString()));
 
-                claims.Add(new Claim(
-                    JwtClaimsNames.CurrentStaffId,
-                    refreshToken.CurrentStaffId.ToString()));
+                if (refreshToken.CurrentStaffId.HasValue)
+                {
+                    claims.Add(new Claim(
+                        JwtClaimsNames.CurrentStaffId,
+                        refreshToken.CurrentStaffId.Value.ToString()));
+                }
+
+                if (!string.IsNullOrEmpty(refreshToken.GymRole))
+                {
+                    claims.Add(new Claim(
+                        JwtClaimsNames.GymRole,
+                        refreshToken.GymRole));
+                }
             }
 
             var key = new SymmetricSecurityKey(
@@ -76,6 +86,24 @@ namespace Infrastructure.Utils
             return (
                 new JwtSecurityTokenHandler().WriteToken(token),
                 _jwtOptions.AccessTokenExpirationMinutes);
+        }
+
+        public (string plainToken, string tokenHash) GenerateRefreshToken()
+        {
+            var plainToken = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(64))
+                .Replace('+', '-')
+                .Replace('/', '_')
+                .Replace("=", "");
+
+            var tokenHash = HashToken(plainToken);
+            return (plainToken, tokenHash);
+        }
+
+        public string HashToken(string token)
+        {
+            var bytes = Encoding.UTF8.GetBytes(token);
+            var hashBytes = System.Security.Cryptography.SHA256.HashData(bytes);
+            return Convert.ToBase64String(hashBytes);
         }
 
 

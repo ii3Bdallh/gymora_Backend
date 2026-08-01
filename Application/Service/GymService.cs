@@ -55,13 +55,7 @@ namespace Application.Service
 
         }
 
-        public async Task<LoginResDto> SwitchGymAsync(
-    int gymId,
-    CancellationToken ct = default)
-        {
-            throw new NotImplementedException();
 
-        }
 
         public async Task ChangeOwnerOfGymAsync(int gymId, int newOwnerUserId, CancellationToken ct = default)
         {

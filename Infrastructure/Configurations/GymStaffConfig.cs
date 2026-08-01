@@ -15,6 +15,7 @@ namespace Infrastructure.Config
     public void Configure(EntityTypeBuilder<GymStaff> builder)
     {
       // Auditing not enabled for this entity
+      builder.ToTable("gym_people");
 
       builder.Property(x => x.StaffName).HasMaxLength(100).IsRequired();
       builder.Property(x => x.StaffInviteCode).HasMaxLength(100).IsRequired();

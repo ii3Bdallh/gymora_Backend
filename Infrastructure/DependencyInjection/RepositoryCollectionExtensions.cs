@@ -18,6 +18,7 @@ public static class RepositoryCollectionExtensions
     {
         services.AddScoped<IAuthRepo, AuthRepo>();
         services.AddScoped<IUserRepo, UserRepo>();
+        services.AddScoped<IGymAccessRepo, GymAccessRepo>();
 
 
         services.AddSingleton<ILogger>(sp =>

@@ -88,15 +88,7 @@ namespace Api.Controllers
             return Ok(Result<GymRDTO>.Success(deletedGym));
         }
 
-        [HttpPost("switch")]
-        public async Task<IActionResult> SwitchGym(
-    SwitchGymDTO dto,
-    CancellationToken ct)
-        {
-            var result = await service.SwitchGymAsync(dto.GymId, ct);
 
-            return Ok(result);
-        }
 
         [HttpPost("change-owner")]
         public async Task<IActionResult> ChangeOwnerAsync([FromBody] ChangeOwnerDTO dto, CancellationToken ct)

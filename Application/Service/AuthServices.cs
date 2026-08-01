@@ -1,161 +1,198 @@
 using Application.DTO;
 using Application.DTO.Auth;
-
-using Application.Interface.Repo;
+using Application.DTO.Exceptions;
 using Application.Interface.Repo.Shared;
-using Application.Interface.Service;
 using Application.Interface.Service.Shared;
-using Domain.Model;
+using Application.Interface.Service;
+using Gymora.Contracts.Authentication;
+using Domain.Events;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using MassTransit;
+using Application.Model;
+using Application.DTO.Model;
 
 namespace Application.Service
 {
-    public class AuthService(IAuthRepo authRepo, IHttpContextAccessor httpContextAccessor, IEmailService emailSender) : IAuthService
+    public class AuthService : IAuthService
     {
-        public async Task RegisterAsync(RegisterReqDto registerReqDto, CancellationToken cancellationToken)
-        {
-            await authRepo.RegisterAsync(registerReqDto, cancellationToken);
+        private readonly IAuthRepo _authRepo;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEmailService _emailSender;
+        private readonly CurrentUser _currentUser;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-            var user = await authRepo.GetUserByEmailAsync(registerReqDto.Email, cancellationToken);
-            if (user is not null && !string.IsNullOrEmpty(user.Email))
-            {
-                var otp = await authRepo.GenerateEmailConfirmationOtpAsync(user, cancellationToken);
-                await emailSender.SendEmailAsync(user.Email, "Confirm your email",
-                    $"Your confirmation code is: <b>{otp}</b>. It expires in 10 minutes.");
-            }
+        public AuthService(
+            IAuthRepo authRepo,
+            IHttpContextAccessor httpContextAccessor,
+            IEmailService emailSender,
+            CurrentUser currentUser,
+            IPublishEndpoint publishEndpoint
+            )
+        {
+            _authRepo = authRepo;
+            _httpContextAccessor = httpContextAccessor;
+            _emailSender = emailSender;
+            _currentUser = currentUser;
+            _publishEndpoint = publishEndpoint;
         }
 
-        public async Task ChangePasswordAsync(ChangePasswordRequest dto, CancellationToken cancellationToken)
+
+
+        public async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto registerReqDto, CancellationToken cancellationToken)
         {
-            var httpContext = httpContextAccessor.HttpContext
-                ?? throw new UnauthorizedAccessException("No HTTP context available.");
+            return await _authRepo.RegisterAsync(registerReqDto, cancellationToken);
+        }
 
-            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out var userId))
-                throw new UnauthorizedAccessException("User is not authenticated.");
+        public async Task<AuthResponseDto> LoginAsync(LoginRequestDto loginReqDto, CancellationToken cancellationToken)
+        {
+            return await _authRepo.LoginAsync(loginReqDto, cancellationToken);
+        }
 
-            await authRepo.ChangePasswordAsync(userId, dto.CurrentPassword, dto.NewPassword, cancellationToken);
+        public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken, string accessToken, CancellationToken cancellationToken)
+        {
+            return await _authRepo.RefreshTokenAsync(refreshToken, accessToken, cancellationToken);
+        }
+
+        public async Task LogoutAsync(int userId, string? refreshToken, bool logoutFromAllDevices, CancellationToken cancellationToken)
+        {
+            await _authRepo.LogoutAsync(userId, refreshToken, logoutFromAllDevices, cancellationToken);
         }
 
         public async Task<ConfirmEmailResponseDto> ConfirmEmailAsync(string email, string otp, CancellationToken cancellationToken)
         {
-            await authRepo.ConfirmEmailAsync(email, otp, cancellationToken);
+            await _authRepo.ConfirmEmailAsync(email, otp, cancellationToken);
             return new ConfirmEmailResponseDto { Success = true, Message = "Email confirmed successfully" };
+        }
+
+        public async Task<ForgotPasswordResponseDto> ForgotPasswordAsync(ForgotPasswordRequestDto forgotPasswordRequest, CancellationToken cancellationToken)
+        {
+            var user = await _authRepo.GetUserByEmailAsync(forgotPasswordRequest.Email, cancellationToken);
+
+            var successDto = new ForgotPasswordResponseDto
+            {
+                Message = "If an account with that email exists, a password reset code has been sent.",
+                ExpirationInMinutes = 10
+            };
+
+            if (user == null || !user.IsActive)
+            {
+                return successDto;
+            }
+
+            if (user.PasswordResetOtpExpiry.HasValue &&
+                user.PasswordResetOtpExpiry.Value.AddMinutes(-9) > DateTime.UtcNow)
+            {
+                throw new BadRequestException("Please wait 60 seconds before requesting another password reset code.");
+            }
+
+            var otp = await _authRepo.GeneratePasswordResetOtpAsync(forgotPasswordRequest.Email, cancellationToken);
+
+            await _publishEndpoint.Publish(new SendPasswordResetCodeEvent(user.Email!, otp, 10), cancellationToken);
+
+            await _emailSender.SendEmailAsync(
+                user.Email!,
+                "Password Reset OTP",
+                $"Your OTP code is: <b>{otp}</b>. It will expire in 10 minutes."
+            );
+
+            return successDto;
+        }
+
+        public async Task<VerifyOtpResponseDto> VerifyOtpAsync(VerifyOtpRequestDto verifyOtpRequest, CancellationToken cancellationToken)
+        {
+            var resetToken = await _authRepo.VerifyOtpAsync(verifyOtpRequest.Email, verifyOtpRequest.Code, cancellationToken);
+
+            return new VerifyOtpResponseDto
+            {
+                ResetToken = "",
+                Message = "OTP verified successfully. You can now reset your password."
+            };
+        }
+
+        public async Task<ResendOtpResponseDto> ResendOtpAsync(ResendOtpRequestDto dto, CancellationToken cancellationToken)
+        {
+            var user = await _authRepo.GetUserByEmailAsync(dto.Email, cancellationToken);
+
+            var successDto = new ResendOtpResponseDto
+            {
+                Message = "If an account with that email exists, a password reset code has been sent.",
+                ExpirationInMinutes = 10
+            };
+
+            if (user == null || !user.IsActive)
+            {
+                return successDto;
+            }
+
+            if (user.PasswordResetOtpExpiry.HasValue &&
+                user.PasswordResetOtpExpiry.Value.AddMinutes(-9) > DateTime.UtcNow)
+            {
+                throw new BadRequestException("Please wait 60 seconds before requesting another password reset code.");
+            }
+
+            var otp = await _authRepo.GeneratePasswordResetOtpAsync(dto.Email, cancellationToken);
+
+            await _publishEndpoint.Publish(new SendPasswordResetCodeEvent(user.Email!, otp, 10), cancellationToken);
+
+            await _emailSender.SendEmailAsync(
+                user.Email!,
+                "Password Reset OTP",
+                $"Your OTP code is: <b>{otp}</b>. It will expire in 10 minutes."
+            );
+
+            return successDto;
+        }
+
+        public async Task<ResetPasswordResponseDto> ResetPasswordAsync(ResetPasswordRequestDto resetPasswordRequest, CancellationToken cancellationToken)
+        {
+            var user = await _authRepo.GetUserByEmailAsync(resetPasswordRequest.Email, cancellationToken);
+            if (user == null)
+            {
+                throw new BadRequestException("The password reset token is invalid, expired, or already used.");
+            }
+
+            await _authRepo.ResetPasswordAsync(user.Id, resetPasswordRequest.NewPassword, cancellationToken);
+
+            await _publishEndpoint.Publish(new PasswordResetCompletedEvent(user.Id, user.Email!), cancellationToken);
+
+            return new ResetPasswordResponseDto
+            {
+                Message = "Password has been reset successfully. You can now login with your new password."
+            };
+        }
+
+        public async Task<GoogleAuthResponseDto> LoginWithGoogle(GoogleLoginRequestDto googleLoginRequest, CancellationToken cancellationToken)
+        {
+            return await _authRepo.LoginWithGoogle(googleLoginRequest, cancellationToken);
+        }
+
+        public async Task<GetUserProfileDto> GetUserProfileAsync(CancellationToken cancellationToken)
+        {
+            var userId = _currentUser.UserId;
+            if (!_currentUser.IsAuthenticated) throw new UnauthorizedException("User is not authenticated.");
+
+            return await _authRepo.GetUserProfileAsync(userId, cancellationToken);
         }
 
         public async Task ResendConfirmationEmailAsync(string email, CancellationToken cancellationToken)
         {
-            await authRepo.ResendConfirmationEmailAsync(email, cancellationToken);
-        }
-        public async Task<LoginResDto> LoginAsync(LoginReqDto loginReqDto, CancellationToken cancellationToken)
-        {
-            return await authRepo.LoginAsync(loginReqDto, cancellationToken);
+            await _authRepo.ResendConfirmationEmailAsync(email, cancellationToken);
         }
 
-        public async Task<LoginResDto> RefreshTokenAsync(RefreshTokenReqDto refreshTokenReqDto, CancellationToken cancellationToken)
+        public async Task ChangePasswordAsync(ChangePasswordRequest dto, CancellationToken cancellationToken)
         {
-            var user = await authRepo.RefreshTokenAsync(refreshTokenReqDto, cancellationToken);
-            return user;
+            var userId = _currentUser.UserId;
+            if (!_currentUser.IsAuthenticated) throw new UnauthorizedException("User is not authenticated.");
+
+            await _authRepo.ChangePasswordAsync(userId, dto.CurrentPassword, dto.NewPassword, cancellationToken);
         }
 
-
-
-        public async Task<ForgotPasswordResponseDto> ForgotPasswordAsync(ForgotPasswordRequest forgotPasswordRequest, CancellationToken cancellationToken)
+        public async Task<AuthResponseDto> SwitchGym(SwitchGymRequest request, CancellationToken cancellationToken)
         {
-            // Generate OTP in repo
-            var otp = await authRepo.GeneratePasswordResetOtpAsync(forgotPasswordRequest.Email, cancellationToken);
-
-            // Send OTP email
-            await emailSender.SendEmailAsync(
-                forgotPasswordRequest.Email,
-                "Password Reset OTP",
-                $"Your OTP code is: <b>{otp}</b>. It will expire in 5 minutes."
-            );
-
-            return new ForgotPasswordResponseDto
-            {
-                Success = true,
-                Message = "Password reset OTP sent to your email"
-            };
-        }
-
-        public async Task<VerifyOtpResponseDto> VerifyOtpAsync(VerifyOtpRequest verifyOtpRequest, CancellationToken cancellationToken)
-        {
-            // Repo throws exception if invalid, so if we reach here, it's valid
-            await authRepo.VerifyOtpAsync(verifyOtpRequest, cancellationToken);
-
-            return new VerifyOtpResponseDto
-            {
-                IsValid = true,
-                Message = "OTP verified successfully"
-            };
-        }
-
-        public async Task<ResetPasswordResponseDto> ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest, CancellationToken cancellationToken)
-        {
-            // Verify OTP first (business logic in service)
-            await authRepo.VerifyOtpAsync(
-                new VerifyOtpRequest(resetPasswordRequest.Email, resetPasswordRequest.Otp),
-                cancellationToken
-            );
-
-            // Reset password in repo
-            await authRepo.ResetPasswordAsync(resetPasswordRequest, cancellationToken);
-
-            return new ResetPasswordResponseDto
-            {
-                Success = true,
-                Message = "Password reset successfully. You can now log in with your new password."
-            };
-        }
-
-        public async Task<LoginResDto> LoginWithGoogle(GoogleLoginRequest googleLoginRequest, CancellationToken cancellationToken)
-        {
-            LoginResDto user = await authRepo.LoginWithGoogle(googleLoginRequest, cancellationToken);
-            return user;
-        }
-
-        public Task<GetUserProfileDto> GetUserProfileAsync(CancellationToken cancellationToken)
-        {
-            var httpContext = httpContextAccessor.HttpContext;
-            if (httpContext == null)
-            {
-                throw new UnauthorizedAccessException("No HTTP context available.");
-            }
-
-            var user = httpContext.User;
-            if (user == null)
-            {
-                throw new UnauthorizedAccessException("User is not available in HTTP context.");
-            }
-
-            var nameIdentifierClaim = user.FindFirst(ClaimTypes.NameIdentifier);
-            if (nameIdentifierClaim == null || string.IsNullOrEmpty(nameIdentifierClaim.Value))
-            {
-                throw new UnauthorizedAccessException("User is not authenticated.");
-            }
-
-            int userId;
-            if (!int.TryParse(nameIdentifierClaim.Value, out userId) || userId == 0)
-            {
-                throw new UnauthorizedAccessException("User is not authenticated.");
-            }
-
-            return authRepo.GetUserProfileAsync(userId, cancellationToken);
-        }
-
-        public async Task LogoutAsync(LogoutRequest logoutRequest, CancellationToken cancellationToken)
-        {
-            await authRepo.LogoutAsync(logoutRequest, cancellationToken);
+            return await _authRepo.SwitchGym(request, cancellationToken);
         }
     }
 }
-

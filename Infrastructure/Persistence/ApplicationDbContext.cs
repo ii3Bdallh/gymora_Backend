@@ -14,23 +14,23 @@ public sealed class ApplicationDbContext
 {
 
     // Script will Add After Here DbSet<Entity>
-public DbSet<GymStaff> GymStaff { get; set; }
-public DbSet<Gym> Gym { get; set; }
-public DbSet<CouponRedemption> CouponRedemption { get; set; }
-public DbSet<OwnerSubscription> OwnerSubscription { get; set; }
-public DbSet<Coupon> Coupon { get; set; }
-public DbSet<PaymentRequest> PaymentRequest { get; set; }
-public DbSet<SubscriptionPlan> SubscriptionPlan { get; set; }
-public DbSet<PlanPrice> PlanPrice { get; set; }
-    
+    public DbSet<GymStaff> GymStaff { get; set; }
+    public DbSet<Gym> Gym { get; set; }
+    public DbSet<CouponRedemption> CouponRedemption { get; set; }
+    public DbSet<OwnerSubscription> OwnerSubscription { get; set; }
+    public DbSet<Coupon> Coupon { get; set; }
+    public DbSet<PaymentRequest> PaymentRequest { get; set; }
+    public DbSet<SubscriptionPlan> SubscriptionPlan { get; set; }
+    public DbSet<PlanPrice> PlanPrice { get; set; }
+
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
 
-    public DbSet<Domain.Model.Notification> Notifications
-        => Set<Domain.Model.Notification>();
+    public DbSet<Domain.Model.Notification> Notifications { get; set; }
 
-    public DbSet<UserDevice> UserDevices
-        => Set<UserDevice>();
+
+    public DbSet<UserDevice> UserDevices { get; set; }
+
 
 
 

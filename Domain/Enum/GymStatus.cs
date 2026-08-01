@@ -1,6 +1,4 @@
-namespace Domain.Model.Base
-{
-    namespace Domain.Model.Enums
+namespace Domain.Enum
     {
         public enum GymStatus
         {
@@ -11,4 +9,3 @@ namespace Domain.Model.Base
         }
     }
 
-}

@@ -27,6 +27,20 @@ namespace Api.Middalewares
                 httpContext.Response.ContentType = "application/json";
                 await httpContext.Response.WriteAsJsonAsync(Result<object>.Failure("BAD_REQUEST", ex.Message));
             }
+            catch (ConflictException ex)
+            {
+                _logger.LogWarning(ex, "Conflict: {Message}", ex.Message);
+                httpContext.Response.StatusCode = StatusCodes.Status409Conflict;
+                httpContext.Response.ContentType = "application/json";
+                await httpContext.Response.WriteAsJsonAsync(Result<object>.Failure("AUTH_EMAIL_ALREADY_EXISTS", ex.Message));
+            }
+            catch (LockoutException ex)
+            {
+                _logger.LogWarning(ex, "Lockout: {Message}", ex.Message);
+                httpContext.Response.StatusCode = StatusCodes.Status423Locked;
+                httpContext.Response.ContentType = "application/json";
+                await httpContext.Response.WriteAsJsonAsync(Result<object>.Failure("ACCOUNT_LOCKED", ex.Message));
+            }
             catch (UnauthorizedException ex)
             {
                 _logger.LogWarning(ex, "Unauthorized: {Message}", ex.Message);

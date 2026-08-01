@@ -4,31 +4,51 @@ using Application.DTO.Model;
 using Application.Interface.Repo;
 using Application.Interface.Service;
 using Application.StaticTexts;
+using Gymora.Contracts.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(IAuthService authService, IGymAccessRepo gymAccessRepo) : ControllerBase
+    public class AuthController : ControllerBase
     {
+        private readonly IAuthService _authService;
+        private readonly IGymService _gymService;
+
+
+
+        public AuthController(IAuthService authService, IGymService gymService)
+        {
+            _authService = authService;
+            _gymService = gymService;
+        }
+
+
+
         [Authorize]
         [HttpPost("switch")]
-        public async Task<IActionResult> SwitchGym(
-    SwitchGymRequest request,
-    CancellationToken ct)
+        public async Task<IActionResult> SwitchGym([FromBody] SwitchGymRequest request, CancellationToken ct)
         {
-            var res = await gymAccessRepo.SwitchGymAsync(request, ct);
+            if (!ModelState.IsValid)
+                return UnprocessableEntity(Result<AuthResponseDto>.Failure("VALIDATION_ERROR", "Invalid request parameters."));
 
-            return Ok(Result<LoginResDto>.Success(res));
+            var res = await _authService.SwitchGym(request, ct);
+            return Ok(Result<AuthResponseDto>.Success(res));
         }
+
         [Authorize]
         [HttpGet("get-user-profile")]
         public async Task<IActionResult> GetUserProfile(CancellationToken cancellationToken)
         {
-            var result = await authService.GetUserProfileAsync(cancellationToken);
+            var result = await _authService.GetUserProfileAsync(cancellationToken);
             return Ok(Result<GetUserProfileDto>.Success(result));
         }
 
@@ -37,9 +57,9 @@ namespace Api.Controllers
         public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailRequest dto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
-                return BadRequest(Result<string>.Failure("VALIDATION_ERROR", "Invalid input"));
+                return UnprocessableEntity(Result<ConfirmEmailResponseDto>.Failure("VALIDATION_ERROR", "Invalid request parameters."));
 
-            var result = await authService.ConfirmEmailAsync(dto.Email, dto.Otp, cancellationToken);
+            var result = await _authService.ConfirmEmailAsync(dto.Email, dto.Otp, cancellationToken);
             return Ok(Result<ConfirmEmailResponseDto>.Success(result));
         }
 
@@ -49,52 +69,58 @@ namespace Api.Controllers
         public async Task<IActionResult> ResendConfirmationEmail([FromBody] ResendConfirmationRequest dto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
-                return BadRequest(Result<string>.Failure("VALIDATION_ERROR", "Invalid input"));
+                return UnprocessableEntity(Result<string>.Failure("VALIDATION_ERROR", "Invalid request parameters."));
 
-            await authService.ResendConfirmationEmailAsync(dto.Email, cancellationToken);
+            await _authService.ResendConfirmationEmailAsync(dto.Email, cancellationToken);
             return Ok(Result<string>.Success("If the email exists, a confirmation code has been sent."));
         }
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterReqDto registerReqDto, CancellationToken cancellationToken)
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto registerReqDto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
-                return BadRequest(Result<string>.Failure("VALIDATION_ERROR", "Invalid input"));
+                return UnprocessableEntity(Result<RegisterResponseDto>.Failure("VALIDATION_ERROR", "Invalid input data or weak password format."));
 
-            await authService.RegisterAsync(registerReqDto, HttpContext.RequestAborted);
-            return Ok(Result<string>.Success("User registered successfully. Please check your email to confirm your account."));
+            var result = await _authService.RegisterAsync(registerReqDto, cancellationToken);
+            return StatusCode(StatusCodes.Status201Created, Result<RegisterResponseDto>.Success(result));
         }
 
         [AllowAnonymous]
         [HttpPost("login")]
         [EnableRateLimiting("Ip_5Limit_1Min")]
-        public async Task<IActionResult> Login([FromBody] LoginReqDto loginReqDto, CancellationToken cancellationToken)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto loginReqDto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
-                return BadRequest(Result<string>.Failure("VALIDATION_ERROR", "Invalid input"));
+                return UnprocessableEntity(Result<object>.Failure("VALIDATION_ERROR", "Invalid input data."));
 
-            var result = await authService.LoginAsync(loginReqDto, cancellationToken);
-            return Ok(Result<LoginResDto>.Success(result));
+            var result = await _authService.LoginAsync(loginReqDto, cancellationToken);
+
+
+
+            return Ok(Result<AuthResponseDto>.Success(result));
         }
 
         [AllowAnonymous]
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenReqDto refreshTokenReqDto, CancellationToken cancellationToken)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenReqDto dto, CancellationToken cancellationToken)
         {
-            var result = await authService.RefreshTokenAsync(refreshTokenReqDto, cancellationToken);
-            return Ok(Result<LoginResDto>.Success(result));
+            if (!ModelState.IsValid)
+                return UnprocessableEntity(Result<AuthResponseDto>.Failure("VALIDATION_ERROR", "Invalid input."));
+
+            var result = await _authService.RefreshTokenAsync(dto.RefreshToken, dto.AccessToken, cancellationToken);
+            return Ok(Result<AuthResponseDto>.Success(result));
         }
 
         [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromBody] LogoutRequest dto, CancellationToken cancellationToken)
         {
-            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userIdClaim = User.FindFirst("UserId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!string.IsNullOrEmpty(userIdClaim))
-                dto = dto with { UserId = int.Parse(userIdClaim) };
+                dto.UserId = int.Parse(userIdClaim);
 
-            await authService.LogoutAsync(dto, cancellationToken);
+            await _authService.LogoutAsync(dto.UserId, dto.RefreshToken, dto.LogoutFromAllDevices, cancellationToken);
 
             var message = dto.LogoutFromAllDevices
                 ? "Successfully logged out from all devices"
@@ -106,44 +132,65 @@ namespace Api.Controllers
         [AllowAnonymous]
         [HttpPost("forgot-password")]
         [EnableRateLimiting("Ip_3Limit_5Min")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest dto, CancellationToken cancellationToken)
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto dto, CancellationToken cancellationToken)
         {
-            var res = await authService.ForgotPasswordAsync(dto, cancellationToken);
+            if (!ModelState.IsValid)
+                return UnprocessableEntity(Result<ForgotPasswordResponseDto>.Failure("VALIDATION_ERROR", "Invalid input."));
+
+            var res = await _authService.ForgotPasswordAsync(dto, cancellationToken);
             return Ok(Result<ForgotPasswordResponseDto>.Success(res));
         }
 
         [AllowAnonymous]
         [HttpPost("verify-otp")]
         [EnableRateLimiting("Ip_10Limit_1Min")]
-        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest dto, CancellationToken cancellationToken)
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequestDto dto, CancellationToken cancellationToken)
         {
-            var res = await authService.VerifyOtpAsync(dto, cancellationToken);
+            if (!ModelState.IsValid)
+                return UnprocessableEntity(Result<VerifyOtpResponseDto>.Failure("VALIDATION_ERROR", "Invalid input."));
+
+            var res = await _authService.VerifyOtpAsync(dto, cancellationToken);
             return Ok(Result<VerifyOtpResponseDto>.Success(res));
+        }
+
+        [AllowAnonymous]
+        [HttpPost("resend-otp")]
+        [EnableRateLimiting("Ip_3Limit_5Min")]
+        public async Task<IActionResult> ResendOtp([FromBody] ResendOtpRequestDto dto, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+                return UnprocessableEntity(Result<ResendOtpResponseDto>.Failure("VALIDATION_ERROR", "Invalid input."));
+
+            var res = await _authService.ResendOtpAsync(dto, cancellationToken);
+            return Ok(Result<ResendOtpResponseDto>.Success(res));
         }
 
         [AllowAnonymous]
         [HttpPost("reset-password")]
         [EnableRateLimiting("Ip_10Limit_1Min")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest dto, CancellationToken cancellationToken)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto dto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
-                return BadRequest(Result<string>.Failure("VALIDATION_ERROR", "Invalid input"));
+                return UnprocessableEntity(Result<ResetPasswordResponseDto>.Failure("VALIDATION_ERROR", "Invalid input."));
 
-            var res = await authService.ResetPasswordAsync(dto, cancellationToken);
+            var res = await _authService.ResetPasswordAsync(dto, cancellationToken);
             return Ok(Result<ResetPasswordResponseDto>.Success(res));
         }
+
+
+
 
         [AllowAnonymous]
         [HttpGet("confirm-email")]
         [EnableRateLimiting("Ip_10Limit_1Min")]
-        public async Task<IActionResult> ConfirmEmail(string userId, string code)
+        public async Task<IActionResult> ConfirmEmailPage(string userId, string code)
         {
             if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(code))
                 return Content(GenerateConfirmEmailPage(false), "text/html");
 
             try
             {
-                await authService.ConfirmEmailAsync(userId, code, HttpContext.RequestAborted);
+                await _authService.ConfirmEmailAsync(userId, code, HttpContext.RequestAborted);
                 return Content(GenerateConfirmEmailPage(true), "text/html");
             }
             catch
@@ -187,22 +234,27 @@ namespace Api.Controllers
 </body>
 </html>";
         }
+
         [Authorize]
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest dto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
-                return BadRequest(Result<string>.Failure("VALIDATION_ERROR", "Invalid input"));
+                return UnprocessableEntity(Result<string>.Failure("VALIDATION_ERROR", "Invalid input."));
 
-            await authService.ChangePasswordAsync(dto, cancellationToken);
+            await _authService.ChangePasswordAsync(dto, cancellationToken);
             return Ok(Result<string>.Success("Password changed successfully. Please login again on other devices."));
         }
+
         [AllowAnonymous]
-        [HttpPost("login-google")]
-        public async Task<IActionResult> LoginGoogle([FromBody] GoogleLoginRequest dto)
+        [HttpPost("google")]
+        public async Task<IActionResult> LoginGoogle([FromBody] GoogleLoginRequestDto dto)
         {
-            var result = await authService.LoginWithGoogle(dto, HttpContext.RequestAborted);
-            return Ok(Result<LoginResDto>.Success(result));
+            if (!ModelState.IsValid)
+                return UnprocessableEntity(Result<GoogleAuthResponseDto>.Failure("VALIDATION_ERROR", "Invalid request parameters."));
+
+            var result = await _authService.LoginWithGoogle(dto, HttpContext.RequestAborted);
+            return Ok(Result<GoogleAuthResponseDto>.Success(result));
         }
     }
 }

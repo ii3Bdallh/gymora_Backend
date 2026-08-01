@@ -1,12 +1,23 @@
-using Domain.Model;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.DTO.Auth
 {
-    public record GetUserProfileDto(string? Email , string? PersonName , string? PhoneNumber , IList<string>? Roles);
+    public class GetUserProfileDto
+    {
+        public string? Email { get; set; }
+        public string? PersonName { get; set; }
+        public string? PhoneNumber { get; set; }
+        public IList<string>? Roles { get; set; }
 
+        public GetUserProfileDto() { }
+
+        public GetUserProfileDto(string? email, string? personName, string? phoneNumber, IList<string>? roles)
+        {
+            Email = email;
+            PersonName = personName;
+            PhoneNumber = phoneNumber;
+            Roles = roles;
+        }
+    }
 }

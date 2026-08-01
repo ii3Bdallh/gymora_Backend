@@ -1,20 +1,30 @@
 using Application.DTO;
 using Application.DTO.Auth;
 using Application.DTO.Exceptions;
-using Application.DTO.Model;
 using Application.Interface.Repo;
 using Application.Interface.Repo.Shared;
 using Application.Interface.Service.Shared;
+using Domain.Model.Base;
+using Gymora.Contracts.Authentication;
 using Domain.Enum;
 using Domain.Model;
 using Domain.Model.Auth;
+using Domain.Events;
 using Infrastructure.Persistence;
 using Infrastructure.Utils;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using MassTransit;
+using Application.DTO.Model;
 
 namespace Infrastructure.Repo
 {
@@ -28,6 +38,7 @@ namespace Infrastructure.Repo
         private readonly ILogger<AuthRepo> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly int _refreshTokenDays;
+        private readonly IPublishEndpoint _publishEndpoint;
 
         private readonly IGymAccessRepo _gymAccessRepo;
 
@@ -39,6 +50,7 @@ namespace Infrastructure.Repo
             IConfiguration configuration,
             ILogger<AuthRepo> logger,
             IUnitOfWork unitOfWork,
+            IPublishEndpoint publishEndpoint,
             IGymAccessRepo gymAccessRepo
             )
         {
@@ -49,203 +61,539 @@ namespace Infrastructure.Repo
             _configuration = configuration;
             _logger = logger;
             _unitOfWork = unitOfWork;
-            _refreshTokenDays = int.TryParse(configuration["Jwt:RefreshTokenExpirationInDays"], out var days) ? days : 7;
+            _publishEndpoint = publishEndpoint;
             _gymAccessRepo = gymAccessRepo;
+            _refreshTokenDays = int.TryParse(configuration["Jwt:RefreshTokenExpirationInDays"], out var days) ? days : 7;
         }
 
-        public async Task<GetUserProfileDto> GetUserProfileAsync(int userId, CancellationToken cancellationToken)
-        {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null)
-                throw new NotFoundException("User not found");
 
-            var roles = await _userManager.GetRolesAsync(user);
-            return new GetUserProfileDto(
-                Email: user.Email!,
-                PersonName: user.PersonName,
-                Roles: roles,
-                PhoneNumber: user.PhoneNumber
-            );
-        }
+        // private async Task<List<AvailableGymDto>> GetAvailableGymsAsync(int userId, CancellationToken ct)
+        // {
+        //     var ownerGyms = await _context.Gym
+        //         .AsNoTracking()
+        //         .Where(x => x.CreatedById == userId && x.IsActive)
+        //         .Select(x => new AvailableGymDto
+        //         {
+        //             GymId = x.Id.ToString(),
+        //             GymName = x.Name,
+        //             Role = "Owner"
+        //         })
+        //         .ToListAsync(ct);
 
-        public async Task RegisterAsync(RegisterReqDto registerReqDto, CancellationToken cancellationToken)
+        //     var staffGyms = await _context.GymStaff
+        //         .AsNoTracking()
+        //         .Include(x => x.Gym)
+        //         .Where(x => x.UserId == userId && x.IsActive)
+        //         .Select(x => new AvailableGymDto
+        //         {
+        //             GymId = x.GymId.ToString(),
+        //             GymName = x.Gym.Name,
+        //             Role = x.GymRole.ToString()
+        //         })
+        //         .ToListAsync(ct);
+
+        //     return ownerGyms.Concat(staffGyms)
+        //         .GroupBy(x => x.GymId)
+        //         .Select(g => g.First())
+        //         .ToList();
+        // }
+
+        // private async Task<bool> IsGymAccessibleAsync(Gym gym, CancellationToken ct)
+        // {
+        //     if (gym.Status == GymStatus.Suspended) return false;
+
+        //     // Check subscription of gym creator/owner
+        //     var ownerId = gym.CreatedById;
+        //     var sub = await _context.OwnerSubscription
+        //         .Include(x => x.Plan)
+        //         .Where(x => x.CreatedById == ownerId && x.IsActive)
+        //         .OrderByDescending(x => x.EndDate)
+        //         .FirstOrDefaultAsync(ct);
+
+        //     if (sub != null)
+        //     {
+        //         return sub.Status == OwnerSubscriptionStatus.Active || sub.Status == OwnerSubscriptionStatus.Grace;
+        //     }
+
+        //     // Fallback: Check if there's a free plan configured on the platform
+        //     var freePlan = await _context.SubscriptionPlan.FirstOrDefaultAsync(x => x.IsFree && x.IsActive == true, ct);
+        //     return freePlan != null;
+        // }
+
+
+
+        public async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto registerReqDto, CancellationToken cancellationToken)
         {
-            ApplicationUser user = new ApplicationUser
+            var existingUser = await _userManager.FindByEmailAsync(registerReqDto.Email);
+            if (existingUser != null)
+            {
+                throw new ConflictException("This email address is already registered.");
+            }
+
+            var user = new ApplicationUser
             {
                 UserName = registerReqDto.Email,
-                PersonName = registerReqDto.UserName,
+                PersonName = $"{registerReqDto.FirstName} {registerReqDto.LastName}".Trim(),
                 Email = registerReqDto.Email,
-                PhoneNumber = registerReqDto.PhoneNumber,
+                IsActive = true
             };
 
-            IdentityResult result = await _userManager.CreateAsync(user, registerReqDto.Password);
-
+            var result = await _userManager.CreateAsync(user, registerReqDto.Password);
             if (!result.Succeeded)
             {
                 string errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 throw new BadRequestException(errors);
             }
 
-            var defaultRole = RoleType.User.ToString();
-            await _userManager.AddToRoleAsync(user, defaultRole);
+            await _userManager.AddToRoleAsync(user, RoleConstants.User);
+
+
+
+
+            var (plainRefreshToken, tokenHash) = _jwtProvider.GenerateRefreshToken();
+            var refreshTokenExpiry = DateTime.UtcNow.AddDays(_refreshTokenDays);
+
+            var refresh = new RefreshToken
+            {
+                Token = tokenHash,
+                ExpirationAt = refreshTokenExpiry,
+                UserId = user.Id
+            };
+            user.RefreshTokens.Add(refresh);
+            await _userManager.UpdateAsync(user);
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var (accessToken, _) = _jwtProvider.GenerateToken(user, roles, refresh);
+
+            // Add Event to outbox
+            await _publishEndpoint.Publish(new UserRegisterdEvent(user.Id), cancellationToken);
+
+            return new RegisterResponseDto
+            {
+                AccessToken = accessToken,
+                RefreshToken = plainRefreshToken,
+                IsNewUser = true,
+                User = new UserInfoDto
+                {
+                    UserId = user.Id.ToString(),
+                    FullName = user.PersonName,
+                    Email = user.Email!
+                },
+                AvailableGyms = new List<AvailableGymDto>()
+            };
         }
 
-        public async Task<LoginResDto> LoginAsync(LoginReqDto loginReqDto, CancellationToken cancellationToken)
+        public async Task<AuthResponseDto> LoginAsync(LoginRequestDto loginReqDto, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByEmailAsync(loginReqDto.Email);
-            if (user is null)
-                throw new BadRequestException("Invalid email or password");
+            if (user == null)
+            {
+                throw new UnauthorizedException("Invalid email or password.");
+            }
 
             if (await _userManager.IsLockedOutAsync(user))
-                throw new BadRequestException("Account is locked. Please try again later.");
-
-            bool isEmailVerified = await _userManager.IsEmailConfirmedAsync(user);
-            if (!isEmailVerified)
             {
-                var otp = await GenerateEmailConfirmationOtpAsync(user, cancellationToken);
-                await _emailSender.SendEmailAsync(user.Email!, "Confirm your email",
-                    $"Your confirmation code is: <b>{otp}</b>. It expires in 10 minutes.");
-                throw new BadRequestException("Email is not confirmed. A new code has been sent.");
+                throw new LockoutException("Account is locked due to multiple failed login attempts.");
+            }
+
+            if (!user.IsActive)
+            {
+                throw new ForbiddenException("Account is disabled. Please contact support.");
             }
 
             bool isValidPassword = await _userManager.CheckPasswordAsync(user, loginReqDto.Password);
             if (!isValidPassword)
             {
                 await _userManager.AccessFailedAsync(user);
-                throw new BadRequestException("Invalid email or password");
+                throw new UnauthorizedException("Invalid email or password.");
             }
 
             await _userManager.ResetAccessFailedCountAsync(user);
+            var (plainRefreshToken, tokenHash) = _jwtProvider.GenerateRefreshToken();
+            var refreshTokenExpiry = DateTime.UtcNow.AddDays(_refreshTokenDays);
 
-            var roles = await _userManager.GetRolesAsync(user);
-
-
-
-            try
+            // Invalidate/Cleanup oldest sessions/devices if exceeding limits
+            const int MaxActiveDevices = 5;
+            var activeTokens = user.RefreshTokens.Where(rt => rt.IsValid).OrderBy(rt => rt.CreatedAt).ToList();
+            if (activeTokens.Count >= MaxActiveDevices)
             {
-                // ---- حد أقصى لعدد الأجهزة المسجلة (Refresh Tokens) ----
-                const int MaxActiveDevices = 5;
-                var activeTokens = user.RefreshTokens.Where(rt => rt.IsValid).OrderBy(rt => rt.CreatedAt).ToList();
-                if (activeTokens.Count >= MaxActiveDevices)
-                    activeTokens.First().RevokedAt = DateTime.UtcNow;
-
-                string refreshToken = GenerateRefreshToken();
-                var refreshTokenExpiry = DateTime.UtcNow.AddDays(_refreshTokenDays);
-
-                RefreshToken refresh = new RefreshToken
-                {
-                    Token = refreshToken,
-                    ExpirationAt = refreshTokenExpiry,
-                };
-
-                user.RefreshTokens.Add(refresh);
-
-
-                var (token, expiresIn) = _jwtProvider.GenerateToken(
-     user,
-     roles,
-     refresh
- );
-                await _userManager.UpdateAsync(user);
-
-                return new LoginResDto(user.Id, user.Email!, user.PersonName, token, expiresIn,
-                    refreshToken, roles, refreshTokenExpiry, null
-                );
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Login transaction failed for user {Email}", loginReqDto.Email);
-                throw;
-            }
-        }
-        public async Task<LoginResDto> RefreshTokenAsync(RefreshTokenReqDto refreshTokenReqDto, CancellationToken cancellationToken)
-        {
-            string refreshToken = refreshTokenReqDto.RefreshToken;
-            string accessToken = refreshTokenReqDto.AccessToken;
-
-            string? userId = _jwtProvider.GetUserIdByToken(accessToken, validateLifetime: false);
-
-            if (userId is null)
-                throw new UnauthorizedException("Invalid access token");
-
-            ApplicationUser? user = await _userManager.Users
-                .Include(u => u.RefreshTokens)
-                .FirstOrDefaultAsync(u => u.Id == int.Parse(userId), cancellationToken);
-
-            if (user is null)
-                throw new BadRequestException("User not found");
-
-            RefreshToken? existingRefreshToken = user.RefreshTokens
-                .FirstOrDefault(rt => rt.Token == refreshToken);
-            if (existingRefreshToken is null || !existingRefreshToken.IsValid)
-            {
-                if (existingRefreshToken is not null && existingRefreshToken.RevokedAt.HasValue)
-                {
-                    _logger.LogWarning("Refresh token reuse detected for user {UserId}. Revoking all tokens.", userId);
-                    foreach (var token in user.RefreshTokens.Where(rt => rt.IsValid))
-                    {
-                        token.RevokedAt = DateTime.UtcNow;
-                    }
-                    await _userManager.UpdateAsync(user);
-                }
-                throw new UnauthorizedException("Invalid refresh token");
+                activeTokens.First().RevokedAt = DateTime.UtcNow;
             }
 
-            existingRefreshToken.RevokedAt = DateTime.UtcNow;
-
-            string newRefreshToken = GenerateRefreshToken();
-            DateTime refreshTokenExpirationDate = DateTime.UtcNow.AddDays(_refreshTokenDays);
-            var currentGym = await _gymAccessRepo.GetGymAccessAsync(user.Id, existingRefreshToken.CurrentGymId,
-              cancellationToken);
-
-            
 
 
-            RefreshToken newRefreshTokenRecord = new RefreshToken
+
+            var refresh = new RefreshToken
             {
-                Token = newRefreshToken,
-                ExpirationAt = refreshTokenExpirationDate,
-                CreatedAt = DateTime.UtcNow,
-                CurrentGymId = currentGym?.GymId ?? 0,
+                Token = tokenHash,
+                ExpirationAt = refreshTokenExpiry,
+                UserId = user.Id,
             };
-            user.RefreshTokens.Add(newRefreshTokenRecord);
-
-
+            user.RefreshTokens.Add(refresh);
             await _userManager.UpdateAsync(user);
 
             var roles = await _userManager.GetRolesAsync(user);
-            (string newAccessToken, int expiresIn) = _jwtProvider.GenerateToken(user, roles, newRefreshTokenRecord);
+            var (accessToken, _) = _jwtProvider.GenerateToken(user, roles, refresh);
 
-            return new LoginResDto(
-                Id: user.Id,
-                Email: user.Email!,
-                PersonName: user.PersonName,
-                Token: newAccessToken,
-                ExpiresIn: expiresIn,
-                Refreshtoken: newRefreshToken,
-                Roles: roles,
-                RefreshTokenExpirationDate: refreshTokenExpirationDate,
-                MyGym: new MyGymDto
+            // Publish Login Event
+            await _publishEndpoint.Publish(new UserLoggedInEvent(user.Id, DateTime.UtcNow), cancellationToken);
+
+            return new AuthResponseDto
+            {
+                AccessToken = accessToken,
+                RefreshToken = plainRefreshToken,
+                User = new UserInfoDto
                 {
-                    GymId = currentGym?.GymId ?? 0,
-                    GymName = currentGym?.GymName ?? string.Empty,
-                    GymRole = currentGym?.GymRole ?? string.Empty,
+                    UserId = user.Id.ToString(),
+                    FullName = user.PersonName,
+                    Email = user.Email!
+                },
+            };
+        }
+        public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken, string accessToken, CancellationToken ct)
+        {
+            // تجديد التوكن مع الحفاظ على نفس سياق الجيم المخزن مسبقًا
+            return await ProcessTokenRotationAsync(
+                refreshToken,
+                accessToken,
+                targetGymContext: null, // لا يوجد تغيير في الجيم
+                ct);
+        }
+
+        public async Task<AuthResponseDto> SwitchGym(SwitchGymRequest switchGymRequest, CancellationToken ct)
+        {
+            // 1. جلب المستخدم للتحقق من صلاحية وصوله للجيم الجديد
+            string? userIdStr = _jwtProvider.GetUserIdByToken(switchGymRequest.AccessToken, validateLifetime: false);
+            if (userIdStr == null) throw new UnauthorizedException("Invalid access token.");
+
+            int userId = int.Parse(userIdStr);
+
+            // 2. التحقق من صلاحيات الوصول للفرع/الجيم الجديد
+            MyGymDto? gymAccess = await _gymAccessRepo.GetGymAccessAsync(userId, switchGymRequest.GymId, ct);
+            if (gymAccess == null) throw new UnauthorizedException("You don't have access to this gym.");
+
+            // 3. تجهيز السياق الجديد للـ Gym
+            var newGymContext = new MyGymDto
+            {
+                GymId = gymAccess.GymId,
+                GymPeopleId = gymAccess.GymPeopleId,
+                GymRole = gymAccess.GymRole,
+                GymName = gymAccess.GymName
+            };
+
+            // 4. تنفيذ تجديد التوكن وتطبيق السياق الجديد
+            return await ProcessTokenRotationAsync(switchGymRequest.RefreshToken, switchGymRequest.AccessToken, newGymContext, ct);
+        }
+
+        private async Task<AuthResponseDto> ProcessTokenRotationAsync(
+    string refreshToken,
+    string accessToken,
+    MyGymDto? targetGymContext,
+    CancellationToken ct)
+        {
+            // 1. استخراج الـ UserId والبحث عن المستخدم
+            string? userIdStr = _jwtProvider.GetUserIdByToken(accessToken, validateLifetime: false);
+            if (userIdStr == null) throw new UnauthorizedException("Invalid access token.");
+
+            var user = await _userManager.Users
+                .Include(u => u.RefreshTokens)
+                .FirstOrDefaultAsync(u => u.Id == int.Parse(userIdStr), ct);
+
+            if (user == null) throw new BadRequestException("User not found.");
+
+            // 2. فحص الـ Refresh Token والأمان (Anti-Hijacking)
+            var tokenHash = _jwtProvider.HashToken(refreshToken);
+            var existingRefreshToken = user.RefreshTokens.FirstOrDefault(rt => rt.Token == tokenHash);
+
+            if (existingRefreshToken == null || !existingRefreshToken.IsValid)
+            {
+                if (existingRefreshToken != null && existingRefreshToken.RevokedAt.HasValue)
+                {
+                    // طرد المستخدم وإلغاء جميع جلساته النشطة عند اكتشاف استخدام توكن ملغي
+                    foreach (var rt in user.RefreshTokens.Where(x => x.IsValid))
+                    {
+                        rt.RevokedAt = DateTime.UtcNow;
+                    }
+                    await _userManager.UpdateAsync(user);
                 }
+                throw new UnauthorizedException("Invalid or revoked refresh token.");
+            }
+
+            // 3. إلغاء الـ Refresh Token الحالي
+            existingRefreshToken.RevokedAt = DateTime.UtcNow;
+
+            // 4. تحديد سياق الجيم الجديد أو الحفاظ على القديم
+            int currentGymId = targetGymContext?.GymId ?? existingRefreshToken.CurrentGymId;
+            int currentGymPeopleId = targetGymContext?.GymPeopleId ?? existingRefreshToken.CurrentGymPeopleId ?? 0;
+            string? gymRole = targetGymContext?.GymRole ?? existingRefreshToken.GymRole;
+
+            // 5. إنشاء Refresh Token جديد
+            var (newPlainRefreshToken, newHash) = _jwtProvider.GenerateRefreshToken();
+            var newExpiry = DateTime.UtcNow.AddDays(_refreshTokenDays);
+
+            var newRefresh = new RefreshToken
+            {
+                Token = newHash,
+                ExpirationAt = newExpiry,
+                UserId = user.Id,
+                CurrentGymId = currentGymId,
+                CurrentGymPeopleId = currentGymPeopleId,
+                GymRole = gymRole
+            };
+
+            user.RefreshTokens.Add(newRefresh);
+            await _userManager.UpdateAsync(user);
+
+            // 6. توليد Access Token جديد
+            var roles = await _userManager.GetRolesAsync(user);
+            var (newAccessToken, _) = _jwtProvider.GenerateToken(user, roles, newRefresh);
+
+            // 7. جلب اسم الجيم للإستجابة (إذا لم يكن ممررًا)
+            string? gymName = targetGymContext?.GymName;
+            if (gymName == null && currentGymId > 0)
+            {
+                var gym = await _context.Gym.FindAsync(new object[] { currentGymId }, ct);
+                gymName = gym?.Name;
+            }
+
+            CurrentGymDto? currentGym = null;
+            if (currentGymId > 0 && !string.IsNullOrEmpty(gymRole))
+            {
+                currentGym = new CurrentGymDto
+                {
+                    GymId = currentGymId.ToString(),
+                    GymName = gymName ?? string.Empty,
+                    Role = gymRole
+                };
+            }
+
+            return new AuthResponseDto
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newPlainRefreshToken,
+                User = new UserInfoDto
+                {
+                    UserId = user.Id.ToString(),
+                    FullName = user.PersonName,
+                    Email = user.Email!
+                },
+                CurrentGym = currentGym
+            };
+        }
+
+
+
+        public async Task LogoutAsync(int userId, string? refreshToken, bool logoutFromAllDevices, CancellationToken cancellationToken)
+        {
+            var user = await _userManager.Users
+                .Include(u => u.RefreshTokens)
+                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+            if (user == null) return;
+
+            if (logoutFromAllDevices)
+            {
+                foreach (var rt in user.RefreshTokens.Where(x => x.IsValid))
+                {
+                    rt.RevokedAt = DateTime.UtcNow;
+                }
+            }
+            else if (!string.IsNullOrEmpty(refreshToken))
+            {
+                var tokenHash = _jwtProvider.HashToken(refreshToken);
+                var rt = user.RefreshTokens.FirstOrDefault(x => x.Token == tokenHash);
+                if (rt != null)
+                {
+                    rt.RevokedAt = DateTime.UtcNow;
+                }
+            }
+
+            await _userManager.UpdateAsync(user);
+        }
+
+        public async Task<bool> VerifyOtpAsync(string email, string otp, CancellationToken cancellationToken)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return false;
+
+            if (string.IsNullOrEmpty(user.PasswordResetOtp) || user.PasswordResetOtpExpiry < DateTime.UtcNow)
+                return false;
+
+            if (user.PasswordResetOtpAttempts >= 5)
+            {
+                user.PasswordResetOtp = null;
+                user.PasswordResetOtpExpiry = null;
+                await _userManager.UpdateAsync(user);
+                return false;
+            }
+
+            var hashedOtp = HashOtp(otp);
+            if (user.PasswordResetOtp != hashedOtp)
+            {
+                user.PasswordResetOtpAttempts++;
+                await _userManager.UpdateAsync(user);
+                return false;
+            }
+
+            user.PasswordResetOtpAttempts = 0;
+            await _userManager.UpdateAsync(user);
+            return true;
+        }
+
+
+        public async Task<string> GeneratePasswordResetOtpAsync(string email, CancellationToken cancellationToken)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return "000000";
+
+            string otp = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
+            user.PasswordResetOtp = HashOtp(otp);
+            user.PasswordResetOtpExpiry = DateTime.UtcNow.AddMinutes(10);
+            user.PasswordResetOtpAttempts = 0;
+            await _userManager.UpdateAsync(user);
+
+            return otp;
+        }
+
+
+
+        public async Task<GoogleAuthResponseDto> LoginWithGoogle(GoogleLoginRequestDto googleLoginRequest, CancellationToken cancellationToken)
+        {
+            var payload = await _jwtProvider.VerifyGoogleToken(googleLoginRequest.IdToken);
+            if (payload == null)
+            {
+                throw new BadRequestException("The provided Google ID token is invalid or expired.");
+            }
+
+            var email = payload.Email;
+            var user = await _userManager.FindByEmailAsync(email);
+            bool isNewUser = false;
+
+            if (user == null)
+            {
+                isNewUser = true;
+                user = new ApplicationUser
+                {
+                    UserName = email,
+                    Email = email,
+                    PersonName = payload.Name,
+                    EmailConfirmed = true,
+                    IsActive = true
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                {
+                    string errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                    throw new BadRequestException(errors);
+                }
+
+                await _userManager.AddToRoleAsync(user, RoleConstants.User);
+
+                // Activate Free Plan
+                var freePlan = await _context.SubscriptionPlan
+                    .Include(x => x.Prices)
+                    .FirstOrDefaultAsync(x => x.IsFree && x.IsActive == true, cancellationToken);
+
+                if (freePlan != null)
+                {
+                    var price = freePlan.Prices.FirstOrDefault() ?? new PlanPrice { DurationMonths = 12, Amount = 0 };
+                    var sub = new OwnerSubscription
+                    {
+                        CreatedById = user.Id,
+                        PlanId = freePlan.Id,
+                        PlanPriceId = price.Id,
+                        AmountPaid = 0,
+                        CurrencyCode = "USD",
+                        StartDate = DateTime.UtcNow,
+                        EndDate = DateTime.UtcNow.AddMonths(price.DurationMonths),
+                        GraceEndDate = DateTime.UtcNow.AddMonths(price.DurationMonths).AddDays(7)
+                    };
+                    _context.OwnerSubscription.Add(sub);
+                    await _context.SaveChangesAsync(cancellationToken);
+                }
+
+                await _publishEndpoint.Publish(new UserRegisteredViaGoogleEvent(user.Id, user.Email!, user.PersonName), cancellationToken);
+            }
+
+            if (!user.IsActive)
+            {
+                throw new ForbiddenException("Account is disabled.");
+            }
+            var (plainRefreshToken, tokenHash) = _jwtProvider.GenerateRefreshToken();
+            var refreshTokenExpiry = DateTime.UtcNow.AddDays(_refreshTokenDays);
+
+
+            var refresh = new RefreshToken
+            {
+                Token = tokenHash,
+                ExpirationAt = refreshTokenExpiry,
+                UserId = user.Id,
+            };
+            user.RefreshTokens.Add(refresh);
+            await _userManager.UpdateAsync(user);
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var (accessToken, _) = _jwtProvider.GenerateToken(user, roles, refresh);
+
+
+            return new GoogleAuthResponseDto
+            {
+                AccessToken = accessToken,
+                RefreshToken = plainRefreshToken,
+                IsNewUser = isNewUser,
+                User = new UserInfoDto
+                {
+                    UserId = user.Id.ToString(),
+                    FullName = user.PersonName,
+                    Email = user.Email!
+                },
+            };
+        }
+
+        public async Task<GetUserProfileDto> GetUserProfileAsync(int userId, CancellationToken cancellationToken)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) throw new NotFoundException("User not found.");
+
+            var roles = await _userManager.GetRolesAsync(user);
+            return new GetUserProfileDto(
+                user.Email!,
+                user.PersonName,
+                user.PhoneNumber,
+                roles
             );
         }
 
-        #region ConfirmEmailAsync
+        public async Task<ApplicationUser?> GetUserByEmailAsync(string email, CancellationToken cancellationToken)
+        {
+            return await _userManager.FindByEmailAsync(email);
+        }
+
+        public async Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+        {
+            return await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        }
+
+        public async Task<string> GenerateEmailConfirmationOtpAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+        {
+            string otp = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
+            user.EmailConfirmationOtp = HashOtp(otp);
+            user.EmailConfirmationOtpExpiry = DateTime.UtcNow.AddMinutes(10);
+            user.EmailConfirmationOtpAttempts = 0;
+            await _userManager.UpdateAsync(user);
+            return otp;
+        }
+
         public async Task ConfirmEmailAsync(string email, string otp, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user is null)
-                throw new NotFoundException("User not found");
+            if (user == null) throw new NotFoundException("User not found.");
 
-            if (user.EmailConfirmed)
-                throw new BadRequestException("Email already confirmed");
+            if (user.EmailConfirmed) throw new BadRequestException("Email already confirmed.");
 
             if (string.IsNullOrEmpty(user.EmailConfirmationOtp) || user.EmailConfirmationOtpExpiry < DateTime.UtcNow)
-                throw new BadRequestException("Invalid or expired code");
+                throw new BadRequestException("Invalid or expired code.");
 
             if (user.EmailConfirmationOtpAttempts >= 5)
             {
@@ -255,11 +603,12 @@ namespace Infrastructure.Repo
                 throw new BadRequestException("Too many attempts. Please request a new code.");
             }
 
-            if (!VerifyOtpHash(otp, user.EmailConfirmationOtp))
+            var hashedOtp = HashOtp(otp);
+            if (user.EmailConfirmationOtp != hashedOtp)
             {
                 user.EmailConfirmationOtpAttempts++;
                 await _userManager.UpdateAsync(user);
-                throw new BadRequestException("Invalid or expired code");
+                throw new BadRequestException("Invalid or expired code.");
             }
 
             user.EmailConfirmed = true;
@@ -272,283 +621,53 @@ namespace Infrastructure.Repo
         public async Task ResendConfirmationEmailAsync(string email, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user is null || user.EmailConfirmed)
-                return; // ما بنكشفش لو الإيميل موجود ولا لأ
+            if (user == null || user.EmailConfirmed) return;
 
             var otp = await GenerateEmailConfirmationOtpAsync(user, cancellationToken);
             await _emailSender.SendEmailAsync(user.Email!, "Confirm your email",
                 $"Your confirmation code is: <b>{otp}</b>. It expires in 10 minutes.");
         }
-        #endregion
 
-        #region Logout
-        public async Task LogoutAsync(LogoutRequest logoutRequest, CancellationToken cancellationToken)
-        {
-            if (logoutRequest.LogoutFromAllDevices)
-            {
-                var userRefreshTokens = await _context.RefreshTokens
-                    .Where(rf => rf.UserId == logoutRequest.UserId)
-                    .ToListAsync(cancellationToken);
-
-                foreach (var token in userRefreshTokens)
-                {
-                    token.RevokedAt = DateTime.UtcNow;
-                }
-
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-            }
-            else
-            {
-                var refreshToken = await _context.RefreshTokens
-                    .FirstOrDefaultAsync(rt => rt.Token == logoutRequest.RefreshToken, cancellationToken);
-
-                if (refreshToken != null)
-                {
-                    refreshToken.RevokedAt = DateTime.UtcNow;
-                    await _unitOfWork.SaveChangesAsync(cancellationToken);
-                }
-            }
-        }
-        #endregion
-
-        #region ChangePasswordAsync
         public async Task ChangePasswordAsync(int userId, string currentPassword, string newPassword, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user is null)
-                throw new NotFoundException("User not found");
+            if (user == null) throw new NotFoundException("User not found.");
 
             var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-
             if (!result.Succeeded)
             {
                 string errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 throw new BadRequestException(errors);
             }
 
-            // Best practice: امسح كل الـ refresh tokens بعد تغيير الباسورد (يقفل كل الأجهزة عدا الحالي)
-            await _unitOfWork.BeginTransactionAsync(cancellationToken);
-            try
+            foreach (var rt in user.RefreshTokens.Where(x => x.IsValid))
             {
-                var userWithTokens = await _userManager.Users
-                    .Include(u => u.RefreshTokens)
-                    .FirstAsync(u => u.Id == userId, cancellationToken);
-
-                foreach (var token in userWithTokens.RefreshTokens.Where(rt => rt.IsValid))
-                    token.RevokedAt = DateTime.UtcNow;
-
-                await _userManager.UpdateAsync(userWithTokens);
-                await _unitOfWork.CommitTransactionAsync(cancellationToken);
+                rt.RevokedAt = DateTime.UtcNow;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to revoke tokens after password change for user {UserId}", userId);
-                await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                throw;
-            }
-        }
-        #endregion
-
-        #region GeneratePasswordResetOtpAsync
-        public async Task<string> GeneratePasswordResetOtpAsync(string email, CancellationToken cancellationToken)
-        {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user is null)
-            {
-                _logger.LogInformation("Password reset requested for non-existent email: {Email}", email);
-                return "00000";
-            }
-
-            string otp = RandomNumberGenerator.GetInt32(10000, 99999).ToString();
-
-            user.PasswordResetOtp = HashOtp(otp);
-            user.PasswordResetOtpExpiry = DateTime.UtcNow.AddMinutes(5);
-            user.PasswordResetOtpAttempts = 0;
             await _userManager.UpdateAsync(user);
-
-            return otp;
-        }
-
-        public async Task<bool> VerifyOtpAsync(VerifyOtpRequest verifyOtpRequest, CancellationToken cancellationToken)
-        {
-            var user = await _userManager.FindByEmailAsync(verifyOtpRequest.Email);
-            if (user is null) throw new NotFoundException("User not found");
-
-            if (string.IsNullOrEmpty(user.PasswordResetOtp) || user.PasswordResetOtpExpiry < DateTime.UtcNow)
-                throw new BadRequestException("Invalid or expired OTP");
-
-            if (user.PasswordResetOtpAttempts >= 5)
-            {
-                user.PasswordResetOtp = null;
-                user.PasswordResetOtpExpiry = null;
-                await _userManager.UpdateAsync(user);
-                throw new BadRequestException("Too many attempts. Please request a new OTP.");
-            }
-
-            if (!VerifyOtpHash(verifyOtpRequest.Otp, user.PasswordResetOtp))
-            {
-                user.PasswordResetOtpAttempts++;
-                await _userManager.UpdateAsync(user);
-                throw new BadRequestException("Invalid or expired OTP");
-            }
-
-            user.PasswordResetOtpAttempts = 0;
-            await _userManager.UpdateAsync(user);
-            return true;
-        }
-        public async Task ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest, CancellationToken cancellationToken)
-        {
-            var user = await _userManager.FindByEmailAsync(resetPasswordRequest.Email);
-            if (user is null) throw new NotFoundException("User not found");
-
-            bool isSamePassword = await _userManager.CheckPasswordAsync(user, resetPasswordRequest.NewPassword);
-            if (isSamePassword)
-                throw new BadRequestException("New password cannot be the same as the old password");
-
-            await _unitOfWork.BeginTransactionAsync(cancellationToken);
-            try
-            {
-                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var result = await _userManager.ResetPasswordAsync(user, token, resetPasswordRequest.NewPassword);
-
-                if (!result.Succeeded)
-                {
-                    string errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                    throw new BadRequestException(errors);
-                }
-
-                user.PasswordResetOtp = null;
-                user.PasswordResetOtpExpiry = null;
-                await _userManager.UpdateAsync(user);
-
-                await _unitOfWork.CommitTransactionAsync(cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Reset password transaction failed for user {Email}", resetPasswordRequest.Email);
-                await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                throw;
-            }
-        }
-        #endregion
-
-        #region GetUserByEmailAsync
-        public async Task<ApplicationUser?> GetUserByEmailAsync(string email, CancellationToken cancellationToken)
-        {
-            return await _userManager.FindByEmailAsync(email);
-        }
-        #endregion
-
-        public async Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return await _userManager.GenerateEmailConfirmationTokenAsync((ApplicationUser)user);
         }
 
 
-        public async Task<LoginResDto> LoginWithGoogle(GoogleLoginRequest googleLoginRequest, CancellationToken cancellationToken)
-        {
-            var payload = await _jwtProvider.VerifyGoogleToken(googleLoginRequest.IdToken);
-            if (payload is null)
-                throw new BadRequestException("Invalid Google token");
-
-            var user = await _userManager.FindByEmailAsync(payload.Email);
-            if (user is null)
-            {
-                user = new ApplicationUser
-                {
-                    UserName = payload.Email,
-                    Email = payload.Email,
-                    PersonName = payload.Name,
-                    EmailConfirmed = true
-                };
-                var createResult = await _userManager.CreateAsync(user);
-                if (!createResult.Succeeded)
-                {
-                    string errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
-                    throw new BadRequestException(errors);
-                }
-                var defaultRole = RoleType.User.ToString();
-                await _userManager.AddToRoleAsync(user, defaultRole);
-            }
-
-            var roles = await _userManager.GetRolesAsync(user);
-
-            await _unitOfWork.BeginTransactionAsync(cancellationToken);
-            try
-            {
-                string refreshToken = GenerateRefreshToken();
-                var refreshTokenExpiry = DateTime.UtcNow.AddDays(_refreshTokenDays);
-                RefreshToken refreshTokenRecord = new RefreshToken
-                {
-                    Token = refreshToken,
-                    ExpirationAt = refreshTokenExpiry
-                };
-                user.RefreshTokens.Add(refreshTokenRecord);
-                await _userManager.UpdateAsync(user);
-                var (token, expiresIn) = _jwtProvider.GenerateToken(user, roles, refreshTokenRecord);
-                await _unitOfWork.CommitTransactionAsync(cancellationToken);
-                return new LoginResDto(
-                    Id: user.Id,
-                    Email: user.Email!,
-                    PersonName: user.PersonName,
-                    Token: token,
-                    ExpiresIn: expiresIn,
-                    Refreshtoken: refreshToken,
-                    Roles: roles,
-                    RefreshTokenExpirationDate: refreshTokenExpiry,
-                    MyGym: null
-                );
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Google login transaction failed");
-                await _unitOfWork.RollbackTransactionAsync(cancellationToken);
-                throw;
-            }
-        }
-
-        // ============ EMAIL CONFIRMATION OTP (جديد بالكامل) ============
-        public async Task<string> GenerateEmailConfirmationOtpAsync(ApplicationUser user, CancellationToken cancellationToken = default)
-        {
-            var appUser = (ApplicationUser)user;
-            string otp = RandomNumberGenerator.GetInt32(10000, 99999).ToString();
-
-            appUser.EmailConfirmationOtp = HashOtp(otp);
-            appUser.EmailConfirmationOtpExpiry = DateTime.UtcNow.AddMinutes(10);
-            appUser.EmailConfirmationOtpAttempts = 0;
-            await _userManager.UpdateAsync(appUser);
-
-            return otp;
-        }
-
-        #region Helper
-        private static string GenerateRefreshToken()
-        {
-            return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64))
-                .Replace('+', '-')
-                .Replace('/', '_')
-                .Replace("=", "");
-        }
 
         private static string HashOtp(string value)
         {
-            return System.Convert.ToBase64String(
-                System.Security.Cryptography.SHA256.HashData(
-                    System.Text.Encoding.UTF8.GetBytes(value)
-                )
-            );
+            var bytes = Encoding.UTF8.GetBytes(value);
+            var hashBytes = SHA256.HashData(bytes);
+            return Convert.ToBase64String(hashBytes);
         }
 
-        private static bool VerifyOtpHash(string plainText, string hashedValue)
+        public async Task ResetPasswordAsync(int userId, string newPassword, CancellationToken cancellationToken)
         {
-            var hash = System.Convert.ToBase64String(
-                System.Security.Cryptography.SHA256.HashData(
-                    System.Text.Encoding.UTF8.GetBytes(plainText)
-                )
-            );
-            return string.Equals(hash, hashedValue, StringComparison.Ordinal);
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+            {
+                throw new NotFoundException("User not found");
+            }
+            user.PasswordHash = _userManager.PasswordHasher.HashPassword(user, newPassword);
+            await _userManager.UpdateAsync(user);
         }
-        #endregion
+
+
+
     }
 }

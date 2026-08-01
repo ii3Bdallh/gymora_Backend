@@ -8,6 +8,9 @@ public sealed class ApplicationUser : IdentityUser<int>
 {
     public string PersonName { get; set; } = string.Empty;
 
+    public bool IsActive { get; set; } = true;
+
+
     public string? PasswordResetOtp { get; set; }
 
     public DateTime? PasswordResetOtpExpiry { get; set; }

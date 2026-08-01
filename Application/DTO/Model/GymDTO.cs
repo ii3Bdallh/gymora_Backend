@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using Application.Common.FileValidation;
 using Application.DTO.Base;
-using Domain.Model.Base.Domain.Model.Enums;
+using Domain.Enum;
 using Microsoft.AspNetCore.Http;
 
 namespace Application.DTO.Model
@@ -93,7 +93,14 @@ namespace Application.DTO.Model
     {
         public int GymId { get; set; }
 
-        public required RefreshTokenReqDto RefreshToken { get; set; } 
+        public string RefreshToken { get; set; } = null!;
+
+        public string AccessToken { get; set; } = null!;
+    }
+
+    public class SwitchGymDTO
+    {
+        public int GymId { get; set; }
     }
 
     public sealed record ChangeOwnerDTO
@@ -108,6 +115,8 @@ namespace Application.DTO.Model
     public class MyGymDto
     {
         public int GymId { get; set; }
+
+        public int GymPeopleId { get; set; }
 
         public string GymName { get; set; } = default!;
 
