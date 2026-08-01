@@ -1,7 +1,7 @@
 using Application.DTO;
 using Application.DTO.Auth;
-using Application.DTO.Auth;
-using Application.DTO.Auth;
+using Application.DTO.Model;
+using Application.Interface.Repo;
 using Application.Interface.Service;
 using Application.StaticTexts;
 using Microsoft.AspNetCore.Authorization;
@@ -12,8 +12,18 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(IAuthService authService) : ControllerBase
+    public class AuthController(IAuthService authService, IGymAccessRepo gymAccessRepo) : ControllerBase
     {
+        [Authorize]
+        [HttpPost("switch")]
+        public async Task<IActionResult> SwitchGym(
+    SwitchGymRequest request,
+    CancellationToken ct)
+        {
+            var res = await gymAccessRepo.SwitchGymAsync(request, ct);
+
+            return Ok(Result<LoginResDto>.Success(res));
+        }
         [Authorize]
         [HttpGet("get-user-profile")]
         public async Task<IActionResult> GetUserProfile(CancellationToken cancellationToken)

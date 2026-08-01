@@ -78,7 +78,7 @@ namespace Infrastructure.Repo
 
             // return memberGym;
 
-            throw new NotImplementedException("Method not implemented");
+            throw new NotImplementedException("Method for Role Member not implemented");
         }
 
         public async Task<List<MyGymDto>> GetMyGymsAsync(
