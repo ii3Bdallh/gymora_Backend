@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Application.DTO.Model
 {
-    public record GymCDTO : BaseAuditableFCDTO
+    public record GymCDTO : BaseFCDTO
     {
 
         [AllowedFileTypes(10, AllowedFileType.Jpg, AllowedFileType.Png)]
@@ -43,7 +43,7 @@ namespace Application.DTO.Model
 
     }
 
-    public record GymUDTO : BaseAuditableFUDTO
+    public record GymUDTO : BaseFUDTO
     {
         [AllowedFileTypes(10, AllowedFileType.Jpg, AllowedFileType.Png)]
         public override IFormFile? File { get; set; }
@@ -70,7 +70,7 @@ namespace Application.DTO.Model
         public GymStatus Status { get; set; }
     }
 
-    public record GymRDTO : BaseAuditableFRDTO
+    public record GymRDTO : BaseFRDTO
     {
         public string Name { get; set; } = null!;
         public string? Description { get; set; }

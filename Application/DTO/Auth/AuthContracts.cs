@@ -173,9 +173,20 @@ namespace Gymora.Contracts.Authentication
 
     // --- Select Gym Workspace DTOs ---
 
-    public class UserGymsPagedReq : PaginatedSearchReq
+    public class UserGymsPagedReq
     {
-        public string? StatusFilter { get; set; } // Active, Expired, Locked, Blocked
+        const int maxPageSize = 50;
+
+        private int _pageSize = 10;
+        public int PageSize
+        {
+            get => _pageSize;
+            set => _pageSize = value > maxPageSize ? maxPageSize : value;
+        }
+
+        public int PageNumber { get; set; } = 1;
+
+
 
 
     }
@@ -188,7 +199,7 @@ namespace Gymora.Contracts.Authentication
         public string GymName { get; set; } = null!;
         public string? LogoUrl { get; set; }
 
-        public int GymPeopleId { get; set; } 
+        public int GymPeopleId { get; set; }
         public string Role { get; set; } = null!; // Owner, Coach, Receptionist, Member
         public GymAccessStatus GymAccessStatus { get; set; } = GymAccessStatus.Active;
         public bool IsAccessible { get; set; } = true;

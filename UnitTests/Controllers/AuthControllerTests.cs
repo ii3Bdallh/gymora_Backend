@@ -62,7 +62,7 @@ namespace UnitTests.Controllers
 
             var createdResult = result.Should().BeOfType<ObjectResult>().Subject;
             createdResult.StatusCode.Should().Be(201);
-            var response = createdResult.Value.Should().BeAssignableTo<Result<RegisterResponseDto>>().Subject;
+            var response = createdResult.Value.Should().BeAssignableTo<Result<string>>().Subject;
             response.IsSuccess.Should().BeTrue();
         }
 
@@ -74,7 +74,7 @@ namespace UnitTests.Controllers
             var result = await _sut.Register(new RegisterRequestDto(), CancellationToken.None);
 
             var unprocessableResult = result.Should().BeOfType<UnprocessableEntityObjectResult>().Subject;
-            var response = unprocessableResult.Value.Should().BeAssignableTo<Result<RegisterResponseDto>>().Subject;
+            var response = unprocessableResult.Value.Should().BeAssignableTo<Result<string>>().Subject;
             response.IsSuccess.Should().BeFalse();
         }
 

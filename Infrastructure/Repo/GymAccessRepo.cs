@@ -33,30 +33,28 @@ namespace Infrastructure.Repo
             // Owner
             // ===========================
 
-            var ownerGym = await context.Gym
+            var ownerPerson = await context.GymPerson
                 .AsNoTracking()
+                .Include(x => x.Gym)
                 .Where(x =>
-                    x.Id == gymId &&
-                    x.CreatedById == userId &&
+                    x.GymId == gymId &&
+                    x.UserId == userId &&
+                    x.PersonType == PersonType.Owner &&
                     x.IsActive)
-                .Select(x => new
-                {
-                    Gym = x,
-                    Role = GymRole.Owner.ToRoleString()
-                })
                 .FirstOrDefaultAsync(ct);
 
-            if (ownerGym != null)
+            if (ownerPerson != null)
             {
-                ValidateGymAccess(ownerGym.Gym);
+                ValidateGymAccess(ownerPerson.Gym);
 
-                await ValidateOwnerSubscriptionAsync(ownerGym.Gym.CreatedById, ct);
+                await ValidateOwnerSubscriptionAsync(userId, ct);
 
                 return new MyGymDto
                 {
-                    GymId = ownerGym.Gym.Id,
-                    GymName = ownerGym.Gym.Name,
-                    GymRole = ownerGym.Role
+                    GymPeopleId = ownerPerson.Id,
+                    GymId = ownerPerson.Gym.Id,
+                    GymName = ownerPerson.Gym.Name,
+                    GymRole = GymRole.Owner.ToRoleString()
                 };
             }
 
@@ -83,10 +81,19 @@ namespace Infrastructure.Repo
 
             ValidateGymPersonAccessStatus(gymPerson.AccessStatus);
 
-            await ValidateOwnerSubscriptionAsync(gymPerson.Gym.CreatedById, ct);
+            var ownerPersonId = await context.GymPerson
+                .AsNoTracking()
+                .Where(x => x.GymId == gymPerson.GymId && x.PersonType == PersonType.Owner && x.IsActive)
+                .Select(x => x.UserId)
+                .FirstOrDefaultAsync(ct);
+
+            if (ownerPersonId == null)
+                throw new ForbiddenException("No active owner found for this gym.");
+
+            await ValidateOwnerSubscriptionAsync(ownerPersonId.Value, ct);
 
             // if (gymPerson.PersonType == PersonType.Member ||
-            //     gymPerson.PersonType == PersonType.Both)
+            //     gymPerson.PersonType == PersonType.StaffMember)
             // {
             //     ValidateMembership(gymPerson.MemberProfile?.Membership);
             // }

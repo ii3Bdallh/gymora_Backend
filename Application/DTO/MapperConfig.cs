@@ -46,15 +46,15 @@ namespace Application.DTO
             CreateMap<ApplicationUser, ApplicationUserUDTO>().ReverseMap();
 
             CreateMap<Gym, GymRDTO>()
-                .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>()
+                .IncludeBase<BaseFileEntity, BaseFRDTO>()
                 .ReverseMap();
 
             CreateMap<Gym, GymCDTO>()
-                .IncludeBase<BaseAuditableFileEntity, BaseAuditableFCDTO>()
+                .IncludeBase<BaseFileEntity, BaseFCDTO>()
                 .ReverseMap();
 
             CreateMap<Gym, GymUDTO>()
-                .IncludeBase<BaseAuditableFileEntity, BaseAuditableFUDTO>()
+                .IncludeBase<BaseFileEntity, BaseFUDTO>()
                 .ReverseMap();
 
 

@@ -66,6 +66,7 @@ namespace Application.DTO.Model
         public string? Gender { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? PhotoUrl { get; set; }
+        
 
         public GymStaffProfileCDTO? StaffProfile { get; set; }
         public GymMemberProfileCDTO? MemberProfile { get; set; }

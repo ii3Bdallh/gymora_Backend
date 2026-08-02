@@ -13,7 +13,7 @@ namespace Domain.Model
 {
   // Dont Forget to add [Searchable] , [Filterable] , 
   // Dont Forget to add Config , UDTO , CDTO , RDTO
-  public class Gym : BaseAuditableFileEntity // , IOnlyMeCanSee // , IPublicEntity
+  public class Gym : BaseFileEntity // , IOnlyMeCanSee // , IPublicEntity
   {
     [Searchable]
     public string Name { get; set; } = null!;

@@ -16,7 +16,7 @@ namespace Infrastructure.Config
     {
       // Auditing not enabled for this entity
 
-      builder.ConfigureFileAuditing();
+      builder.HasIndex(g => g.IsActive);
 
 
 

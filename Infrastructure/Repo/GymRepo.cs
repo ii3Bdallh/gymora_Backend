@@ -19,27 +19,28 @@ using Application.DTO.Model;
 
 namespace Infrastructure.Repo
 {
-    public class GymRepo(ApplicationDbContext context, ILogger<GymRepo> logger, QueryCache queryCache, CurrentUser currentUser)
-    : BaseAuditableRepo<Gym>(context, logger, queryCache, currentUser), IGymRepo
+    public class GymRepo(ApplicationDbContext context, ILogger<GymRepo> logger, QueryCache queryCache)
+    : BaseRepo<Gym>(context, logger, queryCache), IGymRepo
     {
 
         public async Task<int> CountOwnedByOwnerAsync(
     int ownerUserId,
     CancellationToken ct = default)
         {
-            return await DbSet
+            return await context.GymPerson
                 .AsNoTracking()
                 .Where(x =>
-                    x.CreatedById == ownerUserId &&
+                    x.UserId == ownerUserId &&
+                    x.PersonType == PersonType.Owner &&
                     x.IsActive)
                 .CountAsync(ct);
         }
 
         public async Task<int> GetOwnerIdAsync(int gymId)
         {
-            return await DbSet
-                .Where(x => x.Id == gymId)
-                .Select(x => x.CreatedById)
+            return await context.GymPerson
+                .Where(x => x.GymId == gymId && x.PersonType == PersonType.Owner && x.IsActive && x.UserId != null)
+                .Select(x => x.UserId!.Value)
                 .SingleAsync();
         }
 
@@ -51,34 +52,35 @@ namespace Infrastructure.Repo
             CancellationToken cancellationToken)
         {
             //----------------------------------------------------
-            // Owner Gyms
+            // Owner Gyms   
             //----------------------------------------------------
 
-            var ownerGyms = await context.Gym
+            var ownerGyms = await context.GymPerson
                 .AsNoTracking()
+                .Include(x => x.Gym)
                 .Where(x =>
-                    x.CreatedById == userId &&
-                    x.IsActive)
+                    x.UserId == userId &&
+                    x.PersonType == PersonType.Owner &&
+                    x.IsActive &&
+                    x.Gym.IsActive)
                 .Select(x => new UserGymAccessItem
                 {
                     IsOwner = true,
 
-                    Gym = x,
+                    Gym = x.Gym,
 
-                    GymPersonId = null,
+                    GymPersonId = x.Id,
 
-                    PersonType = null,
+                    PersonType = x.PersonType,
 
                     GymRole = GymRole.Owner,
 
-                    PersonAccessStatus = (GymPersonAccessStatus?)null,
-
-                    // MembershipStatus = (MembershipStatus?)null
+                    PersonAccessStatus = x.AccessStatus,
                 })
                 .ToListAsync(cancellationToken);
 
             //----------------------------------------------------
-            // Staff + Member + Both
+            // Staff + Member + StaffMember
             //----------------------------------------------------
 
             var peopleGyms = await context.GymPerson
@@ -141,14 +143,22 @@ namespace Infrastructure.Repo
             // Collect Ids
             //----------------------------------------------------
 
-            var ownerIds = gyms
-                .Select(x => x.Gym.CreatedById)
-                .Distinct()
-                .ToList();
-
             var gymIds = gyms
                 .Select(x => x.Gym.Id)
                 .ToList();
+
+            var gymOwners = await context.GymPerson
+                .AsNoTracking()
+                .Where(x =>
+                    gymIds.Contains(x.GymId) &&
+                    x.PersonType == PersonType.Owner &&
+                    x.IsActive &&
+                    x.UserId != null)
+                .Select(x => new { x.GymId, OwnerUserId = x.UserId!.Value })
+                .ToDictionaryAsync(x => x.GymId, x => x.OwnerUserId, cancellationToken);
+
+            var ownerIds = gymOwners.Values.Distinct().ToList();
+
             //----------------------------------------------------
             // Latest Subscription For Each Owner
             //----------------------------------------------------
@@ -225,7 +235,8 @@ namespace Infrastructure.Repo
                 // Owner Subscription
                 //----------------------------------------------------
 
-                else if (ownerSubscriptions.TryGetValue(gym.CreatedById, out var subscription))
+                else if (gymOwners.TryGetValue(gym.Id, out var ownerUserId) &&
+                         ownerSubscriptions.TryGetValue(ownerUserId, out var subscription))
                 {
                     switch (subscription.Status)
                     {

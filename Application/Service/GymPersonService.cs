@@ -45,20 +45,18 @@ namespace Application.Service
 
         protected override async Task BeforeAddAsync(GymPersonCDTO dto, CancellationToken cancellationToken)
         {
-            Gym? gym = await _gymRepo.GetByIdAsync(CurrentGymId ?? 0, true, false, cancellationToken);
-            if (gym is null)
-                throw new InvalidOperationException("Gym not found or inactive.");
+            int ownerUserId = await _gymRepo.GetOwnerIdAsync(CurrentGymId ?? 0);
 
-            if (dto.PersonType == PersonType.Staff || dto.PersonType == PersonType.Both)
+            if (dto.PersonType == PersonType.Staff || dto.PersonType == PersonType.StaffMember)
             {
-                bool canCreateNewStaff = await _currentPlanService.HasAvailableCoachSlotAsync(gym.CreatedById, cancellationToken);
+                bool canCreateNewStaff = await _currentPlanService.HasAvailableCoachSlotAsync(ownerUserId, cancellationToken);
                 if (!canCreateNewStaff)
                     throw new InvalidOperationException("You have exceeded the maximum number of staffs allowed for your current subscription plan.");
             }
 
-            if (dto.PersonType == PersonType.Member || dto.PersonType == PersonType.Both)
+            if (dto.PersonType == PersonType.Member || dto.PersonType == PersonType.StaffMember)
             {
-                bool canCreateNewMember = await _currentPlanService.HasAvailableMemberSlotAsync(gym.CreatedById, cancellationToken);
+                bool canCreateNewMember = await _currentPlanService.HasAvailableMemberSlotAsync(ownerUserId, cancellationToken);
                 if (!canCreateNewMember)
                     throw new InvalidOperationException("You have exceeded the maximum number of members allowed for your current subscription plan.");
             }
@@ -95,7 +93,7 @@ namespace Application.Service
         protected override Task AfterMapUpdateAsync(GymPerson entity, GymPersonUDTO dto, CancellationToken cancellationToken)
         {
             // Handle StaffProfile transition/update
-            if (entity.PersonType == PersonType.Staff || entity.PersonType == PersonType.Both)
+            if (entity.PersonType == PersonType.Staff || entity.PersonType == PersonType.StaffMember)
             {
                 if (dto.StaffProfile != null)
                 {
@@ -116,7 +114,7 @@ namespace Application.Service
             }
 
             // Handle MemberProfile transition/update
-            if (entity.PersonType == PersonType.Member || entity.PersonType == PersonType.Both)
+            if (entity.PersonType == PersonType.Member || entity.PersonType == PersonType.StaffMember)
             {
                 if (dto.MemberProfile != null)
                 {
@@ -147,7 +145,7 @@ namespace Application.Service
                 throw new KeyNotFoundException($"GymPerson with ID {staffId} not found or is inactive.");
             }
 
-            if (person.PersonType != PersonType.Staff && person.PersonType != PersonType.Both)
+            if (person.PersonType != PersonType.Staff && person.PersonType != PersonType.StaffMember)
             {
                 throw new InvalidOperationException($"GymPerson with ID {staffId} is not registered as a staff member.");
             }

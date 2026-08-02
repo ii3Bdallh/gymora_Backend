@@ -10,6 +10,10 @@ namespace Application.Interface.Repo
     {
         public Task<GymPerson?> LinkAccountToGymAsync(int gymId, Guid inviteCode, CancellationToken ct = default);
 
+
+        public Task<GymPerson?> GetGymOwnerAsync(int gymId, CancellationToken ct = default);
+        public Task<GymPerson?> GetGymPersonAsync(int gymId, int userId , CancellationToken ct = default);
+
         Task<int> CountPeopleTypeByOwnerAsync(int ownerUserId, PersonType personType, CancellationToken ct = default);
 
     }

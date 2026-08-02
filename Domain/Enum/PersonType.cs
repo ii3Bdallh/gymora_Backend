@@ -4,6 +4,7 @@ namespace Domain.Enum
     {
         Staff = 0,
         Member = 1,
-        Both = 2
+        StaffMember = 2,
+        Owner = 3
     }
 }

@@ -47,6 +47,8 @@ namespace Infrastructure.Repo.Base
 
         public DbSet<T> DbSet => context.Set<T>();
 
+
+
         public virtual async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
             IQueryable<T> query = BuildQuery(true);

@@ -74,18 +74,36 @@ namespace Infrastructure.Repo
             return gymPerson;
         }
 
-        public Task<int> CountPeopleTypeByOwnerAsync(
+        public async Task<int> CountPeopleTypeByOwnerAsync(
             int ownerUserId,
             PersonType personType,
             CancellationToken ct = default)
         {
-            return context.GymPerson.CountAsync(x =>
+            var ownedGymIds = await context.GymPerson
+                .Where(x => x.UserId == ownerUserId && x.PersonType == PersonType.Owner && x.IsActive)
+                .Select(x => x.GymId)
+                .ToListAsync(ct);
+
+            if (!ownedGymIds.Any())
+                return 0;
+
+            return await context.GymPerson.CountAsync(x =>
                 x.IsActive &&
-                x.Gym.CreatedById == ownerUserId &&
-                (x.PersonType == personType || x.PersonType == PersonType.Both),
+                ownedGymIds.Contains(x.GymId) &&
+                (x.PersonType == personType || x.PersonType == PersonType.StaffMember),
                 ct);
         }
 
 
+
+        public async Task<GymPerson?> GetGymOwnerAsync(int gymId, CancellationToken ct = default)
+        {
+            return await DbSet.Where(x => x.GymId == gymId && x.PersonType == PersonType.Owner && x.IsActive).FirstOrDefaultAsync(ct);
+        }
+
+        public async Task<GymPerson?> GetGymPersonAsync(int gymId, int userId, CancellationToken ct = default)
+        {
+            return await DbSet.Where(x => x.GymId == gymId && x.UserId == userId && x.IsActive).FirstOrDefaultAsync(ct);
+        }
     }
 }
