@@ -16,12 +16,16 @@ namespace Application.Interface.Service.Shared
             int ownerUserId,
             CancellationToken ct = default);
 
-        Task<bool> CheckMemberLimitAsync(
+
+        Task<bool> HasAvailableMemberSlotAsync(
             int ownerUserId,
             CancellationToken ct = default);
 
-        Task<bool> CheckCoachLimitAsync(
+
+        Task<bool> HasAvailableCoachSlotAsync(
             int ownerUserId,
             CancellationToken ct = default);
+
+
     }
 }

@@ -11,12 +11,12 @@ namespace Application.DTO.Model
     public record SubscriptionPlanCDTO : BaseCDTO
     {
         public string Name { get; set; } = null!;
-            public bool IsFree { get; set; }
+        public bool IsFree { get; set; }
 
         public string? Description { get; set; }
         public int MaxOwnedGyms { get; set; }
-        public int MaxCoachesGym { get; set; }
-        public int MaxMembersGym { get; set; }
+        public int MaxCoaches { get; set; }
+        public int MaxMembers { get; set; }
         public string? FeaturesJson { get; set; }
 
         public ICollection<PlanPriceCDTO> Prices { get; set; } = new List<PlanPriceCDTO>();
@@ -25,12 +25,12 @@ namespace Application.DTO.Model
     public record SubscriptionPlanRDTO : BaseRDTO
     {
         public string Name { get; set; } = null!;
-            public bool IsFree { get; set; }
+        public bool IsFree { get; set; }
 
         public string? Description { get; set; }
         public int MaxOwnedGyms { get; set; }
-        public int MaxCoachesGym { get; set; }
-        public int MaxMembersGym { get; set; }
+        public int MaxCoaches { get; set; }
+        public int MaxMembers { get; set; }
         public string? FeaturesJson { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedOn { get; set; }
@@ -42,12 +42,12 @@ namespace Application.DTO.Model
     {
         public string Name { get; set; } = null!;
 
-            public bool IsFree { get; set; }
+        public bool IsFree { get; set; }
 
         public string? Description { get; set; }
         public int MaxOwnedGyms { get; set; }
-        public int MaxCoachesGym { get; set; }
-        public int MaxMembersGym { get; set; }
+        public int MaxCoaches { get; set; }
+        public int MaxMembers { get; set; }
         public string? FeaturesJson { get; set; }
         public bool IsActive { get; set; }
 

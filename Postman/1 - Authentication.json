@@ -1,7 +1,7 @@
 ﻿{
     "info":  {
                  "_postman_id":  "f0e70db9-c428-46ae-ab32-b7b371af6042",
-                 "name":  "Auth",
+                 "name":  "1 - Auth",
                  "description":  "Authentication and user account management endpoints.",
                  "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
              },

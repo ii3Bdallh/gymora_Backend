@@ -39,7 +39,8 @@ public class CouponRedemptionRepoTests : IDisposable
     {
         var coupon = new Coupon
         {
-            Code = "TEST10", Name = "Test",
+            Code = "TEST10",
+            Name = "Test",
             DiscountType = DiscountType.FixedAmount,
             DiscountValue = 10m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
@@ -52,20 +53,30 @@ public class CouponRedemptionRepoTests : IDisposable
 
         var plan = new SubscriptionPlan
         {
-            Name = "Basic", IsFree = false,
-            MaxOwnedGyms = 1, MaxCoachesGym = 5, MaxMembersGym = 50,
-            IsActive = true, CreatedOn = DateTime.UtcNow
+            Name = "Basic",
+            IsFree = false,
+            MaxOwnedGyms = 1,
+            MaxCoaches = 5,
+            MaxMembers = 50,
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
         await _context.SaveChangesAsync();
 
         var paymentRequest = new PaymentRequest
         {
-            PlanId = plan.Id, PlanPriceId = 0,
-            OriginalAmount = 100m, FinalAmount = 100m,
-            CurrencyCode = "USD", Status = PaymentRequestStatus.Approved,
-            IsActive = true, CreatedOn = DateTime.UtcNow, CreatedById = 1,
-            StoredFilePath = string.Empty, RowVersion = [1, 2, 3]
+            PlanId = plan.Id,
+            PlanPriceId = 0,
+            OriginalAmount = 100m,
+            FinalAmount = 100m,
+            CurrencyCode = "USD",
+            Status = PaymentRequestStatus.Approved,
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow,
+            CreatedById = 1,
+            StoredFilePath = string.Empty,
+            RowVersion = [1, 2, 3]
         };
         _context.PaymentRequest.Add(paymentRequest);
         await _context.SaveChangesAsync();
@@ -100,7 +111,8 @@ public class CouponRedemptionRepoTests : IDisposable
     {
         var coupon = new Coupon
         {
-            Code = "TEST", Name = "Test",
+            Code = "TEST",
+            Name = "Test",
             DiscountType = DiscountType.FixedAmount,
             DiscountValue = 5m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
@@ -113,20 +125,30 @@ public class CouponRedemptionRepoTests : IDisposable
 
         var plan = new SubscriptionPlan
         {
-            Name = "Basic", IsFree = false,
-            MaxOwnedGyms = 1, MaxCoachesGym = 5, MaxMembersGym = 50,
-            IsActive = true, CreatedOn = DateTime.UtcNow
+            Name = "Basic",
+            IsFree = false,
+            MaxOwnedGyms = 1,
+            MaxCoaches = 5,
+            MaxMembers = 50,
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
         await _context.SaveChangesAsync();
 
         var paymentRequest = new PaymentRequest
         {
-            PlanId = plan.Id, PlanPriceId = 0,
-            OriginalAmount = 50m, FinalAmount = 50m,
-            CurrencyCode = "USD", Status = PaymentRequestStatus.Approved,
-            IsActive = true, CreatedOn = DateTime.UtcNow, CreatedById = 1,
-            StoredFilePath = string.Empty, RowVersion = [1, 2, 3]
+            PlanId = plan.Id,
+            PlanPriceId = 0,
+            OriginalAmount = 50m,
+            FinalAmount = 50m,
+            CurrencyCode = "USD",
+            Status = PaymentRequestStatus.Approved,
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow,
+            CreatedById = 1,
+            StoredFilePath = string.Empty,
+            RowVersion = [1, 2, 3]
         };
         _context.PaymentRequest.Add(paymentRequest);
         await _context.SaveChangesAsync();
@@ -166,7 +188,8 @@ public class CouponRedemptionRepoTests : IDisposable
     {
         var coupon = new Coupon
         {
-            Code = "T", Name = "T",
+            Code = "T",
+            Name = "T",
             DiscountType = DiscountType.FixedAmount,
             DiscountValue = 5m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
@@ -179,20 +202,30 @@ public class CouponRedemptionRepoTests : IDisposable
 
         var plan = new SubscriptionPlan
         {
-            Name = "P", IsFree = false,
-            MaxOwnedGyms = 1, MaxCoachesGym = 5, MaxMembersGym = 50,
-            IsActive = true, CreatedOn = DateTime.UtcNow
+            Name = "P",
+            IsFree = false,
+            MaxOwnedGyms = 1,
+            MaxCoaches = 5,
+            MaxMembers = 50,
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
         await _context.SaveChangesAsync();
 
         var pr = new PaymentRequest
         {
-            PlanId = plan.Id, PlanPriceId = 0,
-            OriginalAmount = 50m, FinalAmount = 50m,
-            CurrencyCode = "USD", Status = PaymentRequestStatus.Approved,
-            IsActive = true, CreatedOn = DateTime.UtcNow, CreatedById = 1,
-            StoredFilePath = string.Empty, RowVersion = [1, 2, 3]
+            PlanId = plan.Id,
+            PlanPriceId = 0,
+            OriginalAmount = 50m,
+            FinalAmount = 50m,
+            CurrencyCode = "USD",
+            Status = PaymentRequestStatus.Approved,
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow,
+            CreatedById = 1,
+            StoredFilePath = string.Empty,
+            RowVersion = [1, 2, 3]
         };
         _context.PaymentRequest.Add(pr);
         await _context.SaveChangesAsync();
@@ -200,15 +233,21 @@ public class CouponRedemptionRepoTests : IDisposable
         _context.CouponRedemption.AddRange(
             new CouponRedemption
             {
-                CouponId = coupon.Id, PaymentRequestId = pr.Id,
-                DiscountAmount = 5m, CreatedById = 1,
-                CreatedOn = DateTime.UtcNow, IsActive = true
+                CouponId = coupon.Id,
+                PaymentRequestId = pr.Id,
+                DiscountAmount = 5m,
+                CreatedById = 1,
+                CreatedOn = DateTime.UtcNow,
+                IsActive = true
             },
             new CouponRedemption
             {
-                CouponId = coupon.Id, PaymentRequestId = pr.Id,
-                DiscountAmount = 10m, CreatedById = 1,
-                CreatedOn = DateTime.UtcNow, IsActive = true
+                CouponId = coupon.Id,
+                PaymentRequestId = pr.Id,
+                DiscountAmount = 10m,
+                CreatedById = 1,
+                CreatedOn = DateTime.UtcNow,
+                IsActive = true
             }
         );
         await _context.SaveChangesAsync();
@@ -227,7 +266,8 @@ public class CouponRedemptionRepoTests : IDisposable
     {
         var coupon = new Coupon
         {
-            Code = "D", Name = "D",
+            Code = "D",
+            Name = "D",
             DiscountType = DiscountType.FixedAmount,
             DiscountValue = 5m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
@@ -240,29 +280,42 @@ public class CouponRedemptionRepoTests : IDisposable
 
         var plan = new SubscriptionPlan
         {
-            Name = "P", IsFree = false,
-            MaxOwnedGyms = 1, MaxCoachesGym = 5, MaxMembersGym = 50,
-            IsActive = true, CreatedOn = DateTime.UtcNow
+            Name = "P",
+            IsFree = false,
+            MaxOwnedGyms = 1,
+            MaxCoaches = 5,
+            MaxMembers = 50,
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
         await _context.SaveChangesAsync();
 
         var pr = new PaymentRequest
         {
-            PlanId = plan.Id, PlanPriceId = 0,
-            OriginalAmount = 50m, FinalAmount = 50m,
-            CurrencyCode = "USD", Status = PaymentRequestStatus.Approved,
-            IsActive = true, CreatedOn = DateTime.UtcNow, CreatedById = 1,
-            StoredFilePath = string.Empty, RowVersion = [1, 2, 3]
+            PlanId = plan.Id,
+            PlanPriceId = 0,
+            OriginalAmount = 50m,
+            FinalAmount = 50m,
+            CurrencyCode = "USD",
+            Status = PaymentRequestStatus.Approved,
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow,
+            CreatedById = 1,
+            StoredFilePath = string.Empty,
+            RowVersion = [1, 2, 3]
         };
         _context.PaymentRequest.Add(pr);
         await _context.SaveChangesAsync();
 
         var redemption = new CouponRedemption
         {
-            CouponId = coupon.Id, PaymentRequestId = pr.Id,
-            DiscountAmount = 5m, CreatedById = 1,
-            CreatedOn = DateTime.UtcNow, IsActive = true
+            CouponId = coupon.Id,
+            PaymentRequestId = pr.Id,
+            DiscountAmount = 5m,
+            CreatedById = 1,
+            CreatedOn = DateTime.UtcNow,
+            IsActive = true
         };
         _context.CouponRedemption.Add(redemption);
         await _context.SaveChangesAsync();

@@ -56,7 +56,7 @@ namespace Application.DTO.Model
     // ==========================================
     // Gym Person DTOs
     // ==========================================
-    public record GymPersonCDTO : BaseCDTO
+    public record GymPersonCDTO : BaseAuditableCDTO
     {
         public int? UserId { get; set; }
         public PersonType PersonType { get; set; }
@@ -71,7 +71,7 @@ namespace Application.DTO.Model
         public GymMemberProfileCDTO? MemberProfile { get; set; }
     }
 
-    public record GymPersonUDTO : BaseUDTO
+    public record GymPersonUDTO : BaseAuditableUDTO
     {
         public int? UserId { get; set; }
         public PersonType PersonType { get; set; }
@@ -86,7 +86,7 @@ namespace Application.DTO.Model
         public GymMemberProfileUDTO? MemberProfile { get; set; }
     }
 
-    public record GymPersonRDTO : BaseRDTO
+    public record GymPersonRDTO : BaseAuditableRDTO
     {
         public int? UserId { get; set; }
         public PersonType PersonType { get; set; }

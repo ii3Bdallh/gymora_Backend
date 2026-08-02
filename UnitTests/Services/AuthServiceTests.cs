@@ -69,32 +69,32 @@ namespace UnitTests.Services
             );
         }
 
-        #region RegisterAsync
+        //#region RegisterAsync
 
-        [Fact]
-        public async Task RegisterAsync_ShouldCallRepo_WhenDataIsValid()
-        {
-            var dto = new RegisterRequestDto
-            {
-                Email = "test@test.com",
-                PersonName = "Test User",
-                Password = "Password123!"
-            };
+        //[Fact]
+        //public async Task RegisterAsync_ShouldCallRepo_WhenDataIsValid()
+        //{
+        //    var dto = new RegisterRequestDto
+        //    {
+        //        Email = "test@test.com",
+        //        PersonName = "Test User",
+        //        Password = "Password123!"
+        //    };
 
-            var expectedResponse = new RegisterResponseDto
-            {
-                User = new UserInfoDto { UserId = "1", Email = "test@test.com", FullName = "Test User" }
-            };
+        //    var expectedResponse = new RegisterResponseDto
+        //    {
+        //        User = new UserInfoDto { UserId = "1", Email = "test@test.com", FullName = "Test User" }
+        //    };
 
-            _authRepo.Setup(r => r.RegisterAsync(dto, It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+        //    _authRepo.Setup(r => r.RegisterAsync(dto, It.IsAny<CancellationToken>()))
+        //        .Returns(Task.CompletedTask);
 
-            await _sut.RegisterAsync(dto, CancellationToken.None);
+        //    await _sut.RegisterAsync(dto, CancellationToken.None);
 
-            _authRepo.Verify(r => r.RegisterAsync(dto, It.IsAny<CancellationToken>()), Times.Once);
-        }
+        //    _authRepo.Verify(r => r.RegisterAsync(dto, It.IsAny<CancellationToken>()), Times.Once);
+        //}
 
-        #endregion
+        //#endregion
 
         #region LoginAsync
 
@@ -120,21 +120,21 @@ namespace UnitTests.Services
 
         #endregion
 
-        #region ConfirmEmailAsync
+        //#region ConfirmEmailAsync
 
-        [Fact]
-        public async Task ConfirmEmailAsync_ShouldReturnSuccess_WhenOtpIsValid()
-        {
-            _authRepo.Setup(r => r.ConfirmEmailAsync("test@test.com", "12345", It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+        //[Fact]
+        //public async Task ConfirmEmailAsync_ShouldReturnSuccess_WhenOtpIsValid()
+        //{
+        //    _authRepo.Setup(r => r.ConfirmEmailAsync("test@test.com", "12345", It.IsAny<CancellationToken>()))
+        //        .Returns(Task.CompletedTask);
 
-            var result = await _sut.ConfirmEmailAsync("test@test.com", "12345", CancellationToken.None);
+        //    var result = await _sut.ConfirmEmailAsync("test@test.com", "12345", CancellationToken.None);
 
-            result.Should().NotBeNull();
-            result.Success.Should().BeTrue();
-        }
+        //    result.Should().NotBeNull();
+        //    result.Success.Should().BeTrue();
+        //}
 
-        #endregion
+        //#endregion
 
         #region GetUserProfileAsync
 

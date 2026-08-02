@@ -44,11 +44,24 @@ namespace Domain.Model
 
         public DateTime? UpdatedAt { get; set; }
 
+        public GymPersonAccessStatus AccessStatus { get; set; }
+
         [Timestamp]
         public byte[] RowVersion { get; set; } = null!;
 
         // Navigation Properties for profiles
         public GymStaffProfile? StaffProfile { get; set; }
         public GymMemberProfile? MemberProfile { get; set; }
+    }
+
+    public enum GymPersonAccessStatus
+    {
+        Active = 1,
+
+        Suspended = 2,
+
+        Blocked = 3,
+
+        LeftGym = 4
     }
 }

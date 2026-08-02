@@ -25,55 +25,166 @@ namespace Infrastructure.Repo
         // }
 
         public async Task<MyGymDto?> GetGymAccessAsync(
-            int userId,
-            int gymId,
-            CancellationToken ct = default)
+      int userId,
+      int gymId,
+      CancellationToken ct = default)
         {
+            // ===========================
             // Owner
+            // ===========================
+
             var ownerGym = await context.Gym
                 .AsNoTracking()
                 .Where(x =>
-                    x.CreatedById == userId &&
                     x.Id == gymId &&
+                    x.CreatedById == userId &&
                     x.IsActive)
-                .Select(x => new MyGymDto
+                .Select(x => new
                 {
-                    GymId = x.Id,
-                    GymName = x.Name,
-                    GymRole = GymRole.Owner.ToRoleString(),
+                    Gym = x,
+                    Role = GymRole.Owner.ToRoleString()
                 })
                 .FirstOrDefaultAsync(ct);
 
-            if (ownerGym is not null)
-                return ownerGym;
+            if (ownerGym != null)
+            {
+                ValidateGymAccess(ownerGym.Gym);
 
-            // Staff
-            var staffGym = await context.GymPerson
+                await ValidateOwnerSubscriptionAsync(ownerGym.Gym.CreatedById, ct);
+
+                return new MyGymDto
+                {
+                    GymId = ownerGym.Gym.Id,
+                    GymName = ownerGym.Gym.Name,
+                    GymRole = ownerGym.Role
+                };
+            }
+
+            // ===========================
+            // Staff / Member
+            // ===========================
+
+            var gymPerson = await context.GymPerson
                 .AsNoTracking()
                 .Include(x => x.Gym)
                 .Include(x => x.StaffProfile)
+                .Include(x => x.MemberProfile)
+                // .ThenInclude(x => x.Membership)
                 .Where(x =>
                     x.UserId == userId &&
                     x.GymId == gymId &&
-                    x.IsActive &&
-                    (x.PersonType == PersonType.Staff || x.PersonType == PersonType.Both))
-                .Select(x => new MyGymDto
-                {
-                    GymPeopleId = x.Id,
-                    GymId = x.GymId,
-                    GymName = x.Gym.Name,
-                    GymRole = x.StaffProfile != null ? x.StaffProfile.GymRoleId.ToString() : GymRole.Other.ToString(),
-                })
+                    x.IsActive)
                 .FirstOrDefaultAsync(ct);
 
-            if (staffGym is not null)
-                return staffGym;
+            if (gymPerson == null)
+                return null;
 
+            ValidateGymAccess(gymPerson.Gym);
 
-            return null;
+            ValidateGymPersonAccessStatus(gymPerson.AccessStatus);
+
+            await ValidateOwnerSubscriptionAsync(gymPerson.Gym.CreatedById, ct);
+
+            // if (gymPerson.PersonType == PersonType.Member ||
+            //     gymPerson.PersonType == PersonType.Both)
+            // {
+            //     ValidateMembership(gymPerson.MemberProfile?.Membership);
+            // }
+
+            return new MyGymDto
+            {
+                GymPeopleId = gymPerson.Id,
+                GymId = gymPerson.GymId,
+                GymName = gymPerson.Gym.Name,
+                GymRole = gymPerson.StaffProfile != null
+                    ? gymPerson.StaffProfile.GymRoleId.ToString()
+                    : GymRole.Other.ToString()
+            };
         }
 
-  
+        private static void ValidateGymAccess(Gym gym)
+        {
+            if (gym.Status == GymStatus.Suspended)
+                throw new ForbiddenException("This gym has been suspended.");
+        }
+
+        private static void ValidateGymPersonAccessStatus(GymPersonAccessStatus status)
+        {
+            switch (status)
+            {
+                case GymPersonAccessStatus.Active:
+                    return;
+
+                case GymPersonAccessStatus.Suspended:
+                    throw new ForbiddenException("Gym person access is suspended.");
+
+                case GymPersonAccessStatus.Blocked:
+                    throw new ForbiddenException("Gym person access is blocked.");
+
+                case GymPersonAccessStatus.LeftGym:
+                    throw new ForbiddenException("Gym person access is left gym.");
+
+                default:
+                    throw new ForbiddenException("Gym person access is not active.");
+            }
+        }
+
+
+        private async Task ValidateOwnerSubscriptionAsync(
+    int ownerId,
+    CancellationToken ct)
+        {
+            var subscription = await context.OwnerSubscription
+                .Where(x =>
+                    x.CreatedById == ownerId &&
+                    x.IsActive)
+                .OrderByDescending(x => x.EndDate)
+                .FirstOrDefaultAsync(ct);
+
+            if (subscription == null)
+                throw new ForbiddenException("No active subscription found.");
+
+            switch (subscription.Status)
+            {
+                case OwnerSubscriptionStatus.Active:
+                case OwnerSubscriptionStatus.Grace:
+                    return;
+
+                case OwnerSubscriptionStatus.Expired:
+                    throw new ForbiddenException("Owner subscription has expired.");
+
+                case OwnerSubscriptionStatus.Suspended:
+                    throw new ForbiddenException("Owner subscription is suspended.");
+
+                default:
+                    throw new ForbiddenException("Subscription is not available.");
+            }
+        }
+
+        // private static void ValidateMembership(Membership? membership)
+        // {
+        //     if (membership == null)
+        //         throw new ForbiddenException("Membership not found.");
+
+        //     switch (membership.Status)
+        //     {
+        //         case MembershipStatus.Active:
+        //             return;
+
+        //         case MembershipStatus.Expired:
+        //             throw new ForbiddenException("Your membership has expired.");
+
+        //         case MembershipStatus.Frozen:
+        //             throw new ForbiddenException("Your membership is frozen.");
+
+        //         case MembershipStatus.Suspended:
+        //             throw new ForbiddenException("Your membership is suspended.");
+
+        //         default:
+        //             throw new ForbiddenException("Membership is not active.");
+        //     }
+        // }
+
 
 
 

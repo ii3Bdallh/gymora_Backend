@@ -6,4 +6,6 @@ public enum OwnerSubscriptionStatus
     Grace = 2
 ,
     Expired = 3,
+
+    Suspended = 4
 }

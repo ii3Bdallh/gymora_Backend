@@ -1,7 +1,7 @@
 ﻿{
     "info":  {
                  "_postman_id":  "91ca6890-ed5f-4b8c-9d5f-3422833b6e29",
-                 "name":  "Coupon Redemption",
+                 "name":  "5 - Coupon Redemption",
                  "description":  "Endpoints to view coupon redemptions history.",
                  "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
              },

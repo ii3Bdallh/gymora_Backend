@@ -195,8 +195,8 @@ public static class TestData
             Name = name,
             IsFree = isFree,
             MaxOwnedGyms = maxOwnedGyms,
-            MaxCoachesGym = maxCoachesPerGym,
-            MaxMembersGym = maxMembersPerGym,
+            MaxCoaches = maxCoachesPerGym,
+            MaxMembers = maxMembersPerGym,
             IsActive = isActive,
             CreatedOn = DateTime.UtcNow,
             Prices = new List<PlanPrice>()

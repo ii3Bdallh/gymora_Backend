@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using Application.Common.FileValidation;
 using Application.DTO.Base;
 using Domain.Enum;
+using Domain.Model;
 using Microsoft.AspNetCore.Http;
 
 namespace Application.DTO.Model
@@ -122,6 +123,10 @@ namespace Application.DTO.Model
 
         public string GymRole { get; set; } = default!;
 
+        public bool HasAccess { get; set; }
+
+        public string? DeniedReason { get; set; }
+
     }
 
     public class SwitchGymResponse
@@ -132,5 +137,22 @@ namespace Application.DTO.Model
         public string AccessToken { get; set; } = default!;
 
         public string RefreshToken { get; set; } = default!;
+    }
+
+    public sealed class UserGymAccessItem
+    {
+        public bool IsOwner { get; init; }
+
+        public Gym Gym { get; init; } = null!;
+
+        public int? GymPersonId { get; init; }
+
+        public PersonType? PersonType { get; init; }
+
+        public GymRole GymRole { get; init; }
+
+        public GymPersonAccessStatus? PersonAccessStatus { get; init; }
+
+        // public MembershipStatus? MembershipStatus { get; init; }
     }
 }

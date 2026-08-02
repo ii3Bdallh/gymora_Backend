@@ -46,8 +46,8 @@ public class SubscriptionPlanControllerTests
                     Name = "Basic",
                     IsFree = false,
                     MaxOwnedGyms = 1,
-                    MaxCoachesGym = 5,
-                    MaxMembersGym = 50
+                    MaxCoaches = 5,
+                    MaxMembers = 50
                 }
             }
         };
@@ -76,8 +76,8 @@ public class SubscriptionPlanControllerTests
             Name = "Basic",
             IsFree = false,
             MaxOwnedGyms = 1,
-            MaxCoachesGym = 5,
-            MaxMembersGym = 50
+            MaxCoaches = 5,
+            MaxMembers = 50
         };
         _service.Setup(s => s.GetByIdAsync(1, true, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(plan);
@@ -102,8 +102,8 @@ public class SubscriptionPlanControllerTests
             Name = "Premium",
             IsFree = false,
             MaxOwnedGyms = 5,
-            MaxCoachesGym = 20,
-            MaxMembersGym = 200
+            MaxCoaches = 20,
+            MaxMembers = 200
         };
         var rDto = new SubscriptionPlanRDTO { Id = 1, Name = "Premium" };
 
@@ -139,8 +139,8 @@ public class SubscriptionPlanControllerTests
             Name = "Updated",
             IsFree = false,
             MaxOwnedGyms = 2,
-            MaxCoachesGym = 10,
-            MaxMembersGym = 100,
+            MaxCoaches = 10,
+            MaxMembers = 100,
             IsActive = true
         };
         var rDto = new SubscriptionPlanRDTO { Id = 1, Name = "Updated" };

@@ -48,9 +48,9 @@ namespace Application.DTO.Model
 
         public int MaxOwnedGyms { get; init; }
 
-        public int MaxMembersGym { get; init; }
+        public int MaxMembers { get; init; }
 
-        public int MaxCoachesGym { get; init; }
+        public int MaxCoaches { get; init; }
 
         public bool IsFree { get; init; }
 

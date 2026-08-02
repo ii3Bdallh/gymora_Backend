@@ -36,17 +36,25 @@ public class OwnerSubscriptionRepoTests : IDisposable
     {
         var plan = new SubscriptionPlan
         {
-            Name = "Basic", IsFree = false,
-            MaxOwnedGyms = 1, MaxCoachesGym = 5, MaxMembersGym = 50,
-            IsActive = true, CreatedOn = DateTime.UtcNow
+            Name = "Basic",
+            IsFree = false,
+            MaxOwnedGyms = 1,
+            MaxCoaches = 5,
+            MaxMembers = 50,
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
         await _context.SaveChangesAsync();
 
         var planPrice = new PlanPrice
         {
-            PlanId = plan.Id, CountryCode = "US", CurrencyCode = "USD",
-            DurationMonths = 1, Amount = 50m, CreatedOn = DateTime.UtcNow,
+            PlanId = plan.Id,
+            CountryCode = "US",
+            CurrencyCode = "USD",
+            DurationMonths = 1,
+            Amount = 50m,
+            CreatedOn = DateTime.UtcNow,
             IsActive = true
         };
         _context.PlanPrice.Add(planPrice);

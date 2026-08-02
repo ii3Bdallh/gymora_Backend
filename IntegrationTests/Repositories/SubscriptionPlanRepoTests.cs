@@ -43,8 +43,8 @@ public class SubscriptionPlanRepoTests : IDisposable
             Description = "Premium plan",
             IsFree = false,
             MaxOwnedGyms = 5,
-            MaxCoachesGym = 20,
-            MaxMembersGym = 200,
+            MaxCoaches = 20,
+            MaxMembers = 200,
             IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
@@ -72,8 +72,8 @@ public class SubscriptionPlanRepoTests : IDisposable
             Name = "Basic",
             IsFree = false,
             MaxOwnedGyms = 1,
-            MaxCoachesGym = 5,
-            MaxMembersGym = 50,
+            MaxCoaches = 5,
+            MaxMembers = 50,
             IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
@@ -106,8 +106,8 @@ public class SubscriptionPlanRepoTests : IDisposable
             Name = "Basic",
             IsFree = false,
             MaxOwnedGyms = 1,
-            MaxCoachesGym = 5,
-            MaxMembersGym = 50,
+            MaxCoaches = 5,
+            MaxMembers = 50,
             IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
@@ -117,14 +117,22 @@ public class SubscriptionPlanRepoTests : IDisposable
         _context.PlanPrice.AddRange(
             new PlanPrice
             {
-                PlanId = plan.Id, CountryCode = "US", CurrencyCode = "USD",
-                DurationMonths = 1, Amount = 50m, CreatedOn = DateTime.UtcNow,
+                PlanId = plan.Id,
+                CountryCode = "US",
+                CurrencyCode = "USD",
+                DurationMonths = 1,
+                Amount = 50m,
+                CreatedOn = DateTime.UtcNow,
                 IsActive = true
             },
             new PlanPrice
             {
-                PlanId = plan.Id, CountryCode = "US", CurrencyCode = "USD",
-                DurationMonths = 12, Amount = 500m, CreatedOn = DateTime.UtcNow,
+                PlanId = plan.Id,
+                CountryCode = "US",
+                CurrencyCode = "USD",
+                DurationMonths = 12,
+                Amount = 500m,
+                CreatedOn = DateTime.UtcNow,
                 IsActive = true
             }
         );
@@ -148,8 +156,8 @@ public class SubscriptionPlanRepoTests : IDisposable
                 Name = $"Plan {i}",
                 IsFree = i == 1,
                 MaxOwnedGyms = i,
-                MaxCoachesGym = i * 5,
-                MaxMembersGym = i * 50,
+                MaxCoaches = i * 5,
+                MaxMembers = i * 50,
                 IsActive = true,
                 CreatedOn = DateTime.UtcNow
             });
@@ -176,8 +184,8 @@ public class SubscriptionPlanRepoTests : IDisposable
             Name = "Basic",
             IsFree = false,
             MaxOwnedGyms = 1,
-            MaxCoachesGym = 5,
-            MaxMembersGym = 50,
+            MaxCoaches = 5,
+            MaxMembers = 50,
             IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
@@ -218,8 +226,8 @@ public class SubscriptionPlanRepoTests : IDisposable
             Name = "Basic",
             IsFree = false,
             MaxOwnedGyms = 1,
-            MaxCoachesGym = 5,
-            MaxMembersGym = 50,
+            MaxCoaches = 5,
+            MaxMembers = 50,
             IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
@@ -260,8 +268,8 @@ public class SubscriptionPlanRepoTests : IDisposable
             Name = "Basic",
             IsFree = false,
             MaxOwnedGyms = 1,
-            MaxCoachesGym = 5,
-            MaxMembersGym = 50,
+            MaxCoaches = 5,
+            MaxMembers = 50,
             IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
@@ -303,8 +311,8 @@ public class SubscriptionPlanRepoTests : IDisposable
             Name = "Basic",
             IsFree = false,
             MaxOwnedGyms = 1,
-            MaxCoachesGym = 5,
-            MaxMembersGym = 50,
+            MaxCoaches = 5,
+            MaxMembers = 50,
             IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
@@ -341,8 +349,8 @@ public class SubscriptionPlanRepoTests : IDisposable
             Name = "Free",
             IsFree = true,
             MaxOwnedGyms = 1,
-            MaxCoachesGym = 2,
-            MaxMembersGym = 10,
+            MaxCoaches = 2,
+            MaxMembers = 10,
             IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
@@ -375,8 +383,8 @@ public class SubscriptionPlanRepoTests : IDisposable
             Name = "Basic",
             IsFree = false,
             MaxOwnedGyms = 1,
-            MaxCoachesGym = 5,
-            MaxMembersGym = 50,
+            MaxCoaches = 5,
+            MaxMembers = 50,
             IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
@@ -407,8 +415,8 @@ public class SubscriptionPlanRepoTests : IDisposable
             Name = "Delete Me",
             IsFree = false,
             MaxOwnedGyms = 1,
-            MaxCoachesGym = 5,
-            MaxMembersGym = 50,
+            MaxCoaches = 5,
+            MaxMembers = 50,
             IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
@@ -436,8 +444,8 @@ public class SubscriptionPlanRepoTests : IDisposable
             Name = "Hard Delete",
             IsFree = false,
             MaxOwnedGyms = 1,
-            MaxCoachesGym = 5,
-            MaxMembersGym = 50,
+            MaxCoaches = 5,
+            MaxMembers = 50,
             IsActive = true,
             CreatedOn = DateTime.UtcNow
         };

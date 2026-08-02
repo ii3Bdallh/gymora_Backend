@@ -24,10 +24,10 @@ namespace Domain.Model
     public int MaxOwnedGyms { get; set; }
 
     [Filterable(FilterType.Between)]
-    public int MaxCoachesGym { get; set; }
+    public int MaxCoaches { get; set; }
 
     [Filterable(FilterType.Between)]
-    public int MaxMembersGym { get; set; }
+    public int MaxMembers { get; set; }
 
     public string? FeaturesJson { get; set; }
 

@@ -21,6 +21,9 @@ namespace Application.Service
     public class GymPersonService : BaseService<GymPerson, GymPersonRDTO, GymPersonCDTO, GymPersonUDTO>, IGymPersonService
     {
         private readonly IGymPersonRepo _gymPersonRepo;
+        private readonly ICurrentPlanService _currentPlanService;
+
+        private readonly IGymRepo _gymRepo;
 
         public GymPersonService(
             IGymPersonRepo repo,
@@ -29,13 +32,39 @@ namespace Application.Service
             ICacheService cacheService,
             IPublishEndpoint publishEndpoint,
             CurrentUser currentUser,
-            ILogger<GymPersonService> logger
+            ILogger<GymPersonService> logger,
+            ICurrentPlanService currentPlanService,
+            IGymRepo gymRepo
             )
             : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser, logger)
         {
             _gymPersonRepo = repo;
+            _currentPlanService = currentPlanService;
+            _gymRepo = gymRepo;
         }
 
+        protected override async Task BeforeAddAsync(GymPersonCDTO dto, CancellationToken cancellationToken)
+        {
+            Gym? gym = await _gymRepo.GetByIdAsync(CurrentGymId ?? 0, true, false, cancellationToken);
+            if (gym is null)
+                throw new InvalidOperationException("Gym not found or inactive.");
+
+            if (dto.PersonType == PersonType.Staff || dto.PersonType == PersonType.Both)
+            {
+                bool canCreateNewStaff = await _currentPlanService.HasAvailableCoachSlotAsync(gym.CreatedById, cancellationToken);
+                if (!canCreateNewStaff)
+                    throw new InvalidOperationException("You have exceeded the maximum number of staffs allowed for your current subscription plan.");
+            }
+
+            if (dto.PersonType == PersonType.Member || dto.PersonType == PersonType.Both)
+            {
+                bool canCreateNewMember = await _currentPlanService.HasAvailableMemberSlotAsync(gym.CreatedById, cancellationToken);
+                if (!canCreateNewMember)
+                    throw new InvalidOperationException("You have exceeded the maximum number of members allowed for your current subscription plan.");
+            }
+
+
+        }
 
         public async Task<GymPersonRDTO> LinkAccountToGymAsync(int gymId, Guid inviteCode, CancellationToken ct = default)
         {

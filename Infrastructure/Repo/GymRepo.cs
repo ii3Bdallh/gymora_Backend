@@ -15,6 +15,7 @@ using Application.Model;
 using Microsoft.EntityFrameworkCore;
 using Gymora.Contracts.Authentication;
 using Domain.Enum;
+using Application.DTO.Model;
 
 namespace Infrastructure.Repo
 {
@@ -34,144 +35,337 @@ namespace Infrastructure.Repo
                 .CountAsync(ct);
         }
 
-
-
-        public async Task<UserGymsListRDTO> GetUserGymsAsync(int userId, UserGymsPagedReq req, CancellationToken cancellationToken)
+        public async Task<int> GetOwnerIdAsync(int gymId)
         {
-            var ownerGymsQuery = context.Gym
-                .Where(x => x.CreatedById == userId && x.IsActive);
+            return await DbSet
+                .Where(x => x.Id == gymId)
+                .Select(x => x.CreatedById)
+                .SingleAsync();
+        }
 
-            var staffGymsQuery = context.GymPerson
+
+
+        public async Task<UserGymsListRDTO> GetUserGymsAsync(
+            int userId,
+            UserGymsPagedReq req,
+            CancellationToken cancellationToken)
+        {
+            //----------------------------------------------------
+            // Owner Gyms
+            //----------------------------------------------------
+
+            var ownerGyms = await context.Gym
+                .AsNoTracking()
+                .Where(x =>
+                    x.CreatedById == userId &&
+                    x.IsActive)
+                .Select(x => new UserGymAccessItem
+                {
+                    IsOwner = true,
+
+                    Gym = x,
+
+                    GymPersonId = null,
+
+                    PersonType = null,
+
+                    GymRole = GymRole.Owner,
+
+                    PersonAccessStatus = (GymPersonAccessStatus?)null,
+
+                    // MembershipStatus = (MembershipStatus?)null
+                })
+                .ToListAsync(cancellationToken);
+
+            //----------------------------------------------------
+            // Staff + Member + Both
+            //----------------------------------------------------
+
+            var peopleGyms = await context.GymPerson
+                .AsNoTracking()
                 .Include(x => x.Gym)
-                .Where(x => x.UserId == userId && x.IsActive && (x.PersonType == PersonType.Staff || x.PersonType == PersonType.Both))
-                .Select(x => x.Gym);
+                .Include(x => x.StaffProfile)
+                .Include(x => x.MemberProfile)
+                // .ThenInclude(x => x.Membership)
+                .Where(x =>
+                    x.UserId == userId &&
+                    x.IsActive)
+                .Select(x => new UserGymAccessItem
+                {
+                    IsOwner = false,
 
-            var combinedGymsQuery = ownerGymsQuery.Union(staffGymsQuery);
+                    Gym = x.Gym,
 
-            if (!string.IsNullOrEmpty(req.SearchTerm))
+                    GymPersonId = x.Id,
+
+                    PersonType = x.PersonType,
+
+                    GymRole =
+                        x.StaffProfile != null
+                            ? x.StaffProfile.GymRoleId
+                            : GymRole.Member,
+
+                    PersonAccessStatus = x.AccessStatus,
+
+                    // // MembershipStatus =
+                    // //     x.MemberProfile != null &&
+                    // //     x.MemberProfile.Membership != null
+                    // //         ? x.MemberProfile.Membership.Status
+                    // //         : (MembershipStatus?)null
+                })
+                .ToListAsync(cancellationToken);
+
+            //----------------------------------------------------
+            // Merge
+            //----------------------------------------------------
+
+            var gyms = ownerGyms
+                .Concat(peopleGyms)
+                .GroupBy(x => x.Gym.Id)
+                .Select(x => x.First())
+                .ToList();
+
+            if (gyms.Count == 0)
             {
-                combinedGymsQuery = combinedGymsQuery.Where(x => x.Name.Contains(req.SearchTerm));
+                return new UserGymsListRDTO
+                {
+                    Gyms = [],
+                    TotalCount = 0,
+                    PageNumber = req.PageNumber,
+                    PageSize = req.PageSize,
+                    HasActivePlatformSubscription = false
+                };
             }
 
-            var gyms = await combinedGymsQuery.ToListAsync(cancellationToken);
-            var resultList = new List<UserGymRDTO>();
+            //----------------------------------------------------
+            // Collect Ids
+            //----------------------------------------------------
 
-            foreach (var gym in gyms)
+            var ownerIds = gyms
+                .Select(x => x.Gym.CreatedById)
+                .Distinct()
+                .ToList();
+
+            var gymIds = gyms
+                .Select(x => x.Gym.Id)
+                .ToList();
+            //----------------------------------------------------
+            // Latest Subscription For Each Owner
+            //----------------------------------------------------
+
+            var subscriptions = await context.OwnerSubscription
+                .AsNoTracking()
+                .Where(x =>
+                    ownerIds.Contains(x.CreatedById) &&
+                    x.IsActive)
+                .OrderByDescending(x => x.EndDate)
+                .ToListAsync(cancellationToken);
+
+            var ownerSubscriptions = subscriptions
+                .GroupBy(x => x.CreatedById)
+                .ToDictionary(
+                    x => x.Key,
+                    x => x.First());
+
+            //----------------------------------------------------
+            // Free Plan
+            //----------------------------------------------------
+
+            var freePlan = await context.SubscriptionPlan
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    x => x.IsFree && x.IsActive,
+                    cancellationToken);
+
+            //----------------------------------------------------
+            // Current User Platform Subscription
+            //----------------------------------------------------
+
+            var hasActivePlatformSubscription = await context.OwnerSubscription
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.CreatedById == userId &&
+                    x.IsActive &&
+                    (
+                        x.Status == OwnerSubscriptionStatus.Active ||
+                        x.Status == OwnerSubscriptionStatus.Grace
+                    ),
+                    cancellationToken);
+
+            //----------------------------------------------------
+            // Build Result
+            //----------------------------------------------------
+
+            var result = new List<UserGymRDTO>();
+
+            foreach (var item in gyms)
             {
-                string role = GymRole.Member.ToString();
-                if (gym.CreatedById == userId)
-                {
-                    role = GymRole.Owner.ToString();
-                }
-                else
-                {
-                    var staff = await context.GymPerson
-                        .Include(x => x.StaffProfile)
-                        .FirstOrDefaultAsync(x => x.UserId == userId && x.GymId == gym.Id && x.IsActive && (x.PersonType == PersonType.Staff || x.PersonType == PersonType.Both), cancellationToken);
-                    if (staff?.StaffProfile != null)
-                    {
-                        role = staff.StaffProfile.GymRoleId.ToString();
-                    }
-                }
+                var gym = item.Gym;
 
-                string status = "Active";
-                bool isAccessible = true;
+                var role = item.GymRole.ToString();
+
+                var accessStatus = GymAccessStatus.Active;
+
+                var isAccessible = true;
+
                 string? inaccessibleReason = null;
+
+                //----------------------------------------------------
+                // Gym Validation
+                //----------------------------------------------------
 
                 if (gym.Status == GymStatus.Suspended)
                 {
-                    status = "Blocked";
+                    accessStatus = GymAccessStatus.GymSuspended;
                     isAccessible = false;
-                    inaccessibleReason = "Gym is blocked by administrator.";
+                    inaccessibleReason = "This gym has been suspended.";
                 }
-                else
-                {
-                    var ownerSub = await context.OwnerSubscription
-                        .Include(x => x.Plan)
-                        .Where(x => x.CreatedById == gym.CreatedById && x.IsActive)
-                        .OrderByDescending(x => x.EndDate)
-                        .FirstOrDefaultAsync(cancellationToken);
 
-                    if (ownerSub == null)
+                //----------------------------------------------------
+                // Owner Subscription
+                //----------------------------------------------------
+
+                else if (ownerSubscriptions.TryGetValue(gym.CreatedById, out var subscription))
+                {
+                    switch (subscription.Status)
                     {
-                        var freePlan = await context.SubscriptionPlan.FirstOrDefaultAsync(x => x.IsFree && x.IsActive == true, cancellationToken);
-                        if (freePlan == null)
-                        {
-                            status = "Locked";
+                        case OwnerSubscriptionStatus.Active:
+                            break;
+
+                        case OwnerSubscriptionStatus.Grace:
+                            accessStatus = GymAccessStatus.OwnerSubscriptionGrace;
+                            break;
+
+                        case OwnerSubscriptionStatus.Expired:
+                            accessStatus = GymAccessStatus.OwnerSubscriptionExpired;
                             isAccessible = false;
-                            inaccessibleReason = "Owner subscription expired. Gym access is restricted.";
-                        }
-                    }
-                    else if (ownerSub.Status == OwnerSubscriptionStatus.Expired)
-                    {
-                        status = "Locked";
-                        isAccessible = false;
-                        inaccessibleReason = "Owner subscription expired. Gym access is restricted.";
-                    }
-                    else if (ownerSub.Status == OwnerSubscriptionStatus.Grace)
-                    {
-                        status = "Expired";
+                            inaccessibleReason = "The owner's subscription has expired.";
+                            break;
+
+                        case OwnerSubscriptionStatus.Suspended:
+                            accessStatus = GymAccessStatus.OwnerSubscriptionSuspended;
+                            isAccessible = false;
+                            inaccessibleReason = "The owner's subscription is suspended.";
+                            break;
                     }
                 }
 
-                resultList.Add(new UserGymRDTO
+                //----------------------------------------------------
+                // Gym Person Access
+                //----------------------------------------------------
+
+                if (isAccessible &&
+                    item.PersonAccessStatus.HasValue)
                 {
+                    switch (item.PersonAccessStatus.Value)
+                    {
+                        case GymPersonAccessStatus.Active:
+                            break;
+
+                        case GymPersonAccessStatus.Suspended:
+                            accessStatus = GymAccessStatus.PersonSuspended;
+                            isAccessible = false;
+                            inaccessibleReason = "Your access to this gym is suspended.";
+                            break;
+
+                        case GymPersonAccessStatus.Blocked:
+                            accessStatus = GymAccessStatus.PersonBlocked;
+                            isAccessible = false;
+                            inaccessibleReason = "You have been blocked from this gym.";
+                            break;
+
+                        case GymPersonAccessStatus.LeftGym:
+                            accessStatus = GymAccessStatus.LeftGym;
+                            isAccessible = false;
+                            inaccessibleReason = "You are no longer a member of this gym.";
+                            break;
+                    }
+                }
+
+                //----------------------------------------------------
+                // Membership
+                //----------------------------------------------------
+
+                // if (isAccessible &&
+                //     item.Membership != null)
+                // {
+                //     switch (item.Membership.Status)
+                //     {
+                //         case MembershipStatus.Active:
+                //             break;
+
+                //         case MembershipStatus.Grace:
+                //             accessStatus = GymAccessStatus.MembershipGrace;
+                //             break;
+
+                //         case MembershipStatus.Expired:
+                //             accessStatus = GymAccessStatus.MembershipExpired;
+                //             isAccessible = false;
+                //             inaccessibleReason = "Your membership has expired.";
+                //             break;
+
+                //         case MembershipStatus.Frozen:
+                //             accessStatus = GymAccessStatus.MembershipFrozen;
+                //             isAccessible = false;
+                //             inaccessibleReason = "Your membership is frozen.";
+                //             break;
+
+                //         case MembershipStatus.Cancelled:
+                //             accessStatus = GymAccessStatus.MembershipCancelled;
+                //             isAccessible = false;
+                //             inaccessibleReason = "Your membership has been cancelled.";
+                //             break;
+                //     }
+                // }
+
+                result.Add(new UserGymRDTO
+                {
+                    GymPeopleId = item.GymPersonId ?? 0,
+
                     GymId = gym.Id.ToString(),
+
                     GymName = gym.Name,
+
                     LogoUrl = gym.FileUrl,
+
                     Role = role,
-                    GymStatus = status,
+
+                    GymAccessStatus = accessStatus,
+
                     IsAccessible = isAccessible,
+
                     InaccessibleReason = inaccessibleReason
                 });
             }
 
-            if (!string.IsNullOrEmpty(req.StatusFilter))
-            {
-                resultList = resultList.Where(x => x.GymStatus.Equals(req.StatusFilter, StringComparison.OrdinalIgnoreCase)).ToList();
-            }
+            //----------------------------------------------------
+            // Pagination
+            //----------------------------------------------------
 
-            if (!string.IsNullOrEmpty(req.OrderBy))
-            {
-                if (req.OrderBy.Equals("GymName", StringComparison.OrdinalIgnoreCase))
-                {
-                    resultList = req.OrderDirection == "asc"
-                        ? resultList.OrderBy(x => x.GymName).ToList()
-                        : resultList.OrderByDescending(x => x.GymName).ToList();
-                }
-                if (req.OrderBy.Equals("Role", StringComparison.OrdinalIgnoreCase))
-                {
-                    resultList = req.OrderDirection == "asc"
-                        ? resultList.OrderBy(x => x.Role).ToList()
-                        : resultList.OrderByDescending(x => x.Role).ToList();
-                }
-                if (req.OrderBy.Equals("GymStatus", StringComparison.OrdinalIgnoreCase))
-                {
-                    resultList = req.OrderDirection == "asc"
-                        ? resultList.OrderBy(x => x.GymStatus).ToList()
-                        : resultList.OrderByDescending(x => x.GymStatus).ToList();
-                }
-            }
+            var totalCount = result.Count;
 
-            var totalCount = resultList.Count;
-
-            var paginated = resultList
+            var paginated = result
                 .Skip((req.PageNumber - 1) * req.PageSize)
                 .Take(req.PageSize)
                 .ToList();
 
-            var ownerHasActiveSub = await context.OwnerSubscription
-                .AnyAsync(x => x.CreatedById == userId && x.IsActive &&
-                    (x.EndDate >= DateTime.UtcNow || x.GraceEndDate >= DateTime.UtcNow), cancellationToken);
+            //----------------------------------------------------
+            // Response
+            //----------------------------------------------------
 
             return new UserGymsListRDTO
             {
                 Gyms = paginated,
-                HasActivePlatformSubscription = ownerHasActiveSub,
+
+                HasActivePlatformSubscription = hasActivePlatformSubscription,
+
                 TotalCount = totalCount,
+
                 PageNumber = req.PageNumber,
+
                 PageSize = req.PageSize
             };
+
         }
     }
 }

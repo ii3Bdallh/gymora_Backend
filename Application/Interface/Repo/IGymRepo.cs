@@ -15,6 +15,8 @@ namespace Application.Interface.Repo
     CancellationToken ct = default);
         public Task<UserGymsListRDTO> GetUserGymsAsync(int userId, UserGymsPagedReq req, CancellationToken cancellationToken);
 
+        Task<int> GetOwnerIdAsync(int gymId);
+
 
     }
 }

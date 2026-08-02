@@ -50,7 +50,7 @@ namespace Api.Controllers
 
             logger.LogInformation("Creating a new Gym: {@GymDto}", GymDto);
 
-            var createdGym = await service.AddAsync(GymDto);
+              var createdGym = await service.AddAsync(GymDto);
 
 
             return Ok(Result<GymRDTO>.Success(createdGym));

@@ -37,9 +37,13 @@ public class PaymentRequestRepoTests : IDisposable
     {
         var plan = new SubscriptionPlan
         {
-            Name = "Basic", IsFree = false,
-            MaxOwnedGyms = 1, MaxCoachesGym = 5, MaxMembersGym = 50,
-            IsActive = true, CreatedOn = DateTime.UtcNow
+            Name = "Basic",
+            IsFree = false,
+            MaxOwnedGyms = 1,
+            MaxCoaches = 5,
+            MaxMembers = 50,
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
         await _context.SaveChangesAsync();
@@ -285,19 +289,31 @@ public class PaymentRequestRepoTests : IDisposable
         _context.PaymentRequest.AddRange(
             new PaymentRequest
             {
-                PlanId = plan.Id, PlanPriceId = 0,
-                OriginalAmount = 100m, FinalAmount = 100m,
-                CurrencyCode = "USD", Status = PaymentRequestStatus.Pending,
-                IsActive = true, CreatedOn = DateTime.UtcNow, CreatedById = 1,
-                StoredFilePath = string.Empty, RowVersion = [1, 2, 3]
+                PlanId = plan.Id,
+                PlanPriceId = 0,
+                OriginalAmount = 100m,
+                FinalAmount = 100m,
+                CurrencyCode = "USD",
+                Status = PaymentRequestStatus.Pending,
+                IsActive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedById = 1,
+                StoredFilePath = string.Empty,
+                RowVersion = [1, 2, 3]
             },
             new PaymentRequest
             {
-                PlanId = plan.Id, PlanPriceId = 0,
-                OriginalAmount = 200m, FinalAmount = 200m,
-                CurrencyCode = "USD", Status = PaymentRequestStatus.Approved,
-                IsActive = true, CreatedOn = DateTime.UtcNow, CreatedById = 1,
-                StoredFilePath = string.Empty, RowVersion = [1, 2, 3]
+                PlanId = plan.Id,
+                PlanPriceId = 0,
+                OriginalAmount = 200m,
+                FinalAmount = 200m,
+                CurrencyCode = "USD",
+                Status = PaymentRequestStatus.Approved,
+                IsActive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedById = 1,
+                StoredFilePath = string.Empty,
+                RowVersion = [1, 2, 3]
             }
         );
         await _context.SaveChangesAsync();
@@ -320,11 +336,17 @@ public class PaymentRequestRepoTests : IDisposable
         {
             _context.PaymentRequest.Add(new PaymentRequest
             {
-                PlanId = plan.Id, PlanPriceId = 0,
-                OriginalAmount = i * 10m, FinalAmount = i * 10m,
-                CurrencyCode = "USD", Status = PaymentRequestStatus.Pending,
-                IsActive = true, CreatedOn = DateTime.UtcNow, CreatedById = 1,
-                StoredFilePath = string.Empty, RowVersion = [1, 2, 3]
+                PlanId = plan.Id,
+                PlanPriceId = 0,
+                OriginalAmount = i * 10m,
+                FinalAmount = i * 10m,
+                CurrencyCode = "USD",
+                Status = PaymentRequestStatus.Pending,
+                IsActive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedById = 1,
+                StoredFilePath = string.Empty,
+                RowVersion = [1, 2, 3]
             });
         }
         await _context.SaveChangesAsync();
@@ -349,11 +371,17 @@ public class PaymentRequestRepoTests : IDisposable
 
         var paymentRequest = new PaymentRequest
         {
-            PlanId = plan.Id, PlanPriceId = 0,
-            OriginalAmount = 100m, FinalAmount = 100m,
-            CurrencyCode = "USD", Status = PaymentRequestStatus.Pending,
-            IsActive = true, CreatedOn = DateTime.UtcNow, CreatedById = 1,
-            StoredFilePath = string.Empty, RowVersion = [1, 2, 3]
+            PlanId = plan.Id,
+            PlanPriceId = 0,
+            OriginalAmount = 100m,
+            FinalAmount = 100m,
+            CurrencyCode = "USD",
+            Status = PaymentRequestStatus.Pending,
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow,
+            CreatedById = 1,
+            StoredFilePath = string.Empty,
+            RowVersion = [1, 2, 3]
         };
         _context.PaymentRequest.Add(paymentRequest);
         await _context.SaveChangesAsync();

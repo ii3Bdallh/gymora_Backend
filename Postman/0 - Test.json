@@ -1,7 +1,7 @@
 ﻿{
     "info":  {
                  "_postman_id":  "8e4a9fc3-7bdf-405b-b74f-7a45223c3bc4",
-                 "name":  "Test",
+                 "name":  "0 - Test",
                  "description":  "Endpoints to trigger notifications, emails and helper actions for testing purposes.",
                  "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
              },

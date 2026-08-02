@@ -13,6 +13,7 @@ using Application.Model;
 using Microsoft.EntityFrameworkCore;
 using Application.DTO;
 using Application.DTO.Pagintion;
+using Domain.Enum;
 
 namespace Infrastructure.Repo
 {
@@ -72,5 +73,19 @@ namespace Infrastructure.Repo
 
             return gymPerson;
         }
+
+        public Task<int> CountPeopleTypeByOwnerAsync(
+            int ownerUserId,
+            PersonType personType,
+            CancellationToken ct = default)
+        {
+            return context.GymPerson.CountAsync(x =>
+                x.IsActive &&
+                x.Gym.CreatedById == ownerUserId &&
+                (x.PersonType == personType || x.PersonType == PersonType.Both),
+                ct);
+        }
+
+
     }
 }

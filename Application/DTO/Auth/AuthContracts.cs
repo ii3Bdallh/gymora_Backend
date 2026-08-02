@@ -177,7 +177,7 @@ namespace Gymora.Contracts.Authentication
     {
         public string? StatusFilter { get; set; } // Active, Expired, Locked, Blocked
 
-      
+
     }
 
 
@@ -187,10 +187,28 @@ namespace Gymora.Contracts.Authentication
         public string GymId { get; set; } = null!;
         public string GymName { get; set; } = null!;
         public string? LogoUrl { get; set; }
+
+        public int GymPeopleId { get; set; } 
         public string Role { get; set; } = null!; // Owner, Coach, Receptionist, Member
-        public string GymStatus { get; set; } = null!; // Active, Expired, Locked, Blocked
-        public bool IsAccessible { get; set; }
+        public GymAccessStatus GymAccessStatus { get; set; } = GymAccessStatus.Active;
+        public bool IsAccessible { get; set; } = true;
         public string? InaccessibleReason { get; set; }
+    }
+
+    public enum GymAccessStatus
+    {
+        Active,
+        GymSuspended,
+        OwnerSubscriptionGrace,
+        OwnerSubscriptionExpired,
+        OwnerSubscriptionSuspended,
+        PersonSuspended,
+        PersonBlocked,
+        LeftGym,
+        MembershipGrace,
+        MembershipExpired,
+        MembershipFrozen,
+        MembershipCancelled
     }
 
     public class UserGymsListRDTO
