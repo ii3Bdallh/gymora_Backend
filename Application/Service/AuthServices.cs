@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using MassTransit;
 using Application.Model;
 using Application.DTO.Model;
+using Domain.Model.Auth;
 
 namespace Application.Service
 {
@@ -41,9 +42,18 @@ namespace Application.Service
 
 
 
-        public async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto registerReqDto, CancellationToken cancellationToken)
+        public async Task RegisterAsync(RegisterRequestDto registerReqDto, CancellationToken cancellationToken)
         {
-            return await _authRepo.RegisterAsync(registerReqDto, cancellationToken);
+            ApplicationUser user = await _authRepo.RegisterAsync(registerReqDto, cancellationToken);
+
+
+            string otpText = await _authRepo.GenerateEmailConfirmationOtpAsync(user, cancellationToken);
+
+            await _emailSender.SendEmailAsync(
+                user.Email!,
+                "Email Confirmation OTP",
+                $"Your OTP code is: <b>{otpText}</b>. It will expire in 10 minutes."
+            );
         }
 
         public async Task<AuthResponseDto> LoginAsync(LoginRequestDto loginReqDto, CancellationToken cancellationToken)
@@ -61,16 +71,9 @@ namespace Application.Service
             await _authRepo.LogoutAsync(userId, refreshToken, logoutFromAllDevices, cancellationToken);
         }
 
-        public async Task<ConfirmEmailResponseDto> ConfirmEmailAsync(string email, string otp, CancellationToken cancellationToken)
-        {
-            await _authRepo.ConfirmEmailAsync(email, otp, cancellationToken);
-            return new ConfirmEmailResponseDto { Success = true, Message = "Email confirmed successfully" };
-        }
-
         public async Task<ForgotPasswordResponseDto> ForgotPasswordAsync(ForgotPasswordRequestDto forgotPasswordRequest, CancellationToken cancellationToken)
         {
             var user = await _authRepo.GetUserByEmailAsync(forgotPasswordRequest.Email, cancellationToken);
-
             var successDto = new ForgotPasswordResponseDto
             {
                 Message = "If an account with that email exists, a password reset code has been sent.",
@@ -82,13 +85,7 @@ namespace Application.Service
                 return successDto;
             }
 
-            if (user.PasswordResetOtpExpiry.HasValue &&
-                user.PasswordResetOtpExpiry.Value.AddMinutes(-9) > DateTime.UtcNow)
-            {
-                throw new BadRequestException("Please wait 60 seconds before requesting another password reset code.");
-            }
-
-            var otp = await _authRepo.GeneratePasswordResetOtpAsync(forgotPasswordRequest.Email, cancellationToken);
+            var otp = await _authRepo.GeneratePasswordResetOtpAsync(user, cancellationToken);
 
             await _publishEndpoint.Publish(new SendPasswordResetCodeEvent(user.Email!, otp, 10), cancellationToken);
 
@@ -101,18 +98,18 @@ namespace Application.Service
             return successDto;
         }
 
-        public async Task<VerifyOtpResponseDto> VerifyOtpAsync(VerifyOtpRequestDto verifyOtpRequest, CancellationToken cancellationToken)
+        public async Task<VerifyOtpResponseDto> VerifyPasswordOtpAsync(VerifyOtpRequestDto verifyOtpRequest, CancellationToken cancellationToken)
         {
-            var resetToken = await _authRepo.VerifyOtpAsync(verifyOtpRequest.Email, verifyOtpRequest.Code, cancellationToken);
+            await _authRepo.VerifyPasswordResetOtpAsync(verifyOtpRequest.Email, verifyOtpRequest.Code, cancellationToken);
 
             return new VerifyOtpResponseDto
             {
-                ResetToken = "",
+                ResetToken = "VALID_OTP_VERIFIED", // Used by the client to proceed to reset password.
                 Message = "OTP verified successfully. You can now reset your password."
             };
         }
 
-        public async Task<ResendOtpResponseDto> ResendOtpAsync(ResendOtpRequestDto dto, CancellationToken cancellationToken)
+        public async Task<ResendOtpResponseDto> ResendPasswordOtpAsync(ResendOtpRequestDto dto, CancellationToken cancellationToken)
         {
             var user = await _authRepo.GetUserByEmailAsync(dto.Email, cancellationToken);
 
@@ -133,7 +130,7 @@ namespace Application.Service
                 throw new BadRequestException("Please wait 60 seconds before requesting another password reset code.");
             }
 
-            var otp = await _authRepo.GeneratePasswordResetOtpAsync(dto.Email, cancellationToken);
+            var otp = await _authRepo.GeneratePasswordResetOtpAsync(user, cancellationToken);
 
             await _publishEndpoint.Publish(new SendPasswordResetCodeEvent(user.Email!, otp, 10), cancellationToken);
 
@@ -177,9 +174,36 @@ namespace Application.Service
             return await _authRepo.GetUserProfileAsync(userId, cancellationToken);
         }
 
-        public async Task ResendConfirmationEmailAsync(string email, CancellationToken cancellationToken)
+        public async Task VerifyEmailOtpAsync(VerifyOtpRequestDto verifyOtpRequest, CancellationToken cancellationToken)
         {
-            await _authRepo.ResendConfirmationEmailAsync(email, cancellationToken);
+            await _authRepo.VerifyEmailConfirmationOtpAsync(verifyOtpRequest.Email, verifyOtpRequest.Code, cancellationToken);
+        }
+
+        public async Task<ResendOtpResponseDto> ResendEmailOtpAsync(ResendOtpRequestDto dto, CancellationToken cancellationToken)
+        {
+            ApplicationUser? user = await _authRepo.GetUserByEmailAsync(dto.Email, cancellationToken);
+            if (user == null || user.EmailConfirmed)
+            {
+                return new ResendOtpResponseDto
+                {
+                    Message = "If an account with that email exists and is unconfirmed, an email confirmation code has been sent.",
+                    ExpirationInMinutes = 10
+                };
+            }
+
+            string otpText = await _authRepo.GenerateEmailConfirmationOtpAsync(user, cancellationToken);
+
+            await _emailSender.SendEmailAsync(
+                user.Email!,
+                "Email Confirmation OTP",
+                $"Your OTP code is: <b>{otpText}</b>. It will expire in 10 minutes."
+            );
+
+            return new ResendOtpResponseDto
+            {
+                Message = "An email confirmation code has been sent.",
+                ExpirationInMinutes = 10
+            };
         }
 
         public async Task ChangePasswordAsync(ChangePasswordRequest dto, CancellationToken cancellationToken)

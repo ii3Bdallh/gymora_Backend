@@ -5,5 +5,5 @@ using System.Threading.Tasks;
 
 namespace Domain.Events
 {
-    public record UserRegisterdEvent(int UserId);
+    public record UserRegisterdEvent(int UserId , string Email);
 }

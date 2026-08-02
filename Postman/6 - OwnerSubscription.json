@@ -18,7 +18,7 @@
                                                                    "});",
                                                                    "var jsonData = pm.response.json();",
                                                                    "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
-                                                                   "    pm.variables.set(\"ownerSubscriptionId\", jsonData.data.items[0].id);",
+                                                                   "    pm.environment.set(\"ownerSubscriptionId\", jsonData.data.items[0].id);",
                                                                    "}"
                                                                ],
                                                       "type":  "text/javascript"
@@ -101,13 +101,13 @@
                  }
              ],
     "auth":  {
-                 "type":  "bearer",
-                 "bearer":  [
-                                {
-                                    "key":  "token",
-                                    "value":  "{{token}}",
-                                    "type":  "string"
-                                }
-                            ]
-             }
+                  "type":  "bearer",
+                  "bearer":  [
+                                 {
+                                     "key":  "token",
+                                     "value":  "{{accessUserToken}}",
+                                     "type":  "string"
+                                 }
+                             ]
+              }
 }

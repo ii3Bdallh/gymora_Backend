@@ -18,9 +18,9 @@
                                                                    "});",
                                                                    "var jsonData = pm.response.json();",
                                                                    "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
-                                                                   "    pm.variables.set(\"subscriptionPlanId\", jsonData.data.items[0].id);",
+                                                                   "    pm.environment.set(\"subscriptionPlanId\", jsonData.data.items[0].id);",
                                                                    "    if (jsonData.data.items[0].prices \u0026\u0026 jsonData.data.items[0].prices.length \u003e 0) {",
-                                                                   "        pm.variables.set(\"planPriceId\", jsonData.data.items[0].prices[0].id);",
+                                                                   "        pm.environment.set(\"planPriceId\", jsonData.data.items[0].prices[0].id);",
                                                                    "    }",
                                                                    "}"
                                                                ],
@@ -97,7 +97,7 @@
                                                                    "});",
                                                                    "var jsonData = pm.response.json();",
                                                                    "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
-                                                                   "    pm.variables.set(\"subscriptionPlanId\", jsonData.data.id);",
+                                                                    "    pm.environment.set(\"subscriptionPlanId\", jsonData.data.id);",
                                                                    "}"
                                                                ],
                                                       "type":  "text/javascript"
@@ -174,7 +174,7 @@
                                                                    "});",
                                                                    "var jsonData = pm.response.json();",
                                                                    "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
-                                                                   "    pm.variables.set(\"planPriceId\", jsonData.data.id);",
+                                                                    "    pm.environment.set(\"planPriceId\", jsonData.data.id);",
                                                                    "}"
                                                                ],
                                                       "type":  "text/javascript"
@@ -292,13 +292,13 @@
                  }
              ],
     "auth":  {
-                 "type":  "bearer",
-                 "bearer":  [
-                                {
-                                    "key":  "token",
-                                    "value":  "{{token}}",
-                                    "type":  "string"
-                                }
-                            ]
-             }
+                  "type":  "bearer",
+                  "bearer":  [
+                                 {
+                                     "key":  "token",
+                                     "value":  "{{accessSuperAdminToken}}",
+                                     "type":  "string"
+                                 }
+                             ]
+              }
 }

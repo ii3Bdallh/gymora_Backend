@@ -18,7 +18,7 @@
                                                                    "});",
                                                                    "var jsonData = pm.response.json();",
                                                                    "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
-                                                                   "    pm.variables.set(\"paymentRequestId\", jsonData.data.items[0].id);",
+                                                                   "    pm.environment.set(\"paymentRequestId\", jsonData.data.items[0].id);",
                                                                    "}"
                                                                ],
                                                       "type":  "text/javascript"
@@ -26,6 +26,16 @@
                                    }
                                ],
                      "request":  {
+                                     "auth":  {
+                                                  "type":  "bearer",
+                                                  "bearer":  [
+                                                                 {
+                                                                     "key":  "token",
+                                                                     "value":  "{{accessSuperAdminToken}}",
+                                                                     "type":  "string"
+                                                                 }
+                                                             ]
+                                              },
                                      "description":  "### Endpoint Overview\n\nFetches a paginated list of subscription payment requests with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `PlanId` | `int` | Exact | Target subscription plan ID |\n| `PlanPriceId` | `int` | Exact | Target pricing tier ID |\n| `CouponId` | `int` | Exact | Redeemed coupon ID (Nullable) |\n| `CouponCode` | `string` | Searchable | Redeemed coupon code |\n| `OriginalAmount` | `decimal` | Between | Before discount price |\n| `DiscountAmount` | `decimal` | Between | Coupon savings amount |\n| `FinalAmount` | `decimal` | Between | Final price after discount |\n| `CurrencyCode` | `string` | Exact | ISO currency code |\n| `Status` | `Enum (int)` | Exact | `1` = Pending, `2` = Approved, `3` = Rejected |\n| `ReviewNotes` | `string` | - | Admin review notes |\n| `RejectionReason`| `string` | - | Rejection description |\n| `ReviewedBy` | `int` | Exact | Admin user ID |\n| `ReviewedAt` | `DateTime` | Between | ISO admin review date |\n| `FileUrl` | `string` | - | URL of payment receipt receipt |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Requester ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"Status\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"FinalAmount\": { \"min\": \"100\", \"max\": \"500\" } }`",
                                      "method":  "POST",
                                      "header":  [
@@ -88,7 +98,7 @@
                                                                    "});",
                                                                    "var jsonData = pm.response.json();",
                                                                    "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
-                                                                   "    pm.variables.set(\"paymentRequestId\", jsonData.data.id);",
+                                                                   "    pm.environment.set(\"paymentRequestId\", jsonData.data.id);",
                                                                    "}"
                                                                ],
                                                       "type":  "text/javascript"
@@ -130,11 +140,11 @@
                                                                        "value":  "true",
                                                                        "type":  "text"
                                                                    },
-                                                                   {
-                                                                       "key":  "CreatedById",
-                                                                       "value":  "1",
-                                                                       "type":  "text"
-                                                                   }
+                                                                    {
+                                                                        "key":  "CreatedById",
+                                                                        "value":  "{{userId}}",
+                                                                        "type":  "text"
+                                                                    }
                                                                ]
                                               },
                                      "url":  {
@@ -154,9 +164,19 @@
                                   ]
                  },
                  {
-                     "name":  "Approve Payment Request",
-                     "request":  {
-                                     "method":  "PUT",
+                      "name":  "Approve Payment Request",
+                      "request":  {
+                                      "auth":  {
+                                                   "type":  "bearer",
+                                                   "bearer":  [
+                                                                  {
+                                                                      "key":  "token",
+                                                                      "value":  "{{accessSuperAdminToken}}",
+                                                                      "type":  "string"
+                                                                  }
+                                                              ]
+                                               },
+                                      "method":  "PUT",
                                      "header":  [
                                                     {
                                                         "key":  "Content-Type",
@@ -185,9 +205,19 @@
                                   ]
                  },
                  {
-                     "name":  "Reject Payment Request",
-                     "request":  {
-                                     "method":  "PUT",
+                      "name":  "Reject Payment Request",
+                      "request":  {
+                                      "auth":  {
+                                                   "type":  "bearer",
+                                                   "bearer":  [
+                                                                  {
+                                                                      "key":  "token",
+                                                                      "value":  "{{accessSuperAdminToken}}",
+                                                                      "type":  "string"
+                                                                  }
+                                                              ]
+                                               },
+                                      "method":  "PUT",
                                      "header":  [
                                                     {
                                                         "key":  "Content-Type",
@@ -217,13 +247,13 @@
                  }
              ],
     "auth":  {
-                 "type":  "bearer",
-                 "bearer":  [
-                                {
-                                    "key":  "token",
-                                    "value":  "{{token}}",
-                                    "type":  "string"
-                                }
-                            ]
-             }
+                  "type":  "bearer",
+                  "bearer":  [
+                                 {
+                                     "key":  "token",
+                                     "value":  "{{accessUserToken}}",
+                                     "type":  "string"
+                                 }
+                             ]
+              }
 }

@@ -113,13 +113,13 @@
                  }
              ],
     "auth":  {
-                 "type":  "bearer",
-                 "bearer":  [
-                                {
-                                    "key":  "token",
-                                    "value":  "{{token}}",
-                                    "type":  "string"
-                                }
-                            ]
-             }
+                  "type":  "bearer",
+                  "bearer":  [
+                                 {
+                                     "key":  "token",
+                                     "value":  "{{accessUserToken}}",
+                                     "type":  "string"
+                                 }
+                             ]
+              }
 }

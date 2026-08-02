@@ -18,7 +18,7 @@
                                                                    "});",
                                                                    "var jsonData = pm.response.json();",
                                                                    "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
-                                                                   "    pm.variables.set(\"userId\", jsonData.data.items[0].id);",
+                                                                   "    pm.environment.set(\"userId\", jsonData.data.items[0].id);",
                                                                    "}"
                                                                ],
                                                       "type":  "text/javascript"
@@ -26,6 +26,16 @@
                                    }
                                ],
                      "request":  {
+                                     "auth":  {
+                                                  "type":  "bearer",
+                                                  "bearer":  [
+                                                                 {
+                                                                     "key":  "token",
+                                                                     "value":  "{{accessSuperAdminToken}}",
+                                                                     "type":  "string"
+                                                                 }
+                                                             ]
+                                              },
                                      "description":  "### Endpoint Overview\n\nFetches a paginated list of user accounts with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `PersonName` | `string` | Searchable | User\u0027s full name |\n| `Email` | `string` | Searchable | Account email address |\n| `UserName` | `string` | Searchable | Login username |\n| `PhoneNumber` | `string` | - | Contact phone |\n| `EmailConfirmed` | `bool` | Exact | Confirmed email verification |\n| `PhoneNumberConfirmed`| `bool` | - | Confirmed phone verification |\n| `TwoFactorEnabled`| `bool` | - | Two-factor status |\n| `LockoutEnabled` | `bool` | - | Lockout mechanism state |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"EmailConfirmed\": [\"true\"] }`",
                                      "method":  "POST",
                                      "header":  [
@@ -54,9 +64,19 @@
                                   ]
                  },
                  {
-                     "name":  "Get User By Id",
-                     "request":  {
-                                     "method":  "GET",
+                      "name":  "Get User By Id",
+                      "request":  {
+                                      "auth":  {
+                                                   "type":  "bearer",
+                                                   "bearer":  [
+                                                                  {
+                                                                      "key":  "token",
+                                                                      "value":  "{{accessSuperAdminToken}}",
+                                                                      "type":  "string"
+                                                                  }
+                                                              ]
+                                               },
+                                      "method":  "GET",
                                      "header":  [
 
                                                 ],
@@ -79,7 +99,7 @@
                  {
                      "name":  "Get My Profile",
                      "request":  {
-                                     "description":  "Fetches the profile of the currently authenticated user.\n\n### Response (`UserProfileRDTO`)\n\n| Field | Type | Description |\n| :--- | :--- | :--- |\n| `userId` | `string` | User ID |\n| `firstName` | `string` | First name |\n| `lastName` | `string` | Last name |\n| `fullName` | `string` | Combined full name |\n| `email` | `string` | Account email |\n| `phoneNumber` | `string?` | Contact phone |\n| `profilePictureUrl` | `string?` | Profile picture URL |\n| `createdAt` | `DateTime` | Account creation date |\n| `platformRole` | `string` | Platform role (e.g., SuperAdmin, User) |\n\nRequires `[Authorize]` (any authenticated user).",
+                                     "description":  "Fetches the profile of the currently authenticated user.\n\n### Response (`UserProfileRDTO`)\n\n| Field | Type | Description |\n| :--- | :--- | :--- |\n| `userId` | `string` | User ID |\n| `PersonName` | `string` | Person name |\n| `email` | `string` | Account email |\n| `phoneNumber` | `string?` | Contact phone |\n| `profilePictureUrl` | `string?` | Profile picture URL |\n| `createdAt` | `DateTime` | Account creation date |\n| `platformRole` | `string` | Platform role (e.g., SuperAdmin, User) |\n\nRequires `[Authorize]` (any authenticated user).",
                                      "method":  "GET",
                                      "header":  [
 
@@ -103,7 +123,7 @@
                  {
                      "name":  "Update My Profile",
                      "request":  {
-                                     "description":  "Updates the profile of the currently authenticated user.\n\n### Request Fields (`UserProfileUDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `firstName` | `string` | Yes | First name (max 50 chars) |\n| `lastName` | `string` | Yes | Last name (max 50 chars) |\n| `phoneNumber` | `string?` | No | Phone number matching `^\\+?[1-9]\\d{1,14}$` |\n| `profilePictureUrl` | `string?` | No | Must be a valid URL |\n\nReturns the updated `UserProfileRDTO`. Requires `[Authorize]` (any authenticated user).",
+                                     "description":  "Updates the profile of the currently authenticated user.\n\n### Request Fields (`UserProfileUDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `PersonName` | `string` | Yes | Person name (max 50 chars) |\n| `phoneNumber` | `string?` | No | Phone number matching `^\\+?[1-9]\\d{1,14}$` |\n| `profilePictureUrl` | `string?` | No | Must be a valid URL |\n\nReturns the updated `UserProfileRDTO`. Requires `[Authorize]` (any authenticated user).",
                                      "method":  "PUT",
                                      "header":  [
                                                     {
@@ -113,7 +133,7 @@
                                                 ],
                                      "body":  {
                                                   "mode":  "raw",
-                                                  "raw":  "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phoneNumber\": \"+201234567890\",\n  \"profilePictureUrl\": \"https://example.com/profile.jpg\"\n}"
+                                                  "raw":  "{\n  \"PersonName\": \"John Doe\",\n  \"phoneNumber\": \"+201234567890\",\n  \"profilePictureUrl\": \"https://example.com/profile.jpg\"\n}"
                                               },
                                      "url":  {
                                                  "raw":  "{{baseUrl}}/api/Users/profile",
@@ -133,13 +153,13 @@
                  }
              ],
     "auth":  {
-                 "type":  "bearer",
-                 "bearer":  [
-                                {
-                                    "key":  "token",
-                                    "value":  "{{token}}",
-                                    "type":  "string"
-                                }
-                            ]
-             }
+                  "type":  "bearer",
+                  "bearer":  [
+                                 {
+                                     "key":  "token",
+                                     "value":  "{{accessUserToken}}",
+                                     "type":  "string"
+                                 }
+                             ]
+              }
 }

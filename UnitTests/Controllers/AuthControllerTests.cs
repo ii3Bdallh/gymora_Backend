@@ -44,21 +44,19 @@ namespace UnitTests.Controllers
             var dto = new RegisterRequestDto 
             { 
                 Email = "test@test.com", 
-                FirstName = "Test", 
-                LastName = "User", 
+                PersonName = "Test User", 
                 Password = "Password123!" 
             };
             
             var responseDto = new RegisterResponseDto
             {
-                AccessToken = "access_token",
-                RefreshToken = "refresh_token",
+         
                 IsNewUser = true,
                 User = new UserInfoDto { UserId = "1", Email = "test@test.com", FullName = "Test User" }
             };
 
             _authService.Setup(a => a.RegisterAsync(dto, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(responseDto);
+                .Returns(Task.CompletedTask);
 
             var result = await _sut.Register(dto, CancellationToken.None);
 
@@ -66,7 +64,6 @@ namespace UnitTests.Controllers
             createdResult.StatusCode.Should().Be(201);
             var response = createdResult.Value.Should().BeAssignableTo<Result<RegisterResponseDto>>().Subject;
             response.IsSuccess.Should().BeTrue();
-            response.Data!.AccessToken.Should().Be("access_token");
         }
 
         [Fact]
@@ -140,23 +137,23 @@ namespace UnitTests.Controllers
 
         #endregion
 
-        #region ConfirmEmail
+        // #region ConfirmEmail
 
-        [Fact]
-        public async Task ConfirmEmail_ShouldReturnOk_WhenOtpIsValid()
-        {
-            var dto = new ConfirmEmailRequest { Email = "test@test.com", Otp = "12345" };
-            _authService.Setup(a => a.ConfirmEmailAsync(dto.Email, dto.Otp, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ConfirmEmailResponseDto { Success = true, Message = "Email confirmed" });
+        // [Fact]
+        // public async Task ConfirmEmail_ShouldReturnOk_WhenOtpIsValid()
+        // {
+        //     var dto = new ConfirmEmailRequest { Email = "test@test.com", Otp = "12345" };
+        //     _authService.Setup(a => a.ConfirmEmailAsync(dto.Email, dto.Otp, It.IsAny<CancellationToken>()))
+        //         .ReturnsAsync(new ConfirmEmailResponseDto { Success = true, Message = "Email confirmed" });
 
-            var result = await _sut.ConfirmEmail(dto, CancellationToken.None);
+        //     var result = await _sut.ConfirmEmail(dto, CancellationToken.None);
 
-            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            var response = okResult.Value.Should().BeAssignableTo<Result<ConfirmEmailResponseDto>>().Subject;
-            response.IsSuccess.Should().BeTrue();
-        }
+        //     var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        //     var response = okResult.Value.Should().BeAssignableTo<Result<ConfirmEmailResponseDto>>().Subject;
+        //     response.IsSuccess.Should().BeTrue();
+        // }
 
-        #endregion
+        // #endregion
 
         #region ForgotPassword
 
@@ -176,23 +173,23 @@ namespace UnitTests.Controllers
 
         #endregion
 
-        #region VerifyOtp
+        // #region VerifyOtp
 
-        [Fact]
-        public async Task VerifyOtp_ShouldReturnOk_WhenOtpIsValid()
-        {
-            var dto = new VerifyOtpRequestDto { Email = "test@test.com", Code = "123456" };
-            _authService.Setup(a => a.VerifyOtpAsync(dto, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new VerifyOtpResponseDto { ResetToken = "reset_token", Message = "Verified" });
+        // [Fact]
+        // public async Task VerifyOtp_ShouldReturnOk_WhenOtpIsValid()
+        // {
+        //     var dto = new VerifyOtpRequestDto { Email = "test@test.com", Code = "123456" };
+        //     _authService.Setup(a => a.VerifyOtpAsync(dto, It.IsAny<CancellationToken>()))
+        //         .ReturnsAsync(new VerifyOtpResponseDto { ResetToken = "reset_token", Message = "Verified" });
 
-            var result = await _sut.VerifyOtp(dto, CancellationToken.None);
+        //     var result = await _sut.VerifyOtp(dto, CancellationToken.None);
 
-            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            var response = okResult.Value.Should().BeAssignableTo<Result<VerifyOtpResponseDto>>().Subject;
-            response.IsSuccess.Should().BeTrue();
-        }
+        //     var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        //     var response = okResult.Value.Should().BeAssignableTo<Result<VerifyOtpResponseDto>>().Subject;
+        //     response.IsSuccess.Should().BeTrue();
+        // }
 
-        #endregion
+        // #endregion
 
         #region ResetPassword
 

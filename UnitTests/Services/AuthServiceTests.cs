@@ -44,9 +44,9 @@ namespace UnitTests.Services
             _authRepo = new Mock<IAuthRepo>();
             _httpContextAccessor = new Mock<IHttpContextAccessor>();
             _emailService = new Mock<IEmailService>();
-            
+
             _currentUser = new CurrentUser { UserId = 1, IsAuthenticated = true };
-            
+
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
@@ -56,7 +56,7 @@ namespace UnitTests.Services
 
             var userStoreMock = new Mock<IUserStore<ApplicationUser>>();
             _userManager = new Mock<UserManager<ApplicationUser>>(userStoreMock.Object, null!, null!, null!, null!, null!, null!, null!, null!);
-            
+
             _jwtProvider = new Mock<JwtProvider>(null!, null!, null!);
             _configuration = new Mock<IConfiguration>();
 
@@ -74,28 +74,23 @@ namespace UnitTests.Services
         [Fact]
         public async Task RegisterAsync_ShouldCallRepo_WhenDataIsValid()
         {
-            var dto = new RegisterRequestDto 
-            { 
-                Email = "test@test.com", 
-                FirstName = "Test", 
-                LastName = "User", 
-                Password = "Password123!" 
+            var dto = new RegisterRequestDto
+            {
+                Email = "test@test.com",
+                PersonName = "Test User",
+                Password = "Password123!"
             };
 
             var expectedResponse = new RegisterResponseDto
             {
-                AccessToken = "access_token",
-                RefreshToken = "refresh_token",
                 User = new UserInfoDto { UserId = "1", Email = "test@test.com", FullName = "Test User" }
             };
 
             _authRepo.Setup(r => r.RegisterAsync(dto, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(expectedResponse);
+                .Returns(Task.CompletedTask);
 
-            var response = await _sut.RegisterAsync(dto, CancellationToken.None);
+            await _sut.RegisterAsync(dto, CancellationToken.None);
 
-            response.Should().NotBeNull();
-            response.AccessToken.Should().Be("access_token");
             _authRepo.Verify(r => r.RegisterAsync(dto, It.IsAny<CancellationToken>()), Times.Once);
         }
 

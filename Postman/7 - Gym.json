@@ -18,7 +18,7 @@
                                                                    "});",
                                                                    "var jsonData = pm.response.json();",
                                                                    "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
-                                                                   "    pm.variables.set(\"gymId\", jsonData.data.items[0].id);",
+                                                                   "    pm.environment.set(\"gymId\", jsonData.data.items[0].id);",
                                                                    "}"
                                                                ],
                                                       "type":  "text/javascript"
@@ -88,7 +88,7 @@
                                                                    "});",
                                                                    "var jsonData = pm.response.json();",
                                                                    "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
-                                                                   "    pm.variables.set(\"gymId\", jsonData.data.id);",
+                                                                   "    pm.environment.set(\"gymId\", jsonData.data.id);",
                                                                    "}"
                                                                ],
                                                       "type":  "text/javascript"
@@ -172,7 +172,7 @@
                                                                    },
                                                                    {
                                                                        "key":  "CreatedById",
-                                                                       "value":  "1",
+                                                                       "value":  "{{userId}}",
                                                                        "type":  "text"
                                                                    }
                                                                ]
@@ -260,7 +260,7 @@
                                                                    },
                                                                    {
                                                                        "key":  "CreatedById",
-                                                                       "value":  "1",
+                                                                       "value":  "{{userId}}",
                                                                        "type":  "text"
                                                                    }
                                                                ]
@@ -294,7 +294,7 @@
                                                 ],
                                      "body":  {
                                                   "mode":  "raw",
-                                                  "raw":  "{\n  \"gymId\": {{gymId}},\n  \"accessToken\": \"{{token}}\",\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+                                                  "raw":  "{\n  \"gymId\": {{gymId}},\n  \"accessToken\": \"{{accessToken}}\",\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
                                               },
                                      "url":  {
                                                  "raw":  "{{baseUrl}}/api/Auth/switch",
@@ -324,7 +324,7 @@
                                                 ],
                                      "body":  {
                                                   "mode":  "raw",
-                                                  "raw":  "{\n  \"gymId\": {{gymId}},\n  \"newOwnerUserId\": 2\n}"
+                                                  "raw":  "{\n  \"gymId\": {{gymId}},\n  \"newOwnerUserId\": {{user2_userId}}\n}"
                                               },
                                      "url":  {
                                                  "raw":  "{{baseUrl}}/api/Gym/change-owner",
@@ -421,13 +421,13 @@
                  }
              ],
     "auth":  {
-                 "type":  "bearer",
-                 "bearer":  [
-                                {
-                                    "key":  "token",
-                                    "value":  "{{token}}",
-                                    "type":  "string"
-                                }
-                            ]
-             }
+                  "type":  "bearer",
+                  "bearer":  [
+                                 {
+                                     "key":  "token",
+                                     "value":  "{{accessUserToken}}",
+                                     "type":  "string"
+                                 }
+                             ]
+              }
 }

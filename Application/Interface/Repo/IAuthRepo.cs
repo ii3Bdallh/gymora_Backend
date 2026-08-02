@@ -9,7 +9,7 @@ namespace Application.Interface.Repo.Shared
 {
     public interface IAuthRepo
     {
-        public Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto registerReqDto, CancellationToken cancellationToken);
+        public Task<ApplicationUser> RegisterAsync(RegisterRequestDto registerReqDto, CancellationToken cancellationToken);
 
         public Task<AuthResponseDto> LoginAsync(LoginRequestDto loginReqDto, CancellationToken cancellationToken);
 
@@ -17,25 +17,25 @@ namespace Application.Interface.Repo.Shared
 
         public Task LogoutAsync(int userId, string? refreshToken, bool logoutFromAllDevices, CancellationToken cancellationToken);
 
-        public Task<bool> VerifyOtpAsync(string email, string otp, CancellationToken cancellationToken);
-
-
-
-        public Task<string> GeneratePasswordResetOtpAsync(string email, CancellationToken cancellationToken);
-
-
-
         public Task<GoogleAuthResponseDto> LoginWithGoogle(GoogleLoginRequestDto googleLoginRequest, CancellationToken cancellationToken);
 
         public Task<GetUserProfileDto> GetUserProfileAsync(int userId, CancellationToken cancellationToken);
 
         public Task<ApplicationUser?> GetUserByEmailAsync(string email, CancellationToken cancellationToken);
 
-        public Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user, CancellationToken cancellationToken = default);
 
+        #region Otp
         public Task<string> GenerateEmailConfirmationOtpAsync(ApplicationUser user, CancellationToken cancellationToken = default);
-        public Task ConfirmEmailAsync(string email, string otp, CancellationToken cancellationToken);
-        public Task ResendConfirmationEmailAsync(string email, CancellationToken cancellationToken);
+
+        public Task VerifyEmailConfirmationOtpAsync(string email, string otp, CancellationToken cancellationToken);
+
+        public Task<string> GeneratePasswordResetOtpAsync(ApplicationUser user, CancellationToken cancellationToken);
+
+
+        public Task VerifyPasswordResetOtpAsync(string email, string otp, CancellationToken cancellationToken);
+
+
+        #endregion
 
         Task ChangePasswordAsync(int userId, string currentPassword, string newPassword, CancellationToken cancellationToken);
 
@@ -44,9 +44,5 @@ namespace Application.Interface.Repo.Shared
 
 
         Task<AuthResponseDto> SwitchGym(SwitchGymRequest switchGymRequest, CancellationToken ct);
-
-
-
-
     }
 }

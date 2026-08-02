@@ -9,17 +9,17 @@ namespace Gymora.Contracts.Authentication
 
     public class RegisterRequestDto
     {
-        [Required]
-        [StringLength(50)]
-        public string FirstName { get; set; } = null!;
-
-        [Required]
-        [StringLength(50)]
-        public string LastName { get; set; } = null!;
+        [Required(ErrorMessage = "User name is required.")]
+        [MaxLength(100, ErrorMessage = "User name cannot exceed 100 characters.")]
+        public string PersonName { get; set; } = null!;
 
         [Required]
         [EmailAddress]
         public string Email { get; set; } = null!;
+
+        [Phone]
+        [RegularExpression(@"^\+?[0-9]*$", ErrorMessage = "Phone number must contain only digits and an optional plus sign.")]
+        public string? PhoneNumber { get; set; } = null!;
 
         [Required]
         [MinLength(8)]
@@ -44,11 +44,8 @@ namespace Gymora.Contracts.Authentication
 
     public class RegisterResponseDto
     {
-        public string AccessToken { get; set; } = null!;
-        public string RefreshToken { get; set; } = null!;
         public bool IsNewUser { get; set; }
         public UserInfoDto User { get; set; } = null!;
-        public List<AvailableGymDto> AvailableGyms { get; set; } = new();
     }
 
     // --- Login DTOs ---
@@ -210,9 +207,7 @@ namespace Gymora.Contracts.Authentication
 
     public record UserProfileRDTO(
         string UserId,
-        string FirstName,
-        string LastName,
-        string FullName,
+        string PersonName,
         string Email,
         string? PhoneNumber,
         string? ProfilePictureUrl,
@@ -221,13 +216,10 @@ namespace Gymora.Contracts.Authentication
     );
 
     public record UserProfileUDTO(
-        [Required(ErrorMessage = "First name is required.")]
-        [StringLength(50, ErrorMessage = "First name cannot exceed 50 characters.")]
-        string FirstName,
 
-        [Required(ErrorMessage = "Last name is required.")]
-        [StringLength(50, ErrorMessage = "Last name cannot exceed 50 characters.")]
-        string LastName,
+        [Required(ErrorMessage = "Person name is required.")]
+        [MaxLength(100, ErrorMessage = "Person name cannot exceed 100 characters.")]
+        string PersonName,
 
         [RegularExpression(@"^\+?[1-9]\d{1,14}$", ErrorMessage = "Invalid phone number format.")]
         string? PhoneNumber,

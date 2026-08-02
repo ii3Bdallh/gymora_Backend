@@ -18,8 +18,8 @@
                                                                    "});",
                                                                    "var jsonData = pm.response.json();",
                                                                    "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
-                                                                   "    pm.variables.set(\"gymPersonId\", jsonData.data.items[0].id);",
-                                                                   "    pm.variables.set(\"gymPersonInviteCode\", jsonData.data.items[0].inviteCode);",
+                                                                   "    pm.environment.set(\"gymPersonId\", jsonData.data.items[0].id);",
+                                                                   "    pm.environment.set(\"gymPersonInviteCode\", jsonData.data.items[0].inviteCode);",
                                                                    "}"
                                                                ],
                                                       "type":  "text/javascript"
@@ -90,8 +90,8 @@
                                                                    "});",
                                                                    "var jsonData = pm.response.json();",
                                                                    "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
-                                                                   "    pm.variables.set(\"gymPersonId\", jsonData.data.id);",
-                                                                   "    pm.variables.set(\"gymPersonInviteCode\", jsonData.data.inviteCode);",
+                                                                   "    pm.environment.set(\"gymPersonId\", jsonData.data.id);",
+                                                                   "    pm.environment.set(\"gymPersonInviteCode\", jsonData.data.inviteCode);",
                                                                    "}"
                                                                ],
                                                       "type":  "text/javascript"
@@ -253,13 +253,13 @@
                  }
              ],
     "auth":  {
-                 "type":  "bearer",
-                 "bearer":  [
-                                {
-                                    "key":  "token",
-                                    "value":  "{{token}}",
-                                    "type":  "string"
-                                }
-                            ]
-             }
+                  "type":  "bearer",
+                  "bearer":  [
+                                 {
+                                     "key":  "token",
+                                     "value":  "{{accessUserToken}}",
+                                     "type":  "string"
+                                 }
+                             ]
+              }
 }

@@ -34,9 +34,7 @@ namespace Application.Service
 
             return new UserProfileRDTO(
                 UserId: user.Id.ToString(),
-                FirstName: user.FirstName ?? string.Empty,
-                LastName: user.LastName ?? string.Empty,
-                FullName: user.PersonName ?? string.Empty,
+                PersonName: user.PersonName ?? string.Empty,
                 Email: user.Email ?? string.Empty,
                 PhoneNumber: user.PhoneNumber,
                 ProfilePictureUrl: user.ProfileImageUrl,
@@ -63,9 +61,7 @@ namespace Application.Service
                 user.PhoneNumber = updateDto.PhoneNumber;
             }
 
-            user.FirstName = updateDto.FirstName;
-            user.LastName = updateDto.LastName;
-            user.PersonName = $"{updateDto.FirstName} {updateDto.LastName}";
+            user.PersonName = updateDto.PersonName;
             
             if (!string.IsNullOrWhiteSpace(updateDto.ProfilePictureUrl))
             {
@@ -81,9 +77,7 @@ namespace Application.Service
 
             return new UserProfileRDTO(
                 UserId: user.Id.ToString(),
-                FirstName: user.FirstName ?? string.Empty,
-                LastName: user.LastName ?? string.Empty,
-                FullName: user.PersonName ?? string.Empty,
+                PersonName: user.PersonName ?? string.Empty,
                 Email: user.Email ?? string.Empty,
                 PhoneNumber: user.PhoneNumber,
                 ProfilePictureUrl: user.ProfileImageUrl,
