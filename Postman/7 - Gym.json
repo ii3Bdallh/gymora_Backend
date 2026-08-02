@@ -284,6 +284,7 @@
                  {
                      "name":  "Switch Gym",
                      "request":  {
+                                     "description":  "Switches the current active gym workspace for the authenticated user and returns fresh tokens.\n\n### Request Fields\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID to switch to |\n| `accessToken` | `string` | Yes | Current access token |\n| `refreshToken` | `string` | Yes | Current refresh token |\n\nNote: This endpoint lives on the Auth controller.",
                                      "method":  "POST",
                                      "header":  [
                                                     {
@@ -293,16 +294,16 @@
                                                 ],
                                      "body":  {
                                                   "mode":  "raw",
-                                                  "raw":  "{\n  \"gymId\": {{gymId}}\n}"
+                                                  "raw":  "{\n  \"gymId\": {{gymId}},\n  \"accessToken\": \"{{token}}\",\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
                                               },
                                      "url":  {
-                                                 "raw":  "{{baseUrl}}/api/Gym/switch",
+                                                 "raw":  "{{baseUrl}}/api/Auth/switch",
                                                  "host":  [
                                                               "{{baseUrl}}"
                                                           ],
                                                  "path":  [
                                                               "api",
-                                                              "Gym",
+                                                              "Auth",
                                                               "switch"
                                                           ]
                                              }
@@ -335,6 +336,60 @@
                                                               "Gym",
                                                               "change-owner"
                                                           ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Get User Gyms",
+                     "request":  {
+                                     "description":  "Fetches the current user's gyms (workspaces) with pagination and a status filter.\n\n### Query Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `pageNumber` | `int` | No | Page number (default `1`) |\n| `pageSize` | `int` | No | Page size (default `10`, max `50`) |\n| `orderBy` | `string` | No | Sort field (default `Id`) |\n| `orderDirection` | `string` | No | `asc` or `desc` |\n| `isActive` | `bool` | No | Filter by active status |\n| `searchTerm` | `string?` | No | Free-text search |\n| `statusFilter` | `string?` | No | Gym status: `Active`, `Expired`, `Locked`, `Blocked` |\n\n### Response\n\nReturns `UserGymsListRDTO` with `gyms`, `hasActivePlatformSubscription`, `totalCount`, `pageNumber`, and `pageSize`. Each gym contains `gymId`, `gymName`, `logoUrl`, `role`, `gymStatus`, `isAccessible`, and `inaccessibleReason`.",
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Gym/user-gyms?pageNumber=1\u0026pageSize=10\u0026orderBy=Id\u0026orderDirection=asc\u0026isActive=true",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Gym",
+                                                              "user-gyms"
+                                                          ],
+                                                 "query":  [
+                                                               {
+                                                                   "key":  "pageNumber",
+                                                                   "value":  "1"
+                                                               },
+                                                               {
+                                                                   "key":  "pageSize",
+                                                                   "value":  "10"
+                                                               },
+                                                               {
+                                                                   "key":  "orderBy",
+                                                                   "value":  "Id"
+                                                               },
+                                                               {
+                                                                   "key":  "orderDirection",
+                                                                   "value":  "asc"
+                                                               },
+                                                               {
+                                                                   "key":  "isActive",
+                                                                   "value":  "true"
+                                                               },
+                                                               {
+                                                                   "key":  "searchTerm",
+                                                                   "value":  ""
+                                                               },
+                                                               {
+                                                                   "key":  "statusFilter",
+                                                                   "value":  "Active"
+                                                               }
+                                                           ]
                                              }
                                  },
                      "response":  [

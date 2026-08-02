@@ -21,7 +21,7 @@ namespace Application.Interface.Repo
             CancellationToken ct = default);
 
         // New methods for gym access
-        Task<UserGymsListRDTO> GetUserGymsAsync(int userId, UserGymsPagedReq req, CancellationToken ct = default);
+        // Task<UserGymsListRDTO> GetUserGymsAsync(int userId, UserGymsPagedReq req, CancellationToken ct = default);
         // Task<IReadOnlyList<AvailableGymDto>> GetAvailableGymsAsync(int userId, CancellationToken ct = default);
 
 
