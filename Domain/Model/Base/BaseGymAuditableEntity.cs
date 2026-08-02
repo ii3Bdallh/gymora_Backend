@@ -14,7 +14,7 @@ namespace Domain.Model.Base
     {
         public int CreatedByStaffId { get; set; }
 
-        public GymStaff CreatedByStaff { get; set; } = default!;
+        public GymPerson CreatedByStaff { get; set; } = default!;
         public DateTime CreatedOn { get; set; }
 
     }

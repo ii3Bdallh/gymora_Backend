@@ -14,7 +14,9 @@ public sealed class ApplicationDbContext
 {
 
     // Script will Add After Here DbSet<Entity>
-    public DbSet<GymStaff> GymStaff { get; set; }
+    public DbSet<GymPerson> GymPerson { get; set; }
+    public DbSet<GymStaffProfile> GymStaffProfile { get; set; }
+    public DbSet<GymMemberProfile> GymMemberProfile { get; set; }
     public DbSet<Gym> Gym { get; set; }
     public DbSet<CouponRedemption> CouponRedemption { get; set; }
     public DbSet<OwnerSubscription> OwnerSubscription { get; set; }

@@ -1,4 +1,5 @@
 using Domain.Model;
+using Gymora.Contracts.Authentication;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace Application.Interface.Repo
         Task<int> CountOwnedByOwnerAsync(
     int ownerUserId,
     CancellationToken ct = default);
+        public Task<UserGymsListRDTO> GetUserGymsAsync(int userId, UserGymsPagedReq req, CancellationToken cancellationToken);
 
 
     }

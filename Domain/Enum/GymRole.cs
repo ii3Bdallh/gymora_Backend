@@ -30,6 +30,18 @@ namespace Domain.Enum
     }
 
 
+    public static class GymRoleString
+    {
+        public const string Owner = "Owner";
+        public const string Manager = "Manager";
+        public const string Coach = "Coach";
+        public const string Receptionist = "Receptionist";
+        public const string Cleaner = "Cleaner";
+        public const string Other = "Other";
+        public const string Member = "Member";
+    }
+
+
 }
 
 

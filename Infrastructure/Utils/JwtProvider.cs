@@ -54,11 +54,11 @@ namespace Infrastructure.Utils
                     JwtClaimsNames.CurrentGymId,
                     refreshToken.CurrentGymId.ToString()));
 
-                if (refreshToken.CurrentStaffId.HasValue)
+                if (refreshToken.CurrentGymPeopleId.HasValue)
                 {
                     claims.Add(new Claim(
                         JwtClaimsNames.CurrentStaffId,
-                        refreshToken.CurrentStaffId.Value.ToString()));
+                        refreshToken.CurrentGymPeopleId.Value.ToString()));
                 }
 
                 if (!string.IsNullOrEmpty(refreshToken.GymRole))

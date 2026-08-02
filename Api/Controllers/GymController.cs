@@ -3,6 +3,7 @@ using Application.DTO.Model;
 using Application.DTO.Pagintion;
 using Application.Interface.Service;
 using Domain.Enum;
+using Gymora.Contracts.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -96,6 +97,14 @@ namespace Api.Controllers
             await service.ChangeOwnerOfGymAsync(dto.GymId, dto.NewOwnerUserId, ct);
 
             return Ok("Owner changed successfully.");
+        }
+
+
+        [Authorize]
+        [HttpGet("user-gyms")]
+        public async Task<ActionResult<UserGymsListRDTO>> GetUserGymsAsync([FromQuery] UserGymsPagedReq req, CancellationToken cancellationToken)
+        {
+            return Ok(Result<UserGymsListRDTO>.Success(await service.GetUserGymsAsync(req, cancellationToken)));
         }
 
     }

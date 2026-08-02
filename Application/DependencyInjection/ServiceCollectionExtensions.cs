@@ -29,7 +29,7 @@ public static class ServiceCollectionExtensions
 
         // Script will Add After Here DependencyInjectionService
         services.AddScoped<ICurrentPlanService, CurrentPlanService>();
-        services.AddScoped<IGymStaffService, GymStaffService>();
+        services.AddScoped<IGymPersonService, GymPersonService>();
         services.AddScoped<IUsersService, UsersService>();
         services.AddScoped<IGymService, GymService>();
         services.AddScoped<ICouponRedemptionService, CouponRedemptionService>();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Application.DTO.Pagintion;
 
 namespace Gymora.Contracts.Authentication
 {
@@ -175,32 +176,14 @@ namespace Gymora.Contracts.Authentication
 
     // --- Select Gym Workspace DTOs ---
 
-    public class UserGymsPagedReq : Application.DTO.Pagintion.PaginatedSearchReq
+    public class UserGymsPagedReq : PaginatedSearchReq
     {
-        public string? SortBy { get; set; }
-        public bool IsAscending { get; set; } = true;
         public string? StatusFilter { get; set; } // Active, Expired, Locked, Blocked
 
-        public UserGymsPagedReq() { }
-
-        public UserGymsPagedReq(string? searchTerm, string? sortBy, bool isAscending, int pageNumber, int pageSize, string? statusFilter)
-        {
-            SearchTerm = searchTerm;
-            SortBy = sortBy;
-            IsAscending = isAscending;
-            PageNumber = pageNumber;
-            PageSize = pageSize;
-            StatusFilter = statusFilter;
-            OrderBy = sortBy ?? "Id";
-            OrderDirection = isAscending ? "asc" : "desc";
-        }
+      
     }
 
-    public class SelectGymCDTO
-    {
-        [Required]
-        public string GymId { get; set; } = null!;
-    }
+
 
     public class UserGymRDTO
     {
@@ -222,12 +205,5 @@ namespace Gymora.Contracts.Authentication
         public int PageSize { get; set; }
     }
 
-    public class SelectGymRDTO
-    {
-        public string AccessToken { get; set; } = null!;
-        public string RefreshToken { get; set; } = null!;
-        public string CurrentGymId { get; set; } = null!;
-        public string CurrentGymName { get; set; } = null!;
-        public string GymRole { get; set; } = null!;
-    }
+
 }

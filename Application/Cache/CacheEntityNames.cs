@@ -11,7 +11,7 @@ public static class CacheEntityNames
     public const string UserDevice = "user_device";
 
     // Script will Add After Here CacheEntityNames
-    public const string GymStaff = "gymstaff";
+    public const string GymPerson = "gymperson";
 
     public const string ApplicationUsers = "users";
 
@@ -35,7 +35,7 @@ public static class CacheEntityNames
         if (type == typeof(UserDevice)) return UserDevice;
 
         // Script will Add After Here ForType
-        if (type == typeof(GymStaff)) return GymStaff;
+        if (type == typeof(GymPerson)) return GymPerson;
 
         if (type == typeof(ApplicationUser)) return ApplicationUsers;
 

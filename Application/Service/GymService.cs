@@ -19,6 +19,7 @@ using Application.DTO.Exceptions;
 using Application.DTO;
 using Domain.Model.Auth;
 using Application.Interface.Repo.Shared;
+using Gymora.Contracts.Authentication;
 
 namespace Application.Service
 {
@@ -26,7 +27,7 @@ namespace Application.Service
     {
 
         private readonly ICurrentPlanService _currentPlanService;
-
+        private readonly IGymRepo _gymRepo;
         private readonly IUserRepo _usersRepo;
         public GymService(
             IGymRepo repo,
@@ -44,6 +45,7 @@ namespace Application.Service
         {
             _currentPlanService = currentPlanService;
             _usersRepo = usersRepo;
+            _gymRepo = repo;
         }
         protected override async Task BeforeAddAsync(GymCDTO dto, CancellationToken cancellationToken)
         {
@@ -85,6 +87,11 @@ namespace Application.Service
             await _unitOfWork.SaveChangesAsync(ct);
 
             await PublishEntityChangedAsync(gym.Id, ct);
+        }
+
+        public async Task<UserGymsListRDTO> GetUserGymsAsync(UserGymsPagedReq req, CancellationToken cancellationToken)
+        {
+            return await _gymRepo.GetUserGymsAsync(CurrentUserId, req, cancellationToken);
         }
     }
 }

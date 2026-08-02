@@ -10,7 +10,7 @@ namespace Domain.Interface
     {
         int CreatedByStaffId { get; set; }
 
-        GymStaff CreatedByStaff { get; set; }
+        GymPerson CreatedByStaff { get; set; }
         DateTime CreatedOn { get; set; }
 
     }
