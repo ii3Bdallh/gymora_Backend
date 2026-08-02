@@ -7,6 +7,10 @@ namespace Domain.Model.Auth;
 public sealed class ApplicationUser : IdentityUser<int>
 {
     public string PersonName { get; set; } = string.Empty;
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? ProfileImageUrl { get; set; }
+    public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
 
     public bool IsActive { get; set; } = true;
 

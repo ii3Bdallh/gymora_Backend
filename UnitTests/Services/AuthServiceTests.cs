@@ -89,14 +89,14 @@ namespace UnitTests.Services
                 User = new UserInfoDto { UserId = "1", Email = "test@test.com", FullName = "Test User" }
             };
 
-            _authRepo.Setup(r => r.RegisterAsync(dto, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            _authRepo.Setup(r => r.RegisterAsync(dto, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
 
-            var response = await _sut.RegisterAsync(dto, "127.0.0.1", "TestAgent", CancellationToken.None);
+            var response = await _sut.RegisterAsync(dto, CancellationToken.None);
 
             response.Should().NotBeNull();
             response.AccessToken.Should().Be("access_token");
-            _authRepo.Verify(r => r.RegisterAsync(dto, "127.0.0.1", "TestAgent", It.IsAny<CancellationToken>()), Times.Once);
+            _authRepo.Verify(r => r.RegisterAsync(dto, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         #endregion
@@ -114,10 +114,10 @@ namespace UnitTests.Services
                 User = new UserInfoDto { UserId = "1", Email = "test@test.com", FullName = "Test User" }
             };
 
-            _authRepo.Setup(r => r.LoginAsync(dto, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            _authRepo.Setup(r => r.LoginAsync(dto, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResponse);
 
-            var response = await _sut.LoginAsync(dto, "127.0.0.1", "TestAgent", CancellationToken.None);
+            var response = await _sut.LoginAsync(dto, CancellationToken.None);
 
             response.Should().NotBeNull();
             response.AccessToken.Should().Be("access_token");

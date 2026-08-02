@@ -75,6 +75,61 @@
                      "response":  [
 
                                   ]
+                 },
+                 {
+                     "name":  "Get My Profile",
+                     "request":  {
+                                     "description":  "Fetches the profile of the currently authenticated user.\n\n### Response (`UserProfileRDTO`)\n\n| Field | Type | Description |\n| :--- | :--- | :--- |\n| `userId` | `string` | User ID |\n| `firstName` | `string` | First name |\n| `lastName` | `string` | Last name |\n| `fullName` | `string` | Combined full name |\n| `email` | `string` | Account email |\n| `phoneNumber` | `string?` | Contact phone |\n| `profilePictureUrl` | `string?` | Profile picture URL |\n| `createdAt` | `DateTime` | Account creation date |\n| `platformRole` | `string` | Platform role (e.g., SuperAdmin, User) |\n\nRequires `[Authorize]` (any authenticated user).",
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Users/profile",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Users",
+                                                              "profile"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Update My Profile",
+                     "request":  {
+                                     "description":  "Updates the profile of the currently authenticated user.\n\n### Request Fields (`UserProfileUDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `firstName` | `string` | Yes | First name (max 50 chars) |\n| `lastName` | `string` | Yes | Last name (max 50 chars) |\n| `phoneNumber` | `string?` | No | Phone number matching `^\\+?[1-9]\\d{1,14}$` |\n| `profilePictureUrl` | `string?` | No | Must be a valid URL |\n\nReturns the updated `UserProfileRDTO`. Requires `[Authorize]` (any authenticated user).",
+                                     "method":  "PUT",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phoneNumber\": \"+201234567890\",\n  \"profilePictureUrl\": \"https://example.com/profile.jpg\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Users/profile",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Users",
+                                                              "profile"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
                  }
              ],
     "auth":  {

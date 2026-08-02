@@ -199,6 +199,19 @@ public class UserRepo(ApplicationDbContext context, ILogger logger, UserManager<
             throw;
         }
     }
+
+    public async Task<bool> IsPhoneNumberUsedByOtherUserAsync(string phoneNumber, int currentUserId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await DbSet.AnyAsync(x => x.PhoneNumber == phoneNumber && x.Id != currentUserId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error checking phone number uniqueness");
+            throw;
+        }
+    }
     #endregion
 
     #region Write Methods

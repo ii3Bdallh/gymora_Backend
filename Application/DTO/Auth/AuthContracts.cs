@@ -206,4 +206,34 @@ namespace Gymora.Contracts.Authentication
     }
 
 
+    // --- User Profile DTOs ---
+
+    public record UserProfileRDTO(
+        string UserId,
+        string FirstName,
+        string LastName,
+        string FullName,
+        string Email,
+        string? PhoneNumber,
+        string? ProfilePictureUrl,
+        DateTime CreatedAt,
+        string PlatformRole
+    );
+
+    public record UserProfileUDTO(
+        [Required(ErrorMessage = "First name is required.")]
+        [StringLength(50, ErrorMessage = "First name cannot exceed 50 characters.")]
+        string FirstName,
+
+        [Required(ErrorMessage = "Last name is required.")]
+        [StringLength(50, ErrorMessage = "Last name cannot exceed 50 characters.")]
+        string LastName,
+
+        [RegularExpression(@"^\+?[1-9]\d{1,14}$", ErrorMessage = "Invalid phone number format.")]
+        string? PhoneNumber,
+
+        [Url(ErrorMessage = "Profile picture must be a valid URL.")]
+        string? ProfilePictureUrl
+    );
+
 }

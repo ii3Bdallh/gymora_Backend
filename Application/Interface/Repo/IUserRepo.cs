@@ -40,4 +40,6 @@ public interface IUserRepo
     Task<ApplicationUser> UpdateAsync(ApplicationUser entity, CancellationToken cancellationToken = default);
 
     Task<ApplicationUser> DeleteAsync(ApplicationUser entity, CancellationToken cancellationToken = default);
+
+    Task<bool> IsPhoneNumberUsedByOtherUserAsync(string phoneNumber, int currentUserId, CancellationToken cancellationToken = default);
 }

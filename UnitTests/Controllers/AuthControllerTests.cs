@@ -20,14 +20,14 @@ namespace UnitTests.Controllers
     public class AuthControllerTests
     {
         private readonly Mock<IAuthService> _authService;
-        private readonly Mock<IGymAccessRepo> _gymAccessRepo;
+        private readonly Mock<IGymService> _gymService;
         private readonly AuthController _sut;
 
         public AuthControllerTests()
         {
             _authService = new Mock<IAuthService>();
-            _gymAccessRepo = new Mock<IGymAccessRepo>();
-            _sut = new AuthController(_authService.Object, _gymAccessRepo.Object)
+            _gymService = new Mock<IGymService>();
+            _sut = new AuthController(_authService.Object, _gymService.Object)
             {
                 ControllerContext = new ControllerContext
                 {
@@ -57,7 +57,7 @@ namespace UnitTests.Controllers
                 User = new UserInfoDto { UserId = "1", Email = "test@test.com", FullName = "Test User" }
             };
 
-            _authService.Setup(a => a.RegisterAsync(dto, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            _authService.Setup(a => a.RegisterAsync(dto, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(responseDto);
 
             var result = await _sut.Register(dto, CancellationToken.None);
@@ -97,7 +97,7 @@ namespace UnitTests.Controllers
                 CurrentGym = new CurrentGymDto { GymId = "1", GymName = "Gym 1", Role = "Owner" }
             };
 
-            _authService.Setup(a => a.LoginAsync(dto, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            _authService.Setup(a => a.LoginAsync(dto, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(authResponse);
 
             var result = await _sut.Login(dto, CancellationToken.None);
