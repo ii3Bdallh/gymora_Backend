@@ -1,4 +1,4 @@
-﻿{
+{
     "info":  {
                  "_postman_id":  "f0e70db9-c428-46ae-ab32-b7b371af6042",
                  "name":  "1 - Auth",
@@ -33,7 +33,6 @@
                                              }
                                  },
                      "response":  [
-
                                   ]
                  },
                   {
@@ -64,7 +63,6 @@
                                               }
                                   },
                       "response":  [
-
                                    ]
                   },
                   {
@@ -95,11 +93,10 @@
                                               }
                                   },
                       "response":  [
-
                                    ]
                   },
                   {
-                      "name":  "Login (Owner)",
+                      "name":  "Login (SuperAdmin)",
                       "event":  [
                                     {
                                         "listen":  "test",
@@ -112,35 +109,10 @@
                                                                     "pm.test(\"Tokens are saved to environment\", function () {",
                                                                     "    pm.expect(jsonData.isSuccess).to.eql(true);",
                                                                     "    if (jsonData.data \u0026\u0026 jsonData.data.accessToken) {",
-                                                                    "        var accessToken = jsonData.data.accessToken;",
-                                                                    "        var refreshToken = jsonData.data.refreshToken;",
-                                                                    "        var userId = jsonData.data.user ? jsonData.data.user.userId : \"\";",
-                                                                    "        var email = jsonData.data.user ? jsonData.data.user.email : \"\";",
-                                                                    "        pm.environment.set(\"token\", accessToken);",
-                                                                    "        pm.environment.set(\"refreshToken\", refreshToken);",
-                                                                    "        pm.environment.set(\"accessToken\", accessToken);",
-                                                                    "        pm.environment.set(\"userId\", userId);",
-                                                                    "        pm.environment.set(\"email\", email);",
-                                                                    "        pm.environment.set(\"owner_token\", accessToken);",
-                                                                    "        pm.environment.set(\"owner_refreshToken\", refreshToken);",
-                                                                    "        pm.environment.set(\"owner_userId\", userId);",
-                                                                    "        pm.sendRequest({",
-                                                                    "            url: pm.environment.get(\"baseUrl\") + \"/api/Auth/get-user-profile\",",
-                                                                    "            method: \"GET\",",
-                                                                    "            header: { \"Authorization\": \"Bearer \" + accessToken }",
-                                                                    "        }, function (err, res) {",
-                                                                    "            if (err) { console.log(\"Profile fetch failed: \" + err); return; }",
-                                                                    "            var profile = res.json();",
-                                                                    "            var roles = profile \u0026\u0026 profile.data \u0026\u0026 profile.data.roles ? profile.data.roles : [];",
-                                                                    "            var isSuperAdmin = roles.indexOf(\"SuperAdmin\") !== -1;",
-                                                                    "            pm.environment.set(\"role\", isSuperAdmin ? \"SuperAdmin\" : \"User\");",
-                                                                    "            pm.environment.set(\"accessSuperAdminToken\", isSuperAdmin ? accessToken : \"\");",
-                                                                    "            pm.environment.set(\"refreshSuperAdminToken\", isSuperAdmin ? refreshToken : \"\");",
-                                                                    "            pm.environment.set(\"superAdminEmail\", isSuperAdmin ? email : \"\");",
-                                                                    "            pm.environment.set(\"accessUserToken\", isSuperAdmin ? \"\" : accessToken);",
-                                                                    "            pm.environment.set(\"refreshUserToken\", isSuperAdmin ? \"\" : refreshToken);",
-                                                                    "            pm.environment.set(\"userEmail\", isSuperAdmin ? \"\" : email);",
-                                                                    "        });",
+                                                                    "        pm.environment.set(\"token\", jsonData.data.accessToken);",
+                                                                    "        pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+                                                                    "        pm.environment.set(\"superAdmin_token\", jsonData.data.accessToken);",
+                                                                    "        pm.environment.set(\"superAdmin_refreshToken\", jsonData.data.refreshToken);",
                                                                     "    }",
                                                                     "});"
                                                                 ],
@@ -161,7 +133,7 @@
                                                 ],
                                      "body":  {
                                                   "mode":  "raw",
-                                                  "raw":  "{\n  \"email\": \"{{owner_email}}\",\n  \"password\": \"{{owner_password}}\"\n}"
+                                                   "raw":  "{\n  \"email\": \"{{superAdmin_email}}\",\n  \"password\": \"{{superAdmin_password}}\"\n}"
                                               },
                                      "url":  {
                                                  "raw":  "{{baseUrl}}/api/Auth/login",
@@ -176,7 +148,6 @@
                                              }
                                  },
                      "response":  [
-
                                   ]
                  },
                  {
@@ -193,35 +164,10 @@
                                                                     "pm.test(\"Tokens are saved to environment\", function () {",
                                                                     "    pm.expect(jsonData.isSuccess).to.eql(true);",
                                                                     "    if (jsonData.data \u0026\u0026 jsonData.data.accessToken) {",
-                                                                    "        var accessToken = jsonData.data.accessToken;",
-                                                                    "        var refreshToken = jsonData.data.refreshToken;",
-                                                                    "        var userId = jsonData.data.user ? jsonData.data.user.userId : \"\";",
-                                                                    "        var email = jsonData.data.user ? jsonData.data.user.email : \"\";",
-                                                                    "        pm.environment.set(\"token\", accessToken);",
-                                                                    "        pm.environment.set(\"refreshToken\", refreshToken);",
-                                                                    "        pm.environment.set(\"accessToken\", accessToken);",
-                                                                    "        pm.environment.set(\"userId\", userId);",
-                                                                    "        pm.environment.set(\"email\", email);",
-                                                                    "        pm.environment.set(\"user1_token\", accessToken);",
-                                                                    "        pm.environment.set(\"user1_refreshToken\", refreshToken);",
-                                                                    "        pm.environment.set(\"user1_userId\", userId);",
-                                                                    "        pm.sendRequest({",
-                                                                    "            url: pm.environment.get(\"baseUrl\") + \"/api/Auth/get-user-profile\",",
-                                                                    "            method: \"GET\",",
-                                                                    "            header: { \"Authorization\": \"Bearer \" + accessToken }",
-                                                                    "        }, function (err, res) {",
-                                                                    "            if (err) { console.log(\"Profile fetch failed: \" + err); return; }",
-                                                                    "            var profile = res.json();",
-                                                                    "            var roles = profile \u0026\u0026 profile.data \u0026\u0026 profile.data.roles ? profile.data.roles : [];",
-                                                                    "            var isSuperAdmin = roles.indexOf(\"SuperAdmin\") !== -1;",
-                                                                    "            pm.environment.set(\"role\", isSuperAdmin ? \"SuperAdmin\" : \"User\");",
-                                                                    "            pm.environment.set(\"accessSuperAdminToken\", isSuperAdmin ? accessToken : \"\");",
-                                                                    "            pm.environment.set(\"refreshSuperAdminToken\", isSuperAdmin ? refreshToken : \"\");",
-                                                                    "            pm.environment.set(\"superAdminEmail\", isSuperAdmin ? email : \"\");",
-                                                                    "            pm.environment.set(\"accessUserToken\", isSuperAdmin ? \"\" : accessToken);",
-                                                                    "            pm.environment.set(\"refreshUserToken\", isSuperAdmin ? \"\" : refreshToken);",
-                                                                    "            pm.environment.set(\"userEmail\", isSuperAdmin ? \"\" : email);",
-                                                                    "        });",
+                                                                    "        pm.environment.set(\"token\", jsonData.data.accessToken);",
+                                                                    "        pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+                                                                    "        pm.environment.set(\"user1_token\", jsonData.data.accessToken);",
+                                                                    "        pm.environment.set(\"user1_refreshToken\", jsonData.data.refreshToken);",
                                                                     "    }",
                                                                     "});"
                                                                 ],
@@ -257,7 +203,6 @@
                                              }
                                  },
                      "response":  [
-
                                   ]
                  },
                  {
@@ -274,35 +219,10 @@
                                                                     "pm.test(\"Tokens are saved to environment\", function () {",
                                                                     "    pm.expect(jsonData.isSuccess).to.eql(true);",
                                                                     "    if (jsonData.data \u0026\u0026 jsonData.data.accessToken) {",
-                                                                    "        var accessToken = jsonData.data.accessToken;",
-                                                                    "        var refreshToken = jsonData.data.refreshToken;",
-                                                                    "        var userId = jsonData.data.user ? jsonData.data.user.userId : \"\";",
-                                                                    "        var email = jsonData.data.user ? jsonData.data.user.email : \"\";",
-                                                                    "        pm.environment.set(\"token\", accessToken);",
-                                                                    "        pm.environment.set(\"refreshToken\", refreshToken);",
-                                                                    "        pm.environment.set(\"accessToken\", accessToken);",
-                                                                    "        pm.environment.set(\"userId\", userId);",
-                                                                    "        pm.environment.set(\"email\", email);",
-                                                                    "        pm.environment.set(\"user2_token\", accessToken);",
-                                                                    "        pm.environment.set(\"user2_refreshToken\", refreshToken);",
-                                                                    "        pm.environment.set(\"user2_userId\", userId);",
-                                                                    "        pm.sendRequest({",
-                                                                    "            url: pm.environment.get(\"baseUrl\") + \"/api/Auth/get-user-profile\",",
-                                                                    "            method: \"GET\",",
-                                                                    "            header: { \"Authorization\": \"Bearer \" + accessToken }",
-                                                                    "        }, function (err, res) {",
-                                                                    "            if (err) { console.log(\"Profile fetch failed: \" + err); return; }",
-                                                                    "            var profile = res.json();",
-                                                                    "            var roles = profile \u0026\u0026 profile.data \u0026\u0026 profile.data.roles ? profile.data.roles : [];",
-                                                                    "            var isSuperAdmin = roles.indexOf(\"SuperAdmin\") !== -1;",
-                                                                    "            pm.environment.set(\"role\", isSuperAdmin ? \"SuperAdmin\" : \"User\");",
-                                                                    "            pm.environment.set(\"accessSuperAdminToken\", isSuperAdmin ? accessToken : \"\");",
-                                                                    "            pm.environment.set(\"refreshSuperAdminToken\", isSuperAdmin ? refreshToken : \"\");",
-                                                                    "            pm.environment.set(\"superAdminEmail\", isSuperAdmin ? email : \"\");",
-                                                                    "            pm.environment.set(\"accessUserToken\", isSuperAdmin ? \"\" : accessToken);",
-                                                                    "            pm.environment.set(\"refreshUserToken\", isSuperAdmin ? \"\" : refreshToken);",
-                                                                    "            pm.environment.set(\"userEmail\", isSuperAdmin ? \"\" : email);",
-                                                                    "        });",
+                                                                    "        pm.environment.set(\"token\", jsonData.data.accessToken);",
+                                                                    "        pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
+                                                                    "        pm.environment.set(\"user2_token\", jsonData.data.accessToken);",
+                                                                    "        pm.environment.set(\"user2_refreshToken\", jsonData.data.refreshToken);",
                                                                     "    }",
                                                                     "});"
                                                                 ],
@@ -338,7 +258,6 @@
                                              }
                                  },
                      "response":  [
-
                                   ]
                  },
                  {
@@ -346,7 +265,6 @@
                      "request":  {
                                      "method":  "GET",
                                      "header":  [
-
                                                 ],
                                      "url":  {
                                                  "raw":  "{{baseUrl}}/api/Auth/get-user-profile",
@@ -361,7 +279,6 @@
                                              }
                                  },
                      "response":  [
-
                                   ]
                  },
                  {
@@ -378,7 +295,6 @@
                                                                     "    var jsonData = pm.response.json();",
                                                                     "    if (jsonData.data \u0026\u0026 jsonData.data.accessToken) {",
                                                                     "        pm.environment.set(\"token\", jsonData.data.accessToken);",
-                                                                    "        pm.environment.set(\"accessToken\", jsonData.data.accessToken);",
                                                                     "        pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
                                                                     "    }",
                                                                     "});"
@@ -397,7 +313,7 @@
                                                  ],
                                       "body":  {
                                                    "mode":  "raw",
-                                                   "raw":  "{\n  \"accessToken\": \"{{accessToken}}\",\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+                                                    "raw":  "{\n  \"accessToken\": \"{{token}}\",\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
                                                },
                                      "url":  {
                                                  "raw":  "{{baseUrl}}/api/Auth/refresh-token",
@@ -412,7 +328,6 @@
                                              }
                                  },
                      "response":  [
-
                                   ]
                  },
                  {
@@ -427,7 +342,7 @@
                                                 ],
                                       "body":  {
                                                    "mode":  "raw",
-                                                   "raw":  "{\n  \"userId\": {{userId}},\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"logoutFromAllDevices\": false\n}"
+                                                    "raw":  "{\n  \"userId\": 0,\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"logoutFromAllDevices\": false\n}"
                                                },
                                      "url":  {
                                                  "raw":  "{{baseUrl}}/api/Auth/logout",
@@ -442,7 +357,6 @@
                                              }
                                  },
                      "response":  [
-
                                   ]
                  },
                  {
@@ -472,7 +386,6 @@
                                              }
                                  },
                      "response":  [
-
                                   ]
                  },
                   {
@@ -520,7 +433,6 @@
                                               }
                                   },
                       "response":  [
-
                                    ]
                   },
                   {
@@ -551,7 +463,6 @@
                                               }
                                   },
                       "response":  [
-
                                    ]
                   },
                  {
@@ -581,7 +492,6 @@
                                              }
                                  },
                      "response":  [
-
                                   ]
                  },
                  {
@@ -611,7 +521,6 @@
                                              }
                                  },
                      "response":  [
-
                                   ]
                  },
                  {
@@ -641,7 +550,6 @@
                                              }
                                  },
                      "response":  [
-
                                   ]
                  }
              ],

@@ -39,6 +39,7 @@ namespace Application.DTO.Model
 
         public GymStatus Status { get; set; } = GymStatus.Active;
 
+        public int OwnerUserId { get; set; }
 
 
     }
@@ -139,20 +140,50 @@ namespace Application.DTO.Model
         public string RefreshToken { get; set; } = default!;
     }
 
-    public sealed class UserGymAccessItem
+
+
+    public class UserGymRDTO
     {
-        public bool IsOwner { get; init; }
+        public int GymId { get; set; }
+        public string GymName { get; set; } = null!;
+        public string? LogoUrl { get; set; }
 
-        public Gym Gym { get; init; } = null!;
+        public int GymPersonId { get; set; }
 
-        public int? GymPersonId { get; init; }
+        public int OwnerUserId { get; set; }
+        public GymRole GymRole { get; set; }
+        public GymAccessStatus GymAccessStatus { get; set; }
+        public GymStatus GymStatus { get; set; }
+        public bool IsAccessible { get; set; }
+        public string? InaccessibleReason { get; set; }
 
-        public PersonType? PersonType { get; init; }
-
-        public GymRole GymRole { get; init; }
-
-        public GymPersonAccessStatus? PersonAccessStatus { get; init; }
-
-        // public MembershipStatus? MembershipStatus { get; init; }
+        public GymPersonAccessStatus? PersonAccessStatus { get; set; }
     }
+
+    public enum GymAccessStatus
+    {
+        Active,
+        GymSuspended,
+        OwnerSubscriptionGrace,
+        OwnerPlanLimitReached,
+        OwnerSubscriptionSuspended,
+        PersonSuspended,
+        PersonBlocked,
+        LeftGym,
+        MembershipGrace,
+        MembershipExpired,
+        MembershipFrozen,
+        MembershipCancelled,
+        OwnerNotFound
+    }
+
+    public class UserGymsListRDTO
+    {
+        public List<UserGymRDTO> Gyms { get; set; } = new();
+        public bool HasActivePlatformSubscription { get; set; }
+        public int TotalCount { get; set; }
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+    }
+
 }

@@ -11,7 +11,7 @@ public class CurrentUser
     public int UserId { get; set; }
     public int? CurrentGymId { get; set; }
 
-    public int? CurrentStaffId { get; set; }
+    public int? CurrentPersonId { get; set; }
     public string? GymRole { get; set; }
     public string? PlatformRole { get; set; }
     public bool IsAuthenticated { get; set; }

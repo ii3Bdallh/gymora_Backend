@@ -1,27 +1,26 @@
+using Application.DTO;
+using Application.DTO.Exceptions;
+using Application.DTO.Model;
+using Application.Interface.Repo;
+using Application.Interface.Repo.Shared;
+using Application.Interface.Service;
+using Application.Interface.Service.Shared;
+using Application.Model;
+using Application.Service.Base;
+using Application.Service.Shared;
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Domain.Enum;
+using Domain.Model;
+using Domain.Model.Auth;
+using Gymora.Contracts.Authentication;
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using Domain.Model;
-using Application.Interface.Repo;
-using Application.Interface.Service;
-using Application.Service.Base;
-
-
-using Application.DTO.Model;
-using Application.Service.Shared;
-using Application.Interface.Service.Shared;
-using MassTransit;
-using Application.Model;
-using Application.DTO.Exceptions;
-using Application.DTO;
-using Domain.Model.Auth;
-using Application.Interface.Repo.Shared;
-using Gymora.Contracts.Authentication;
 
 namespace Application.Service
 {
@@ -54,9 +53,17 @@ namespace Application.Service
         }
         protected override async Task BeforeAddAsync(GymCDTO dto, CancellationToken cancellationToken)
         {
-            bool canCreateNewGym = await _currentPlanService.HasAvailableGymSlotAsync(CurrentUserId, cancellationToken);
-            if (!canCreateNewGym)
-                throw new InvalidOperationException("You have exceeded the maximum number of gyms allowed for your current subscription plan.");
+            CurrentPlanResult canCreateNew = await _currentPlanService.GetCurrentPlanAsync(CurrentUserId, cancellationToken);
+            if (canCreateNew.IsOverMemberLimit)
+                throw new InvalidOperationException("You Have Reached Your Member Limit");
+
+            if (canCreateNew.IsOverCoachLimit)
+                throw new InvalidOperationException("You Have Reached Your Coach Limit");
+
+            if (canCreateNew.IsOverGymLimit)
+                throw new InvalidOperationException("You Have Reached Your Gym Limit");
+
+            dto.OwnerUserId = CurrentUserId;
         }
 
         protected override async Task AfterMapAddAsync(Gym entity, GymCDTO dto, CancellationToken cancellationToken)
@@ -129,11 +136,20 @@ namespace Application.Service
             if (newOwner == null)
                 throw new NotFoundException($"User with ID {newOwnerUserId} was not found.");
 
-            bool canCreateNewGym = await _currentPlanService.HasAvailableGymSlotAsync(newOwner.Id, ct);
+            //bool canCreateNewGym = await _currentPlanService.(newOwner.Id, ct);
 
-            if (!canCreateNewGym)
-                throw new InvalidOperationException("The new owner has exceeded the maximum number of gyms allowed for their current subscription plan.");
+            //if (!canCreateNewGym)
+            //    throw new InvalidOperationException("The new owner has exceeded the maximum number of gyms allowed for their current subscription plan.");
 
+            CurrentPlanResult canCreateNew = await _currentPlanService.GetCurrentPlanAsync(newOwner.Id, ct);
+            if (canCreateNew.IsOverMemberLimit)
+                throw new InvalidOperationException("You Have Reached Your Member Limit");
+
+            if (canCreateNew.IsOverCoachLimit)
+                throw new InvalidOperationException("You Have Reached Your Coach Limit");
+
+            if (canCreateNew.IsOverGymLimit)
+                throw new InvalidOperationException("You Have Reached Your Gym Limit");
             // Update old owner record to inactive
             currentOwnerPerson.IsActive = false;
 

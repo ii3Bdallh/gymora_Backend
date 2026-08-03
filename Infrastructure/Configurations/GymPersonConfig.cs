@@ -36,9 +36,10 @@ namespace Infrastructure.Config
             builder.HasOne(x => x.Gym)
                    .WithMany()
                    .HasForeignKey(x => x.GymId)
-                   .OnDelete(DeleteBehavior.Restrict);
+                   .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasIndex(x => x.IsActive);
+            builder.HasIndex(x => new { x.GymId, x.PersonType, x.IsActive });
+
 
             // Unique Constraints
             builder.HasIndex(x => new { x.GymId, x.PhoneNumber }).IsUnique();

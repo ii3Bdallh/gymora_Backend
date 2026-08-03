@@ -16,12 +16,12 @@ namespace Infrastructure.Config
     {
       // Auditing not enabled for this entity
 
-      builder.HasIndex(g => g.IsActive);
 
 
 
       // ✅ تعيين أطوال وقيود الأعمدة
-      builder.Property(g => g.Name).HasMaxLength(200).IsRequired();
+      builder.Property(g => g.Name).HasMaxLength(200).IsRequired(); builder.Property(g => g.OwnerUserId).IsRequired();
+
 
 
       builder.Property(g => g.Latitude).HasPrecision(10, 7);
@@ -35,11 +35,22 @@ namespace Infrastructure.Config
       // ✅ ROWVERSION (التزامن)
       builder.Property(g => g.RowVersion).IsRowVersion();
 
+      builder.HasOne(g => g.OwnerUser)
+        .WithMany()
+        .HasForeignKey(g => g.OwnerUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+
+
+
+
 
 
 
       // ✅ الفهارس
       builder.HasIndex(g => g.Status);
+      builder.HasIndex(g => g.OwnerUserId);
+      builder.HasIndex(g => g.IsActive);
 
 
       // ✅ تطبيق إعدادات التدقيق (Auditing)

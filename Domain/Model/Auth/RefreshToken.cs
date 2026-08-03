@@ -1,3 +1,5 @@
+using Domain.Model.Auth;
+
 namespace Domain.Model;
 
 public class RefreshToken
@@ -24,4 +26,6 @@ public class RefreshToken
     public bool IsValid => RevokedAt is null && !IsExpired;
 
     public int UserId { get; set; }
+
+    public ApplicationUser? User { get; set; }
 }

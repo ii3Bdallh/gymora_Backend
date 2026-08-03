@@ -43,11 +43,29 @@ namespace Application.Service.shared
             var subscription =
                 await _subscriptionRepo.GetCurrentSubscriptionAsync(ownerUserId, ct);
 
+            int gymCount =
+ await _gymRepo.CountOwnedByOwnerAsync(ownerUserId, ct);
+
+            int memberCount =
+                await _gymPersonRepo.CountPeopleTypeByOwnerAsync(
+                    ownerUserId,
+                    PersonType.Member, ct);
+
+            int coachCount =
+                await _gymPersonRepo.CountPeopleTypeByOwnerAsync(
+                    ownerUserId,
+                    PersonType.Staff);
+
+
+
+
             if (subscription != null &&
                 (subscription.Status == OwnerSubscriptionStatus.Active ||
                  subscription.Status == OwnerSubscriptionStatus.Grace))
             {
-                return new CurrentPlanResult
+
+
+                var result = new CurrentPlanResult
                 {
                     PlanId = subscription.Plan.Id,
                     PlanName = subscription.Plan.Name,
@@ -56,10 +74,20 @@ namespace Application.Service.shared
                     MaxMembers = subscription.Plan.MaxMembers,
                     MaxCoaches = subscription.Plan.MaxCoaches,
 
+                    IsFree = false,
                     Subscription = subscription,
                     SubscriptionStatus = subscription.Status,
-                    IsFree = false
+                    CurrentGymCount = gymCount,
+                    CurrentMemberCount = memberCount,
+                    CurrentCoachCount = coachCount,
                 };
+
+
+
+
+
+
+                return result;
             }
 
             var freePlan = await _planRepo.GetFreePlanAsync(ct);
@@ -67,7 +95,9 @@ namespace Application.Service.shared
             if (freePlan == null)
                 throw new ApplicationException("Free subscription plan was not found.");
 
-            return new CurrentPlanResult
+
+
+            CurrentPlanResult resultFree = new CurrentPlanResult
             {
                 PlanId = freePlan.Id,
                 PlanName = freePlan.Name,
@@ -78,42 +108,49 @@ namespace Application.Service.shared
 
                 IsFree = true,
                 Subscription = null,
-                SubscriptionStatus = null
+                SubscriptionStatus = OwnerSubscriptionStatus.Active,
+                CurrentGymCount = gymCount,
+                CurrentMemberCount = memberCount,
+                CurrentCoachCount = coachCount,
             };
+
+
+            return resultFree;
+
         }
 
-        public async Task<bool> HasAvailableGymSlotAsync(
-            int ownerUserId,
-            CancellationToken ct = default)
-        {
-            var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
+        // public async Task<bool> HasAvailableGymSlotAsync(
+        //     int ownerUserId,
+        //     CancellationToken ct = default)
+        // {
+        //     var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
 
-            var currentGymCount =
-                await _gymRepo.CountOwnedByOwnerAsync(ownerUserId, ct);
+        //     var currentGymCount =
+        //         await _gymRepo.CountOwnedByOwnerAsync(ownerUserId, ct);
 
-            return currentGymCount < currentPlan.MaxOwnedGyms;
-        }
+        //     return currentGymCount < currentPlan.MaxOwnedGyms;
+        // }
 
 
-        public async Task<bool> HasAvailableMemberSlotAsync(int ownerUserId, CancellationToken ct = default)
-        {
-            var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
+        // public async Task<bool> HasAvailableMemberSlotAsync(int ownerUserId, CancellationToken ct = default)
+        // {
+        //     var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
 
-            var currentMemberCount =
-                await _gymPersonRepo.CountPeopleTypeByOwnerAsync(ownerUserId, PersonType.Member, ct);
+        //     var currentMemberCount =
+        //         await _gymPersonRepo.CountPeopleTypeByOwnerAsync(ownerUserId, PersonType.Member, ct);
 
-            return currentMemberCount < currentPlan.MaxMembers;
-        }
+        //     return currentMemberCount < currentPlan.MaxMembers;
+        // }
 
-        public async Task<bool> HasAvailableCoachSlotAsync(int ownerUserId, CancellationToken ct = default)
-        {
-            var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
+        // public async Task<bool> HasAvailableCoachSlotAsync(int ownerUserId, CancellationToken ct = default)
+        // {
+        //     var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
 
-            var currentCoachCount =
-                await _gymPersonRepo.CountPeopleTypeByOwnerAsync(ownerUserId, PersonType.Staff, ct);
+        //     var currentCoachCount =
+        //         await _gymPersonRepo.CountPeopleTypeByOwnerAsync(ownerUserId, PersonType.Staff, ct);
 
-            return currentCoachCount < currentPlan.MaxCoaches;
-        }
+        //     return currentCoachCount < currentPlan.MaxCoaches;
+        // }
 
     }
 }

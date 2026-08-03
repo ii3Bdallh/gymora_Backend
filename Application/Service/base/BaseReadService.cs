@@ -46,7 +46,7 @@ namespace Application.Service
         protected int? CurrentGymId => _currentUser.CurrentGymId;
         protected int CurrentUserId => _currentUser.UserId;
 
-        protected int? CurrentStaffId => _currentUser.CurrentStaffId;
+        protected int? CurrentPersonId => _currentUser.CurrentPersonId;
         protected CurrentUser CurrentUser => _currentUser;
         protected virtual bool IsCacheEnabled =>
              typeof(ICacheableEntity).IsAssignableFrom(typeof(T));

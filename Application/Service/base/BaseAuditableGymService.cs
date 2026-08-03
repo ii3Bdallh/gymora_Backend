@@ -36,8 +36,7 @@ namespace Application.Service.Base
 
         public override async Task<RDTO> AddAsync(CDTO dto, CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Adding auditable {EntityType} by user {UserId}", typeof(T).Name, _currentUser.CurrentStaffId);
-            dto.CreatedByStaffId = _currentUser.CurrentStaffId ?? throw new InvalidOperationException("Forbiden: You cannot add record");
+            dto.CreatedByPersonId = _currentUser.CurrentPersonId ?? throw new InvalidOperationException("Forbiden: You cannot add record");
 
             return await base.AddAsync(dto, cancellationToken);
         }
@@ -53,12 +52,12 @@ namespace Application.Service.Base
                     "Unauthorized attempt to update {EntityType} with ID {Id} by user {UserId}",
                     typeof(T).Name,
                     entity.Id,
-                    _currentUser.CurrentStaffId);
+                    _currentUser.CurrentPersonId);
 
                 throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
             }
 
-            dto.CreatedByStaffId = entity.CreatedByStaffId;
+            dto.CreatedByPersonId = entity.CreatedByPersonId;
 
             return Task.CompletedTask;
         }
@@ -79,14 +78,14 @@ namespace Application.Service.Base
     CDTO dto,
     CancellationToken cancellationToken)
         {
-            dto.CreatedByStaffId = _currentUser.CurrentStaffId ?? throw new InvalidOperationException("CurrentStaffId is null. Cannot add entity without a valid staff ID.");
+            dto.CreatedByPersonId = _currentUser.CurrentPersonId ?? throw new InvalidOperationException("CurrentPersonId is null. Cannot add entity without a valid person ID.");
 
             return Task.CompletedTask;
         }
 
         protected virtual bool CanModify(T entity)
         {
-            return CanAccess(entity.CreatedByStaffId);
+            return CanAccess(entity.CreatedByPersonId);
         }
 
     }

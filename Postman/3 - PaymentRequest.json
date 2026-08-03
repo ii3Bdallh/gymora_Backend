@@ -31,7 +31,7 @@
                                                   "bearer":  [
                                                                  {
                                                                      "key":  "token",
-                                                                     "value":  "{{accessSuperAdminToken}}",
+                                                                     "value":  "{{superAdmin_token}}",
                                                                      "type":  "string"
                                                                  }
                                                              ]
@@ -142,7 +142,7 @@
                                                                    },
                                                                     {
                                                                         "key":  "CreatedById",
-                                                                        "value":  "{{userId}}",
+                                                                        "value":  "0",
                                                                         "type":  "text"
                                                                     }
                                                                ]
@@ -171,7 +171,7 @@
                                                    "bearer":  [
                                                                   {
                                                                       "key":  "token",
-                                                                      "value":  "{{accessSuperAdminToken}}",
+                                                                      "value":  "{{superAdmin_token}}",
                                                                       "type":  "string"
                                                                   }
                                                               ]
@@ -212,7 +212,7 @@
                                                    "bearer":  [
                                                                   {
                                                                       "key":  "token",
-                                                                      "value":  "{{accessSuperAdminToken}}",
+                                                                      "value":  "{{superAdmin_token}}",
                                                                       "type":  "string"
                                                                   }
                                                               ]
@@ -251,7 +251,7 @@
                   "bearer":  [
                                  {
                                      "key":  "token",
-                                     "value":  "{{accessUserToken}}",
+                                     "value":  "{{token}}",
                                      "type":  "string"
                                  }
                              ]

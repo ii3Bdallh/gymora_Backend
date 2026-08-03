@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Application.DTO.Pagintion;
+using Domain.Enum;
 
 namespace Gymora.Contracts.Authentication
 {
@@ -69,7 +70,6 @@ namespace Gymora.Contracts.Authentication
     public class CurrentGymDto
     {
         public string GymId { get; set; } = null!;
-        public string GymName { get; set; } = null!;
         public string Role { get; set; } = null!; // Owner, Coach, Receptionist, Member
     }
 
@@ -193,43 +193,6 @@ namespace Gymora.Contracts.Authentication
 
 
 
-    public class UserGymRDTO
-    {
-        public string GymId { get; set; } = null!;
-        public string GymName { get; set; } = null!;
-        public string? LogoUrl { get; set; }
-
-        public int GymPeopleId { get; set; }
-        public string Role { get; set; } = null!; // Owner, Coach, Receptionist, Member
-        public GymAccessStatus GymAccessStatus { get; set; } = GymAccessStatus.Active;
-        public bool IsAccessible { get; set; } = true;
-        public string? InaccessibleReason { get; set; }
-    }
-
-    public enum GymAccessStatus
-    {
-        Active,
-        GymSuspended,
-        OwnerSubscriptionGrace,
-        OwnerSubscriptionExpired,
-        OwnerSubscriptionSuspended,
-        PersonSuspended,
-        PersonBlocked,
-        LeftGym,
-        MembershipGrace,
-        MembershipExpired,
-        MembershipFrozen,
-        MembershipCancelled
-    }
-
-    public class UserGymsListRDTO
-    {
-        public List<UserGymRDTO> Gyms { get; set; } = new();
-        public bool HasActivePlatformSubscription { get; set; }
-        public int TotalCount { get; set; }
-        public int PageNumber { get; set; }
-        public int PageSize { get; set; }
-    }
 
 
     // --- User Profile DTOs ---

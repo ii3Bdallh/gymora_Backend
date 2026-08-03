@@ -57,7 +57,7 @@ namespace Infrastructure.Utils
                 if (refreshToken.CurrentGymPeopleId.HasValue)
                 {
                     claims.Add(new Claim(
-                        JwtClaimsNames.CurrentStaffId,
+                        JwtClaimsNames.CurrentPersonId,
                         refreshToken.CurrentGymPeopleId.Value.ToString()));
                 }
 
@@ -126,7 +126,7 @@ namespace Infrastructure.Utils
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = validatedToken as JwtSecurityToken;
-                return jwtToken?.Subject;
+                return jwtToken?.Claims.FirstOrDefault(c => c.Type == JwtClaimsNames.UserId)?.Value;
             }
             catch (Exception ex)
             {

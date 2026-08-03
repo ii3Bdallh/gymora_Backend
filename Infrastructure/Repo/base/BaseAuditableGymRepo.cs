@@ -23,11 +23,11 @@ namespace Infrastructure.Repo.Base
 
 
 
-            if (!currentUser.CurrentStaffId.HasValue)
+            if (!currentUser.CurrentPersonId.HasValue)
                 return query.Where(_ => false);
 
             return query.Where(x =>
-                EF.Property<int>(x, nameof(IBaseAuditableGymEntity.CreatedByStaffId)) == currentUser.CurrentStaffId.Value);
+                EF.Property<int>(x, nameof(IBaseAuditableGymEntity.CreatedByPersonId)) == currentUser.CurrentPersonId.Value);
         }
     }
 }

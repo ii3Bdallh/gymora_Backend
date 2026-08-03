@@ -172,7 +172,7 @@
                                                                    },
                                                                    {
                                                                        "key":  "CreatedById",
-                                                                       "value":  "{{userId}}",
+                                                                       "value":  "0",
                                                                        "type":  "text"
                                                                    }
                                                                ]
@@ -260,7 +260,7 @@
                                                                    },
                                                                    {
                                                                        "key":  "CreatedById",
-                                                                       "value":  "{{userId}}",
+                                                                       "value":  "0",
                                                                        "type":  "text"
                                                                    }
                                                                ]
@@ -294,7 +294,7 @@
                                                 ],
                                      "body":  {
                                                   "mode":  "raw",
-                                                  "raw":  "{\n  \"gymId\": {{gymId}},\n  \"accessToken\": \"{{accessToken}}\",\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+                                                  "raw":  "{\n  \"gymId\": {{gymId}},\n  \"accessToken\": \"{{token}}\",\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
                                               },
                                      "url":  {
                                                  "raw":  "{{baseUrl}}/api/Auth/switch",
@@ -324,7 +324,7 @@
                                                 ],
                                      "body":  {
                                                   "mode":  "raw",
-                                                  "raw":  "{\n  \"gymId\": {{gymId}},\n  \"newOwnerUserId\": {{user2_userId}}\n}"
+                                                  "raw":  "{\n  \"gymId\": {{gymId}},\n  \"newOwnerUserId\": 2\n}"
                                               },
                                      "url":  {
                                                  "raw":  "{{baseUrl}}/api/Gym/change-owner",
@@ -425,7 +425,7 @@
                   "bearer":  [
                                  {
                                      "key":  "token",
-                                     "value":  "{{accessUserToken}}",
+                                     "value":  "{{token}}",
                                      "type":  "string"
                                  }
                              ]

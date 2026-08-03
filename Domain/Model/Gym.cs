@@ -1,6 +1,7 @@
 using Domain.Attributes;
 using Domain.Enum;
 using Domain.Interface;
+using Domain.Model.Auth;
 using Domain.Model.Base;
 
 using System;
@@ -38,7 +39,9 @@ namespace Domain.Model
     public byte[]? RowVersion { get; set; }       // ROWVERSION
 
     // Navigation Properties
+    public int OwnerUserId { get; set; }
 
+    public ApplicationUser OwnerUser { get; set; }
 
   }
 }

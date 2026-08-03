@@ -12,9 +12,9 @@ namespace Domain.Model.Base
 {
     public class BaseAuditableGymEntity : BaseGymEntity, IBaseAuditableGymEntity
     {
-        public int CreatedByStaffId { get; set; }
+        public int CreatedByPersonId { get; set; }
 
-        public GymPerson CreatedByStaff { get; set; } = default!;
+        public GymPerson CreatedByPerson { get; set; } = default!;
         public DateTime CreatedOn { get; set; }
 
     }

@@ -8,9 +8,9 @@ namespace Domain.Interface
 {
     public interface IBaseAuditableGymEntity
     {
-        int CreatedByStaffId { get; set; }
+        int CreatedByPersonId { get; set; }
 
-        GymPerson CreatedByStaff { get; set; }
+        GymPerson CreatedByPerson { get; set; }
         DateTime CreatedOn { get; set; }
 
     }

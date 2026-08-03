@@ -58,8 +58,9 @@ namespace Application.Service
             if (await _paymentRepo.HasPendingRequestAsync(_currentUser.UserId, ct))
                 throw new ApplicationException("You already have a pending payment request.");
 
-            var planPrice = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(dto.PlanPriceId, true, false, ct);
-            if (planPrice == null)
+            PlanPrice? planPrice = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(dto.PlanPriceId, true, false, ct);
+
+            if (planPrice == null || planPrice.Plan == null || planPrice.Plan.IsFree == true)
                 throw new ApplicationException("Invalid subscription plan.");
 
 
@@ -67,6 +68,16 @@ namespace Application.Service
 
             if (existingSubscription.IsFree == false)
                 throw new ApplicationException("You already have an active subscription. You cannot create a new payment request until your current subscription expires.");
+
+            if (existingSubscription.CurrentCoachCount > planPrice.Plan.MaxCoaches)
+                throw new ApplicationException("You already have more coaches than the new plan allows. Please remove some coaches before upgrading.");
+
+            if (existingSubscription.CurrentGymCount > planPrice.Plan.MaxOwnedGyms)
+                throw new ApplicationException("You already have more gyms than the new plan allows. Please remove some gyms before upgrading.");
+
+            if (existingSubscription.CurrentMemberCount > planPrice.Plan.MaxMembers)
+                throw new ApplicationException("You already have more members than the new plan allows. Please remove some members before upgrading.");
+
 
             decimal discountAmount = 0m;
             int? couponId = null;

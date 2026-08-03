@@ -33,9 +33,9 @@ public static class ConfigurationExtensions
     public static void ConfigureGymAuditing<T>(this EntityTypeBuilder<T> builder)
     where T : BaseAuditableGymEntity
     {
-        builder.HasOne(x => x.CreatedByStaff)
+        builder.HasOne(x => x.CreatedByPerson)
                .WithMany()
-               .HasForeignKey(e => e.CreatedByStaffId)
+               .HasForeignKey(e => e.CreatedByPersonId)
                .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(e => e.IsActive);

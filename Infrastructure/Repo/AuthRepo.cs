@@ -37,6 +37,8 @@ namespace Infrastructure.Repo
         private readonly int _refreshTokenDays;
         private readonly IPublishEndpoint _publishEndpoint;
 
+        private readonly IUnitOfWork _unitOfWork;
+
         private readonly IGymAccessRepo _gymAccessRepo;
 
         public AuthRepo(
@@ -45,7 +47,8 @@ namespace Infrastructure.Repo
             ApplicationDbContext context,
             IConfiguration configuration,
             IPublishEndpoint publishEndpoint,
-            IGymAccessRepo gymAccessRepo
+            IGymAccessRepo gymAccessRepo,
+            IUnitOfWork unitOfWork
             )
         {
             _userManager = userManager;
@@ -53,6 +56,7 @@ namespace Infrastructure.Repo
             _context = context;
             _publishEndpoint = publishEndpoint;
             _gymAccessRepo = gymAccessRepo;
+            _unitOfWork = unitOfWork;
             _refreshTokenDays = int.TryParse(configuration["Jwt:RefreshTokenExpirationInDays"], out var days) ? days : 7;
         }
 
@@ -86,14 +90,6 @@ namespace Infrastructure.Repo
             await _userManager.AddToRoleAsync(user, RoleConstants.User);
 
 
-
-
-
-            await _userManager.UpdateAsync(user);
-
-            var roles = await _userManager.GetRolesAsync(user);
-
-            // Add Event to outbox
             await _publishEndpoint.Publish(new UserRegisterdEvent(user.Id, user.Email), cancellationToken);
             return user;
 
@@ -102,7 +98,9 @@ namespace Infrastructure.Repo
 
         public async Task<AuthResponseDto> LoginAsync(LoginRequestDto loginReqDto, CancellationToken cancellationToken)
         {
-            var user = await _userManager.FindByEmailAsync(loginReqDto.Email);
+            var user = await _userManager.Users
+    .Include(x => x.RefreshTokens)
+    .FirstOrDefaultAsync(x => x.Email == loginReqDto.Email);
             if (user == null)
             {
                 throw new UnauthorizedException("Invalid email or password.");
@@ -146,8 +144,8 @@ namespace Infrastructure.Repo
                 ExpirationAt = refreshTokenExpiry,
                 UserId = user.Id,
             };
-            user.RefreshTokens.Add(refresh);
-            await _userManager.UpdateAsync(user);
+            _context.RefreshTokens.Add(refresh);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var roles = await _userManager.GetRolesAsync(user);
             var (accessToken, _) = _jwtProvider.GenerateToken(user, roles, refresh);
@@ -177,7 +175,9 @@ namespace Infrastructure.Repo
             }
 
             var email = payload.Email;
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.Users
+    .Include(x => x.RefreshTokens)
+    .FirstOrDefaultAsync(x => x.Email == email);
             bool isNewUser = false;
 
             if (user == null)
@@ -201,28 +201,8 @@ namespace Infrastructure.Repo
 
                 await _userManager.AddToRoleAsync(user, RoleConstants.User);
 
-                // Activate Free Plan
-                var freePlan = await _context.SubscriptionPlan
-                    .Include(x => x.Prices)
-                    .FirstOrDefaultAsync(x => x.IsFree && x.IsActive == true, cancellationToken);
 
-                if (freePlan != null)
-                {
-                    var price = freePlan.Prices.FirstOrDefault() ?? new PlanPrice { DurationMonths = 12, Amount = 0 };
-                    var sub = new OwnerSubscription
-                    {
-                        CreatedById = user.Id,
-                        PlanId = freePlan.Id,
-                        PlanPriceId = price.Id,
-                        AmountPaid = 0,
-                        CurrencyCode = "USD",
-                        StartDate = DateTime.UtcNow,
-                        EndDate = DateTime.UtcNow.AddMonths(price.DurationMonths),
-                        GraceEndDate = DateTime.UtcNow.AddMonths(price.DurationMonths).AddDays(7)
-                    };
-                    _context.OwnerSubscription.Add(sub);
-                    await _context.SaveChangesAsync(cancellationToken);
-                }
+
 
                 await _publishEndpoint.Publish(new UserRegisteredViaGoogleEvent(user.Id, user.Email!, user.PersonName), cancellationToken);
             }
@@ -234,15 +214,21 @@ namespace Infrastructure.Repo
             var (plainRefreshToken, tokenHash) = _jwtProvider.GenerateRefreshToken();
             var refreshTokenExpiry = DateTime.UtcNow.AddDays(_refreshTokenDays);
 
-
+            // Invalidate/Cleanup oldest sessions/devices if exceeding limits
+            const int MaxActiveDevices = 5;
+            var activeTokens = user.RefreshTokens.Where(rt => rt.IsValid).OrderBy(rt => rt.CreatedAt).ToList();
+            if (activeTokens.Count >= MaxActiveDevices)
+            {
+                activeTokens.First().RevokedAt = DateTime.UtcNow;
+            }
             var refresh = new RefreshToken
             {
                 Token = tokenHash,
                 ExpirationAt = refreshTokenExpiry,
                 UserId = user.Id,
             };
-            user.RefreshTokens.Add(refresh);
-            await _userManager.UpdateAsync(user);
+            _context.RefreshTokens.Add(refresh);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var roles = await _userManager.GetRolesAsync(user);
             var (accessToken, _) = _jwtProvider.GenerateToken(user, roles, refresh);
@@ -267,11 +253,9 @@ namespace Infrastructure.Repo
         #region Refresh Token 
         public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken, string accessToken, CancellationToken ct)
         {
-            // تجديد التوكن مع الحفاظ على نفس سياق الجيم المخزن مسبقًا
             return await ProcessTokenRotationAsync(
                 refreshToken,
-                accessToken,
-                targetGymContext: null, // لا يوجد تغيير في الجيم
+                targetGymContext: null,
                 ct);
         }
 
@@ -297,52 +281,47 @@ namespace Infrastructure.Repo
             };
 
             // 4. تنفيذ تجديد التوكن وتطبيق السياق الجديد
-            return await ProcessTokenRotationAsync(switchGymRequest.RefreshToken, switchGymRequest.AccessToken, newGymContext, ct);
+            return await ProcessTokenRotationAsync(switchGymRequest.RefreshToken, newGymContext, ct);
         }
 
         private async Task<AuthResponseDto> ProcessTokenRotationAsync(
     string refreshToken,
-    string accessToken,
     MyGymDto? targetGymContext,
     CancellationToken ct)
         {
-            // 1. استخراج الـ UserId والبحث عن المستخدم
-            string? userIdStr = _jwtProvider.GetUserIdByToken(accessToken, validateLifetime: false);
-            if (userIdStr == null) throw new UnauthorizedException("Invalid access token.");
 
-            var user = await _userManager.Users
-                .Include(u => u.RefreshTokens)
-                .FirstOrDefaultAsync(u => u.Id == int.Parse(userIdStr), ct);
+
+
+            var tokenHash = _jwtProvider.HashToken(refreshToken);
+            RefreshToken? existingRefreshToken = await _context.RefreshTokens
+                    .Include(x => x.User)
+                    .FirstOrDefaultAsync(x =>
+                    x.Token == tokenHash &&
+                    x.RevokedAt == null,
+                    ct);
+
+            if (existingRefreshToken == null)
+                throw new UnauthorizedException("Invalid refresh token.");
+
+            if (!existingRefreshToken.IsValid)
+                throw new UnauthorizedException("Refresh token expired or revoked.");
+
+            ApplicationUser? user = existingRefreshToken.User;
 
             if (user == null) throw new BadRequestException("User not found.");
 
-            // 2. فحص الـ Refresh Token والأمان (Anti-Hijacking)
-            var tokenHash = _jwtProvider.HashToken(refreshToken);
-            var existingRefreshToken = user.RefreshTokens.FirstOrDefault(rt => rt.Token == tokenHash);
 
-            if (existingRefreshToken == null || !existingRefreshToken.IsValid)
-            {
-                if (existingRefreshToken != null && existingRefreshToken.RevokedAt.HasValue)
-                {
-                    // طرد المستخدم وإلغاء جميع جلساته النشطة عند اكتشاف استخدام توكن ملغي
-                    foreach (var rt in user.RefreshTokens.Where(x => x.IsValid))
-                    {
-                        rt.RevokedAt = DateTime.UtcNow;
-                    }
-                    await _userManager.UpdateAsync(user);
-                }
-                throw new UnauthorizedException("Invalid or revoked refresh token.");
-            }
 
-            // 3. إلغاء الـ Refresh Token الحالي
+
+            // Revoke current refresh token (Rotation)
             existingRefreshToken.RevokedAt = DateTime.UtcNow;
 
-            // 4. تحديد سياق الجيم الجديد أو الحفاظ على القديم
+            // Determine Target Gym Context
             int currentGymId = targetGymContext?.GymId ?? existingRefreshToken.CurrentGymId;
             int currentGymPeopleId = targetGymContext?.GymPeopleId ?? existingRefreshToken.CurrentGymPeopleId ?? 0;
             string? gymRole = targetGymContext?.GymRole ?? existingRefreshToken.GymRole;
 
-            // 5. إنشاء Refresh Token جديد
+            // Create new Refresh Token
             var (newPlainRefreshToken, newHash) = _jwtProvider.GenerateRefreshToken();
             var newExpiry = DateTime.UtcNow.AddDays(_refreshTokenDays);
 
@@ -356,20 +335,14 @@ namespace Infrastructure.Repo
                 GymRole = gymRole
             };
 
-            user.RefreshTokens.Add(newRefresh);
-            await _userManager.UpdateAsync(user);
+            _context.RefreshTokens.Add(newRefresh);
+            await _unitOfWork.SaveChangesAsync(ct);
 
-            // 6. توليد Access Token جديد
+            // Generate New Access Token
             var roles = await _userManager.GetRolesAsync(user);
             var (newAccessToken, _) = _jwtProvider.GenerateToken(user, roles, newRefresh);
 
-            // 7. جلب اسم الجيم للإستجابة (إذا لم يكن ممررًا)
-            string? gymName = targetGymContext?.GymName;
-            if (gymName == null && currentGymId > 0)
-            {
-                var gym = await _context.Gym.FindAsync(new object[] { currentGymId }, ct);
-                gymName = gym?.Name;
-            }
+
 
             CurrentGymDto? currentGym = null;
             if (currentGymId > 0 && !string.IsNullOrEmpty(gymRole))
@@ -377,7 +350,6 @@ namespace Infrastructure.Repo
                 currentGym = new CurrentGymDto
                 {
                     GymId = currentGymId.ToString(),
-                    GymName = gymName ?? string.Empty,
                     Role = gymRole
                 };
             }

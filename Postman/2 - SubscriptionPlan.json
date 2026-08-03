@@ -274,7 +274,7 @@
         "bearer": [
             {
                 "key": "token",
-                "value": "{{accessSuperAdminToken}}",
+                "value": "{{superAdmin_token}}",
                 "type": "string"
             }
         ]

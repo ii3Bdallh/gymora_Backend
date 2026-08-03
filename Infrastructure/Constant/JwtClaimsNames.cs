@@ -10,6 +10,6 @@ namespace Infrastructure.Constant
         public const string UserId = "UserId";
         public const string CurrentGymId = "CurrentGymId";
         public const string GymRole = "GymRole";
-        public const string CurrentStaffId = "CurrentStaffId";
+        public const string CurrentPersonId = "CurrentPersonId";
     }
 }

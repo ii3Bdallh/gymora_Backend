@@ -52,6 +52,9 @@ namespace Domain.Model
         // Navigation Properties for profiles
         public GymStaffProfile? StaffProfile { get; set; }
         public GymMemberProfile? MemberProfile { get; set; }
+
+
+        
     }
 
     public enum GymPersonAccessStatus

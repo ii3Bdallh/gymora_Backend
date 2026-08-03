@@ -57,5 +57,21 @@ namespace Application.DTO.Model
         public OwnerSubscriptionStatus? SubscriptionStatus { get; init; }
 
         public OwnerSubscription? Subscription { get; init; }
+
+
+        public int CurrentGymCount { get; init; }
+        public int CurrentMemberCount { get; init; }
+        public int CurrentCoachCount { get; init; }
+        
+        public bool IsOverGymLimit => CurrentGymCount > MaxOwnedGyms;
+
+        public bool IsOverMemberLimit => CurrentMemberCount > MaxMembers;
+
+        public bool IsOverCoachLimit => CurrentCoachCount > MaxCoaches;
+
+        public bool IsCompliant =>
+            !IsOverGymLimit &&
+            !IsOverMemberLimit &&
+            !IsOverCoachLimit;
     }
 }

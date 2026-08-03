@@ -37,6 +37,12 @@ namespace Infrastructure.Repo.Entity
             return base.GetPageAsync(searchReq, isActive, trackChanges, cancellationToken, include);
         }
 
+        public override async Task<SubscriptionPlan?> GetByIdAsync(int id, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<SubscriptionPlan>, IQueryable<SubscriptionPlan>>? include = null)
+        {
+            include ??= Includes();
+            return await base.GetByIdAsync(id, isActive, trackChanges, cancellationToken, include);
+        }
+
 
         public Task<PlanPrice> AddPlanPriceAsync(PlanPrice planPrice, CancellationToken cancellationToken = default)
         {
@@ -67,6 +73,7 @@ namespace Infrastructure.Repo.Entity
             IQueryable<PlanPrice> query = trackChanges ? context.PlanPrice : context.PlanPrice.AsNoTracking();
 
             return await query
+                .Include(x => x.Plan)
                 .Where(x => x.Id == id && x.IsActive == isActive)
                 .FirstOrDefaultAsync(cancellationToken);
         }

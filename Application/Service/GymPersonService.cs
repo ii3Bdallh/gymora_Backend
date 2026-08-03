@@ -47,20 +47,28 @@ namespace Application.Service
         {
             int ownerUserId = await _gymRepo.GetOwnerIdAsync(CurrentGymId ?? 0);
 
-            if (dto.PersonType == PersonType.Staff || dto.PersonType == PersonType.StaffMember)
-            {
-                bool canCreateNewStaff = await _currentPlanService.HasAvailableCoachSlotAsync(ownerUserId, cancellationToken);
-                if (!canCreateNewStaff)
-                    throw new InvalidOperationException("You have exceeded the maximum number of staffs allowed for your current subscription plan.");
-            }
+            //if (dto.PersonType == PersonType.Staff || dto.PersonType == PersonType.StaffMember)
+            //{
+            //    bool canCreateNewStaff = await _currentPlanService.HasAvailableCoachSlotAsync(ownerUserId, cancellationToken);
+            //    if (!canCreateNewStaff)
+            //        throw new InvalidOperationException("You have exceeded the maximum number of staffs allowed for your current subscription plan.");
+            //}
 
-            if (dto.PersonType == PersonType.Member || dto.PersonType == PersonType.StaffMember)
-            {
-                bool canCreateNewMember = await _currentPlanService.HasAvailableMemberSlotAsync(ownerUserId, cancellationToken);
-                if (!canCreateNewMember)
-                    throw new InvalidOperationException("You have exceeded the maximum number of members allowed for your current subscription plan.");
-            }
+            //if (dto.PersonType == PersonType.Member || dto.PersonType == PersonType.StaffMember)
+            //{
+            //    bool canCreateNewMember = await _currentPlanService.HasAvailableMemberSlotAsync(ownerUserId, cancellationToken);
+            //    if (!canCreateNewMember)
+            //        throw new InvalidOperationException("You have exceeded the maximum number of members allowed for your current subscription plan.");
+            //}
+            CurrentPlanResult canCreateNew = await _currentPlanService.GetCurrentPlanAsync(CurrentUserId, cancellationToken);
+            if (canCreateNew.IsOverMemberLimit)
+                throw new InvalidOperationException("You Have Reached Your Member Limit");
 
+            if (canCreateNew.IsOverCoachLimit)
+                throw new InvalidOperationException("You Have Reached Your Coach Limit");
+
+            if (canCreateNew.IsOverGymLimit)
+                throw new InvalidOperationException("You Have Reached Your Gym Limit");
 
         }
 

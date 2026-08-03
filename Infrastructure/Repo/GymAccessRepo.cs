@@ -7,6 +7,7 @@ using Application.DTO.Exceptions;
 using Application.DTO.Model;
 using Application.Interface.Repo;
 using Application.Interface.Repo.Shared;
+using Application.Interface.Service.Shared;
 using Application.Model;
 using Domain.Enum;
 using Domain.Model;
@@ -17,7 +18,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repo
 {
-    public class GymAccessRepo(ApplicationDbContext context) : IGymAccessRepo
+    public class GymAccessRepo(ApplicationDbContext context, ICurrentPlanService currentPlanService) : IGymAccessRepo
     {
         // public Task<IReadOnlyList<AvailableGymDto>> GetAvailableGymsAsync(int userId, CancellationToken ct = default)
         // {
@@ -131,6 +132,8 @@ namespace Infrastructure.Repo
                 case GymPersonAccessStatus.LeftGym:
                     throw new ForbiddenException("Gym person access is left gym.");
 
+
+
                 default:
                     throw new ForbiddenException("Gym person access is not active.");
             }
@@ -141,17 +144,15 @@ namespace Infrastructure.Repo
     int ownerId,
     CancellationToken ct)
         {
-            var subscription = await context.OwnerSubscription
-                .Where(x =>
-                    x.CreatedById == ownerId &&
-                    x.IsActive)
-                .OrderByDescending(x => x.EndDate)
-                .FirstOrDefaultAsync(ct);
+            CurrentPlanResult subscription = await currentPlanService.GetCurrentPlanAsync(ownerId);
 
             if (subscription == null)
                 throw new ForbiddenException("No active subscription found.");
 
-            switch (subscription.Status)
+            if (subscription.IsCompliant == false)
+                throw new ForbiddenException("Owner subscription is not compliant.");
+
+            switch (subscription.SubscriptionStatus)
             {
                 case OwnerSubscriptionStatus.Active:
                 case OwnerSubscriptionStatus.Grace:
