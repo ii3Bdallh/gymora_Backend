@@ -91,7 +91,7 @@ namespace UnitTests.Controllers
                 AccessToken = "access_token",
                 RefreshToken = "refresh_token",
                 User = new UserInfoDto { UserId = "1", Email = "test@test.com", FullName = "Test" },
-                CurrentGym = new CurrentGymDto { GymId = "1", GymName = "Gym 1", Role = "Owner" }
+                CurrentGym = new CurrentGymDto { GymId = "1", Role = "Owner" }
             };
 
             _authService.Setup(a => a.LoginAsync(dto, It.IsAny<CancellationToken>()))

@@ -51,6 +51,8 @@ namespace Infrastructure.Config
       builder.HasIndex(g => g.Status);
       builder.HasIndex(g => g.OwnerUserId);
       builder.HasIndex(g => g.IsActive);
+      builder.HasIndex(g => new { g.OwnerUserId, g.IsActive, g.Status });
+
 
 
       // ✅ تطبيق إعدادات التدقيق (Auditing)

@@ -12,19 +12,19 @@ namespace Application.Interface.Service.Shared
             int ownerUserId,
             CancellationToken ct = default);
 
-        // Task<bool> HasAvailableGymSlotAsync(
-        //     int ownerUserId,
-        //     CancellationToken ct = default);
+        Task<bool> HasAvailableGymSlotAsync(
+            int ownerUserId,
+            CancellationToken ct = default);
 
 
-        // Task<bool> HasAvailableMemberSlotAsync(
-        //     int ownerUserId,
-        //     CancellationToken ct = default);
+        Task<bool> HasAvailableMemberSlotAsync(
+            int ownerUserId,
+            CancellationToken ct = default);
 
 
-        // Task<bool> HasAvailableCoachSlotAsync(
-        //     int ownerUserId,
-        //     CancellationToken ct = default);
+        Task<bool> HasAvailableCoachSlotAsync(
+            int ownerUserId,
+            CancellationToken ct = default);
 
 
     }

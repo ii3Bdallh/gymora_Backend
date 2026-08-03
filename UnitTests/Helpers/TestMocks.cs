@@ -220,7 +220,8 @@ public static class TestData
             DurationMonths = durationMonths,
             Amount = amount,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true
+            IsActive = true,
+            Plan = CreateSubscriptionPlan(id: planId)
         };
     }
 }

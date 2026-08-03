@@ -54,11 +54,11 @@ namespace Application.Service
             if (payment == null || payment.Status != PaymentRequestStatus.Approved)
                 throw new ApplicationException("Payment request is not approved.");
 
-            // CurrentPlanResult existingSubscription = await _currentPlanService.GetCurrentPlanAsync(payment.CreatedById, ct);
+            CurrentPlanResult existingSubscription = await _currentPlanService.GetCurrentPlanAsync(payment.CreatedById, ct);
 
-            // // التحقق إن مفيش اشتراك نشط
-            // if (existingSubscription.IsFree == false)
-            //     throw new ApplicationException("User already has an active subscription.");
+            // التحقق إن مفيش اشتراك نشط
+            if (existingSubscription.IsFree == false)
+                throw new ApplicationException("User already has an active subscription.");
 
             PlanPrice? planPrice = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(payment.PlanPriceId, true, false, ct);
             if (planPrice == null)

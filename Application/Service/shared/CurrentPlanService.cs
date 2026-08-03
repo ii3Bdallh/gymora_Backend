@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Application.DTO.Model;
 using Application.Interface.Repo;
 using Application.Interface.Service.Shared;
+using AutoMapper;
 using Domain.Enum;
 
 namespace Application.Service.shared
@@ -13,22 +14,23 @@ namespace Application.Service.shared
     {
         private readonly IOwnerSubscriptionRepo _subscriptionRepo;
         private readonly ISubscriptionPlanRepo _planRepo;
-
         private readonly IGymRepo _gymRepo;
-
         private readonly IGymPersonRepo _gymPersonRepo;
+        private readonly IMapper _mapper;
 
         public CurrentPlanService(
             IOwnerSubscriptionRepo subscriptionRepo,
             ISubscriptionPlanRepo planRepo,
             IGymRepo gymRepo,
-            IGymPersonRepo gymPersonRepo
+            IGymPersonRepo gymPersonRepo,
+            IMapper mapper
             )
         {
             _subscriptionRepo = subscriptionRepo;
             _planRepo = planRepo;
             _gymRepo = gymRepo;
             _gymPersonRepo = gymPersonRepo;
+            _mapper = mapper;
         }
 
 
@@ -75,7 +77,7 @@ namespace Application.Service.shared
                     MaxCoaches = subscription.Plan.MaxCoaches,
 
                     IsFree = false,
-                    Subscription = subscription,
+                    Subscription = _mapper.Map<OwnerSubscriptionRDTO>(subscription),
                     SubscriptionStatus = subscription.Status,
                     CurrentGymCount = gymCount,
                     CurrentMemberCount = memberCount,
@@ -119,38 +121,24 @@ namespace Application.Service.shared
 
         }
 
-        // public async Task<bool> HasAvailableGymSlotAsync(
-        //     int ownerUserId,
-        //     CancellationToken ct = default)
-        // {
-        //     var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
+        public async Task<bool> HasAvailableGymSlotAsync(
+            int ownerUserId,
+            CancellationToken ct = default)
+        {
+            var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
+            return currentPlan.CurrentGymCount < currentPlan.MaxOwnedGyms;
+        }
 
-        //     var currentGymCount =
-        //         await _gymRepo.CountOwnedByOwnerAsync(ownerUserId, ct);
+        public async Task<bool> HasAvailableMemberSlotAsync(int ownerUserId, CancellationToken ct = default)
+        {
+            var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
+            return currentPlan.CurrentMemberCount < currentPlan.MaxMembers;
+        }
 
-        //     return currentGymCount < currentPlan.MaxOwnedGyms;
-        // }
-
-
-        // public async Task<bool> HasAvailableMemberSlotAsync(int ownerUserId, CancellationToken ct = default)
-        // {
-        //     var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
-
-        //     var currentMemberCount =
-        //         await _gymPersonRepo.CountPeopleTypeByOwnerAsync(ownerUserId, PersonType.Member, ct);
-
-        //     return currentMemberCount < currentPlan.MaxMembers;
-        // }
-
-        // public async Task<bool> HasAvailableCoachSlotAsync(int ownerUserId, CancellationToken ct = default)
-        // {
-        //     var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
-
-        //     var currentCoachCount =
-        //         await _gymPersonRepo.CountPeopleTypeByOwnerAsync(ownerUserId, PersonType.Staff, ct);
-
-        //     return currentCoachCount < currentPlan.MaxCoaches;
-        // }
-
+        public async Task<bool> HasAvailableCoachSlotAsync(int ownerUserId, CancellationToken ct = default)
+        {
+            var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
+            return currentPlan.CurrentCoachCount < currentPlan.MaxCoaches;
+        }
     }
 }

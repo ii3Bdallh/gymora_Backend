@@ -20,10 +20,108 @@ namespace Infrastructure.Repo
 {
     public class GymAccessRepo(ApplicationDbContext context, ICurrentPlanService currentPlanService) : IGymAccessRepo
     {
-        // public Task<IReadOnlyList<AvailableGymDto>> GetAvailableGymsAsync(int userId, CancellationToken ct = default)
+        // public async Task<IReadOnlyList<AvailableGymDto>> GetAvailableGymsAsync(int userId, CancellationToken ct = default)
         // {
-        //     throw new NotImplementedException();
+        //     var gymPeople = await context.GymPerson
+        //         .AsNoTracking()
+        //         .Include(x => x.Gym)
+        //         .Include(x => x.StaffProfile)
+        //         .Include(x => x.MemberProfile)
+        //         .Where(x => x.UserId == userId && x.IsActive)
+        //         .ToListAsync(ct);
+
+        //     var availableGyms = new List<AvailableGymDto>();
+
+        //     foreach (var gp in gymPeople)
+        //     {
+        //         if (gp.Gym.Status == GymStatus.Suspended)
+        //             continue;
+
+        //         if (gp.AccessStatus != GymPersonAccessStatus.Active)
+        //             continue;
+
+        //         int ownerId;
+        //         if (gp.PersonType == PersonType.Owner)
+        //         {
+        //             ownerId = userId;
+        //         }
+        //         else
+        //         {
+        //             var ownerUserId = await context.GymPerson
+        //                 .AsNoTracking()
+        //                 .Where(x => x.GymId == gp.GymId && x.PersonType == PersonType.Owner && x.IsActive)
+        //                 .Select(x => x.UserId)
+        //                 .FirstOrDefaultAsync(ct);
+
+        //             if (ownerUserId == null)
+        //                 continue;
+
+        //             ownerId = ownerUserId.Value;
+        //         }
+
+        //         try
+        //         {
+        //             var subscription = await currentPlanService.GetCurrentPlanAsync(ownerId, ct);
+        //             if (subscription == null || subscription.IsCompliant == false)
+        //                 continue;
+
+        //             if (subscription.SubscriptionStatus != OwnerSubscriptionStatus.Active &&
+        //                 subscription.SubscriptionStatus != OwnerSubscriptionStatus.Grace)
+        //             {
+        //                 continue;
+        //             }
+        //         }
+        //         catch
+        //         {
+        //             continue;
+        //         }
+
+        //         string role = gp.PersonType == PersonType.Owner
+        //             ? GymRole.Owner.ToRoleString()
+        //             : (gp.StaffProfile != null ? gp.StaffProfile.GymRoleId.ToString() : GymRole.Other.ToString());
+
+        //         availableGyms.Add(new AvailableGymDto
+        //         {
+        //             GymId = gp.GymId.ToString(),
+        //             GymName = gp.Gym.Name,
+        //             Role = role
+        //         });
+        //     }
+
+        //     return availableGyms;
         // }
+
+        public async Task<bool> CanJoinGymAsync(int gymId, PersonType personType, CancellationToken ct = default)
+        {
+            var ownerPerson = await context.GymPerson
+                .AsNoTracking()
+                .Where(x => x.GymId == gymId && x.PersonType == PersonType.Owner && x.IsActive)
+                .FirstOrDefaultAsync(ct);
+
+            if (ownerPerson == null || ownerPerson.UserId == null)
+                return false;
+
+            var currentPlan = await currentPlanService.GetCurrentPlanAsync(ownerPerson.UserId.Value, ct);
+            if (currentPlan == null)
+                return false;
+
+            if (currentPlan.SubscriptionStatus != OwnerSubscriptionStatus.Active &&
+                currentPlan.SubscriptionStatus != OwnerSubscriptionStatus.Grace)
+            {
+                return false;
+            }
+
+            if (personType == PersonType.Member)
+            {
+                return currentPlan.CurrentMemberCount < currentPlan.MaxMembers;
+            }
+            else if (personType == PersonType.Staff)
+            {
+                return currentPlan.CurrentCoachCount < currentPlan.MaxCoaches;
+            }
+
+            return true;
+        }
 
         public async Task<MyGymDto?> GetGymAccessAsync(
       int userId,

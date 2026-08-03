@@ -56,7 +56,7 @@ namespace Application.DTO.Model
 
         public OwnerSubscriptionStatus? SubscriptionStatus { get; init; }
 
-        public OwnerSubscription? Subscription { get; init; }
+        public OwnerSubscriptionRDTO? Subscription { get; init; }
 
 
         public int CurrentGymCount { get; init; }
