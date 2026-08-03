@@ -10,7 +10,7 @@ public static class RateLimitExtensions
 {
     public static IServiceCollection AddRateLimiting(this IServiceCollection services)
     {
-        
+
         services.AddRateLimiter(options =>
               {
                   options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
