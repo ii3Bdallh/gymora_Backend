@@ -9,23 +9,47 @@ This skill provides context and instructions for developing new features, models
 
 ## 1. Domain Layer Base Entities
 
-All entities in `Domain/Model/` inherit from:
+All entities in `Domain/Model/` must inherit from the base classes located in [Domain/Model/Base/](file:///d:/Abdallah/Projects/Gymora/gymora_Backend/Domain/Model/Base):
 - **`BaseEntity`**: Simple ID, contains `Id` (PK) and `IsActive` (soft delete).
 - **`BaseAuditableEntity`**: Extends `BaseEntity` with audit logs: `CreatedOn` and `CreatedById`.
 - **`BaseGymEntity`**: Has `GymId` and navigation property to `Gym`.
-- **`BaseAuditableGymEntity`**: Extends `BaseGymEntity` with `CreatedOn`, `CreatedByPersonId`, and navigation property to `GymPerson`.
+- **`BaseGymAuditableEntity`**: Extends `BaseGymEntity` with `CreatedOn`, `CreatedById`, and audit properties.
 - **`BaseFileEntity`** / **`BaseAuditableFileEntity`**: Used for entities containing stored file paths on Bunny Storage.
 
 ---
 
 ## 2. Application Layer DTOs
 
-Every entity `EntityName` has corresponding DTO records in `Application/DTO/Model/`:
-- **`EntityNameCDTO` (Create DTO)**: Inherits from `BaseCDTO` or `BaseAuditableCDTO`.
-- **`EntityNameUDTO` (Update DTO)**: Inherits from `BaseUDTO` or `BaseAuditableUDTO`.
-- **`EntityNameRDTO` (Response DTO)**: Inherits from `BaseRDTO` or `BaseAuditableRDTO`.
+Every entity `EntityName` has corresponding DTO records in `Application/DTO/Model/`. When using base entities, you **must use the matching base DTOs** from [Application/DTO/Base/](file:///d:/Abdallah/Projects/Gymora/gymora_Backend/Application/DTO/Base):
+- If the entity inherits from `BaseEntity`:
+  - **`EntityNameCDTO` (Create DTO)**: Inherits from `BaseCDTO`.
+  - **`EntityNameUDTO` (Update DTO)**: Inherits from `BaseUDTO`.
+  - **`EntityNameRDTO` (Response DTO)**: Inherits from `BaseRDTO`.
+- If the entity inherits from `BaseAuditableEntity` or `BaseGymAuditableEntity`:
+  - **`EntityNameCDTO` (Create DTO)**: Inherits from `BaseAuditableCDTO`.
+  - **`EntityNameUDTO` (Update DTO)**: Inherits from `BaseAuditableUDTO`.
+  - **`EntityNameRDTO` (Response DTO)**: Inherits from `BaseAuditableRDTO`.
 
-*Rule*: Never return raw Domain Model entities from endpoints or in DTOs. Map them to their corresponding `RDTO`s (e.g., `OwnerSubscription` mapped to `OwnerSubscriptionRDTO` inside `CurrentPlanResult`).
+*Rule*: Never return raw Domain Model entities from endpoints or in DTOs. Map them to their corresponding `RDTO`s.
+
+---
+
+## 2.1. Shared User Context & Pagination Models
+
+For querying, filtering, and user authentication context:
+- **`CurrentUser`** (from [CurrentUser.cs](file:///d:/Abdallah/Projects/Gymora/gymora_Backend/Application/Model/CurrentUser.cs)): Injected into services to retrieve currently authenticated user credentials (`UserId`, `CurrentGymId`, `PlatformRole`, `IsSuperAdmin`, etc.).
+- **`PaginatedSearchReq`** (from [PaginatedSearchReq.cs](file:///d:/Abdallah/Projects/Gymora/gymora_Backend/Application/DTO/Pagintion/PaginatedSearchReq.cs)): Base request class representing parameters for searching, filtering, and page index parameters.
+- **`PaginatedRes<T>`** (from [PaginatedRes.cs](file:///d:/Abdallah/Projects/Gymora/gymora_Backend/Application/DTO/Pagintion/PaginatedRes.cs)): Generic container wrapper returned from paged list queries.
+
+---
+
+## 2.2. EF Core Entity Configuration Extensions
+
+When configuring EF Core mappings inside `Infrastructure/Configurations/`, use the extension methods from [ConfigurationExtensions.cs](file:///d:/Abdallah/Projects/Gymora/gymora_Backend/Infrastructure/Extensions/ConfigurationExtensions.cs) to automatically map base class relationships and indexes:
+- **`builder.ConfigureAuditing()`**: Sets up relationship to `ApplicationUser` for `CreatedById` and adds indices for auditable entities.
+- **`builder.ConfigureFileAuditing()`**: Sets up auditing for file entities.
+- **`builder.ConfigureGymAuditing()`**: Configures auditing relations and properties targeting gym entities.
+- **`builder.ConfigureGymOwned()`**: Standardizes the mapping between gym-owned entities (`BaseGymEntity`) and `GymId`, applying cascade delete behavior.
 
 ---
 

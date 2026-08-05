@@ -14,7 +14,7 @@ public static class ConfigurationExtensions
         builder.HasOne<ApplicationUser>()
                .WithMany()
                .HasForeignKey(e => e.CreatedById)
-               .OnDelete(DeleteBehavior.Restrict);
+               .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(e => e.IsActive);
     }
@@ -25,7 +25,7 @@ public static class ConfigurationExtensions
         builder.HasOne<ApplicationUser>()
                .WithMany()
                .HasForeignKey(e => e.CreatedById)
-               .OnDelete(DeleteBehavior.Restrict);
+               .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(e => e.IsActive);
     }
@@ -36,7 +36,7 @@ public static class ConfigurationExtensions
         builder.HasOne(x => x.CreatedByPerson)
                .WithMany()
                .HasForeignKey(e => e.CreatedByPersonId)
-               .OnDelete(DeleteBehavior.Restrict);
+               .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(e => e.IsActive);
     }
@@ -47,7 +47,7 @@ public static class ConfigurationExtensions
         builder.HasOne(x => x.Gym)
                .WithMany()
                .HasForeignKey(e => e.GymId)
-               .OnDelete(DeleteBehavior.Restrict);
+               .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(e => e.IsActive);
     }

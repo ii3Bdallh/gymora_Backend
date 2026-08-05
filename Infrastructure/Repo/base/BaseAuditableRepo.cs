@@ -8,8 +8,13 @@ using Application.Model;
 
 namespace Infrastructure.Repo.Base
 {
+
+    /// <summary>
+    /// Apply Filter Where CreatedBy Is Me Or SuperAdmin
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public abstract class BaseAuditableRepo<T> : BaseRepo<T>
-        where T : class, IBaseEntity, IAuditableEntity
+        where T : class, IBaseEntity, IOnlyMeCanSee
     {
         protected readonly CurrentUser currentUser;
 
@@ -27,7 +32,7 @@ namespace Infrastructure.Repo.Base
                 return query;
 
             return query.Where(x =>
-                EF.Property<int>(x, nameof(IAuditableEntity.CreatedById)) == currentUser.UserId);
+                EF.Property<int>(x, nameof(IOnlyMeCanSee.CreatedById)) == currentUser.UserId);
         }
     }
 }

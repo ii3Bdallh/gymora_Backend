@@ -37,6 +37,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOwnerSubscriptionService, OwnerSubscriptionService>();
         services.AddScoped<ICouponService, CouponService>();
         services.AddScoped<IPaymentRequestService, PaymentRequestService>();
+        services.AddScoped<ICoachAssignmentService, CoachAssignmentService>();
 
         return services;
     }

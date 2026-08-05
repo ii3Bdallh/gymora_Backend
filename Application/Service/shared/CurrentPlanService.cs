@@ -121,24 +121,6 @@ namespace Application.Service.shared
 
         }
 
-        public async Task<bool> HasAvailableGymSlotAsync(
-            int ownerUserId,
-            CancellationToken ct = default)
-        {
-            var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
-            return currentPlan.CurrentGymCount < currentPlan.MaxOwnedGyms;
-        }
 
-        public async Task<bool> HasAvailableMemberSlotAsync(int ownerUserId, CancellationToken ct = default)
-        {
-            var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
-            return currentPlan.CurrentMemberCount < currentPlan.MaxMembers;
-        }
-
-        public async Task<bool> HasAvailableCoachSlotAsync(int ownerUserId, CancellationToken ct = default)
-        {
-            var currentPlan = await GetCurrentPlanAsync(ownerUserId, ct);
-            return currentPlan.CurrentCoachCount < currentPlan.MaxCoaches;
-        }
     }
 }

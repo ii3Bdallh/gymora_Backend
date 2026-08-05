@@ -60,7 +60,7 @@ namespace Application.Service
             //    if (!canCreateNewMember)
             //        throw new InvalidOperationException("You have exceeded the maximum number of members allowed for your current subscription plan.");
             //}
-            CurrentPlanResult canCreateNew = await _currentPlanService.GetCurrentPlanAsync(CurrentUserId, cancellationToken);
+            CurrentPlanResult canCreateNew = await _currentPlanService.GetCurrentPlanAsync(ownerUserId, cancellationToken);
             if (canCreateNew.IsOverMemberLimit)
                 throw new InvalidOperationException("You Have Reached Your Member Limit");
 
@@ -71,6 +71,23 @@ namespace Application.Service
                 throw new InvalidOperationException("You Have Reached Your Gym Limit");
 
         }
+
+        protected override async Task BeforeUpdateAsync(GymPerson entity, GymPersonUDTO dto, CancellationToken cancellationToken)
+        {
+            int ownerUserId = await _gymRepo.GetOwnerIdAsync(CurrentGymId ?? 0);
+
+
+            CurrentPlanResult canCreateNew = await _currentPlanService.GetCurrentPlanAsync(ownerUserId, cancellationToken);
+            if (canCreateNew.IsOverMemberLimit)
+                throw new InvalidOperationException("You Have Reached Your Member Limit");
+
+            if (canCreateNew.IsOverCoachLimit)
+                throw new InvalidOperationException("You Have Reached Your Coach Limit");
+
+            if (canCreateNew.IsOverGymLimit)
+                throw new InvalidOperationException("You Have Reached Your Gym Limit");
+        }
+
 
         public async Task<GymPersonRDTO> LinkAccountToGymAsync(int gymId, Guid inviteCode, CancellationToken ct = default)
         {

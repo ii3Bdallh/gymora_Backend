@@ -34,5 +34,7 @@ namespace Infrastructure.Repo.Base
             return query.Where(x =>
                 EF.Property<int>(x, nameof(IBaseGymEntity.GymId)) == currentUser.CurrentGymId.Value);
         }
+
+        
     }
 }

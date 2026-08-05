@@ -33,6 +33,7 @@ public static class RepositoryCollectionExtensions
         services.AddScoped<ICouponRepo, CouponRepo>();
         services.AddScoped<IPaymentRequestRepo, PaymentRequestRepo>();
         services.AddScoped<ISubscriptionPlanRepo, SubscriptionPlanRepo>();
+        services.AddScoped<ICoachAssignmentRepo, CoachAssignmentRepo>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
