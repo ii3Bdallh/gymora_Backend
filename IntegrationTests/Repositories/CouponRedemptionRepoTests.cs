@@ -45,7 +45,6 @@ public class CouponRedemptionRepoTests : IDisposable
             DiscountValue = 10m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
             ValidTo = DateTime.UtcNow.AddDays(30),
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.Coupon.Add(coupon);
@@ -58,7 +57,6 @@ public class CouponRedemptionRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -72,7 +70,6 @@ public class CouponRedemptionRepoTests : IDisposable
             FinalAmount = 100m,
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Approved,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow,
             CreatedById = 1,
             StoredFilePath = string.Empty,
@@ -88,7 +85,6 @@ public class CouponRedemptionRepoTests : IDisposable
             DiscountAmount = 10m,
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true
         };
 
         var result = await _sut.AddAsync(redemption);
@@ -117,7 +113,6 @@ public class CouponRedemptionRepoTests : IDisposable
             DiscountValue = 5m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
             ValidTo = DateTime.UtcNow.AddDays(30),
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.Coupon.Add(coupon);
@@ -130,7 +125,6 @@ public class CouponRedemptionRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -144,7 +138,6 @@ public class CouponRedemptionRepoTests : IDisposable
             FinalAmount = 50m,
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Approved,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow,
             CreatedById = 1,
             StoredFilePath = string.Empty,
@@ -160,7 +153,6 @@ public class CouponRedemptionRepoTests : IDisposable
             DiscountAmount = 5m,
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true
         };
         _context.CouponRedemption.Add(redemption);
         await _context.SaveChangesAsync();
@@ -194,7 +186,6 @@ public class CouponRedemptionRepoTests : IDisposable
             DiscountValue = 5m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
             ValidTo = DateTime.UtcNow.AddDays(30),
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.Coupon.Add(coupon);
@@ -207,7 +198,6 @@ public class CouponRedemptionRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -221,7 +211,6 @@ public class CouponRedemptionRepoTests : IDisposable
             FinalAmount = 50m,
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Approved,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow,
             CreatedById = 1,
             StoredFilePath = string.Empty,
@@ -238,7 +227,6 @@ public class CouponRedemptionRepoTests : IDisposable
                 DiscountAmount = 5m,
                 CreatedById = 1,
                 CreatedOn = DateTime.UtcNow,
-                IsActive = true
             },
             new CouponRedemption
             {
@@ -247,7 +235,6 @@ public class CouponRedemptionRepoTests : IDisposable
                 DiscountAmount = 10m,
                 CreatedById = 1,
                 CreatedOn = DateTime.UtcNow,
-                IsActive = true
             }
         );
         await _context.SaveChangesAsync();
@@ -272,7 +259,6 @@ public class CouponRedemptionRepoTests : IDisposable
             DiscountValue = 5m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
             ValidTo = DateTime.UtcNow.AddDays(30),
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.Coupon.Add(coupon);
@@ -285,7 +271,6 @@ public class CouponRedemptionRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -299,7 +284,6 @@ public class CouponRedemptionRepoTests : IDisposable
             FinalAmount = 50m,
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Approved,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow,
             CreatedById = 1,
             StoredFilePath = string.Empty,
@@ -315,7 +299,6 @@ public class CouponRedemptionRepoTests : IDisposable
             DiscountAmount = 5m,
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true
         };
         _context.CouponRedemption.Add(redemption);
         await _context.SaveChangesAsync();
@@ -323,7 +306,7 @@ public class CouponRedemptionRepoTests : IDisposable
         var result = await _sut.DeleteAsync(redemption);
         await _context.SaveChangesAsync();
 
-        result.IsActive.Should().BeFalse();
+        
     }
 
     #endregion

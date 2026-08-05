@@ -106,7 +106,6 @@ namespace Application.Service
         {
             var entity = await _repo.GetByIdAsync(
                 id,
-                isActive: true,
                 trackChanges: true,
                 cancellationToken);
 

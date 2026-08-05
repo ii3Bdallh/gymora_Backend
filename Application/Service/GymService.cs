@@ -83,7 +83,6 @@ namespace Application.Service
                 PhoneNumber = currentUserObj.PhoneNumber ?? "0000000000",
                 Email = currentUserObj.Email,
                 AccessStatus = GymPersonAccessStatus.Active,
-                IsActive = true,
                 CreatedById = CurrentUserId
             };
 
@@ -115,7 +114,7 @@ namespace Application.Service
 
         public async Task ChangeOwnerOfGymAsync(int gymId, int newOwnerUserId, CancellationToken ct = default)
         {
-            Gym? gym = await _repo.GetByIdAsync(gymId, true, true, ct);
+            Gym? gym = await _repo.GetByIdAsync(gymId, true, ct);
 
             if (gym == null)
                 throw new NotFoundException($"Gym with ID {gymId} was not found.");
@@ -150,8 +149,8 @@ namespace Application.Service
 
             if (canCreateNew.IsOverGymLimit)
                 throw new InvalidOperationException("You Have Reached Your Gym Limit");
-            // Update old owner record to inactive
-            currentOwnerPerson.IsActive = false;
+            // Update old owner record to inactive status
+            currentOwnerPerson.AccessStatus = GymPersonAccessStatus.LeftGym;
 
             // Update new owner record if they already have one in GymPerson, or create a new one
             var newOwnerPerson = await _gymPersonRepo.GetGymPersonAsync(gymId, newOwnerUserId, ct);
@@ -159,7 +158,6 @@ namespace Application.Service
             if (newOwnerPerson != null)
             {
                 newOwnerPerson.PersonType = PersonType.Owner;
-                newOwnerPerson.IsActive = true;
                 newOwnerPerson.AccessStatus = GymPersonAccessStatus.Active;
             }
             else
@@ -173,7 +171,6 @@ namespace Application.Service
                     PhoneNumber = newOwner.PhoneNumber ?? "0000000000",
                     Email = newOwner.Email,
                     AccessStatus = GymPersonAccessStatus.Active,
-                    IsActive = true,
                     CreatedById = CurrentUserId
                 };
                 await _gymPersonRepo.AddAsync(newOwnerPerson, ct);

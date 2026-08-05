@@ -20,7 +20,6 @@ namespace Application.Interface.Repo
 
         Task<PlanPrice?> GetPlanPriceByIdAsync(
      int id,
-     bool isActive = true,
      bool trackChanges = false,
      CancellationToken cancellationToken = default);
 

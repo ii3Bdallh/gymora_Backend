@@ -88,7 +88,6 @@ public static class TestData
             MinimumPurchaseAmount = minimumPurchaseAmount,
             UsageLimit = usageLimit,
             UsedCount = usedCount,
-            IsActive = isActive,
             ValidFrom = validFrom ?? DateTime.UtcNow.AddDays(-1),
             ValidTo = validTo ?? DateTime.UtcNow.AddDays(30),
             RowVersion = [1, 2, 3]
@@ -109,8 +108,7 @@ public static class TestData
             PaymentRequestId = paymentRequestId,
             DiscountAmount = discountAmount,
             CreatedById = createdById,
-            CreatedOn = DateTime.UtcNow,
-            IsActive = true
+            CreatedOn = DateTime.UtcNow
         };
     }
 
@@ -139,7 +137,6 @@ public static class TestData
             CurrencyCode = currencyCode,
             CreatedById = createdById,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true,
             StartDate = start,
             EndDate = end,
             GraceEndDate = grace,
@@ -174,7 +171,6 @@ public static class TestData
             Status = status,
             CreatedById = createdById,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true,
             StoredFilePath = string.Empty,
             RowVersion = [1, 2, 3]
         };
@@ -186,8 +182,7 @@ public static class TestData
         bool isFree = false,
         int maxOwnedGyms = 1,
         int maxCoachesPerGym = 5,
-        int maxMembersPerGym = 50,
-        bool isActive = true)
+        int maxMembersPerGym = 50)
     {
         return new SubscriptionPlan
         {
@@ -197,7 +192,6 @@ public static class TestData
             MaxOwnedGyms = maxOwnedGyms,
             MaxCoaches = maxCoachesPerGym,
             MaxMembers = maxMembersPerGym,
-            IsActive = isActive,
             CreatedOn = DateTime.UtcNow,
             Prices = new List<PlanPrice>()
         };
@@ -220,7 +214,6 @@ public static class TestData
             DurationMonths = durationMonths,
             Amount = amount,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true,
             Plan = CreateSubscriptionPlan(id: planId)
         };
     }

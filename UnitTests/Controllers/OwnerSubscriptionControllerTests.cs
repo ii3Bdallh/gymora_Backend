@@ -56,7 +56,7 @@ public class OwnerSubscriptionControllerTests
             }
         };
 
-        _service.Setup(s => s.GetPageAsync(searchReq, true, false, It.IsAny<CancellationToken>()))
+        _service.Setup(s => s.GetPageAsync(searchReq, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(pageResult);
 
         var result = await _sut.GetPagedAsync(searchReq);
@@ -83,7 +83,7 @@ public class OwnerSubscriptionControllerTests
             CurrencyCode = "USD",
             Status = OwnerSubscriptionStatus.Active
         };
-        _service.Setup(s => s.GetByIdAsync(1, true, false, It.IsAny<CancellationToken>()))
+        _service.Setup(s => s.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(entity);
 
         var result = await _sut.GetByIdAsync(1);

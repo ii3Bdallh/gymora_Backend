@@ -47,11 +47,11 @@ public class CoachAssignmentService : BaseService<CoachAssignment, CoachAssignme
         if (CurrentGymId != dto.GymId)
             throw new ForbiddenException("You are not authorized to perform this action.");
 
-        GymPerson? member = await _gymPersonRepo.GetByIdAsync(dto.MemberId, true, false, cancellationToken);
+        GymPerson? member = await _gymPersonRepo.GetByIdAsync(dto.MemberId, false, cancellationToken);
         if (member is null)
             throw new NotFoundException($"Member with ID {dto.MemberId} was not found.");
 
-        GymPerson? coach = await _gymPersonRepo.GetByIdAsync(dto.CoachStaffId, true, false, cancellationToken);
+        GymPerson? coach = await _gymPersonRepo.GetByIdAsync(dto.CoachStaffId, false, cancellationToken);
         if (coach is null || coach.PersonType == PersonType.Member)
             throw new NotFoundException($"Coach with ID {dto.CoachStaffId} was not found.");
 

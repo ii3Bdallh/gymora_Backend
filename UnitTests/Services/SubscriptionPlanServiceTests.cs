@@ -83,7 +83,7 @@ public class SubscriptionPlanServiceTests
         var planPrice = TestData.CreatePlanPrice();
         var rDto = new PlanPriceRDTO { Id = 1, PlanId = 1, Amount = 50m };
 
-        _repo.Setup(r => r.GetByIdAsync(1, true, false, It.IsAny<CancellationToken>(), null))
+        _repo.Setup(r => r.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(plan);
         _mapper.Setup(m => m.Map<PlanPrice>(It.IsAny<PlanPriceCDTO>()))
             .Returns(planPrice);
@@ -114,7 +114,7 @@ public class SubscriptionPlanServiceTests
     [Fact]
     public async Task AddPlanPriceAsync_ShouldThrow_WhenPlanNotFound()
     {
-        _repo.Setup(r => r.GetByIdAsync(999, true, false, It.IsAny<CancellationToken>(), null))
+        _repo.Setup(r => r.GetByIdAsync(999, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync((SubscriptionPlan?)null);
 
         var cdto = new PlanPriceCDTO { CountryCode = "US", CurrencyCode = "USD", DurationMonths = 1, Amount = 50m };
@@ -135,7 +135,7 @@ public class SubscriptionPlanServiceTests
         var planPrice = TestData.CreatePlanPrice();
         var rDto = new PlanPriceRDTO { Id = 1, PlanId = 1, Amount = 50m };
 
-        _repo.Setup(r => r.GetPlanPriceByIdAsync(1, true, false, It.IsAny<CancellationToken>()))
+        _repo.Setup(r => r.GetPlanPriceByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(planPrice);
         _mapper.Setup(m => m.Map<PlanPriceRDTO>(planPrice))
             .Returns(rDto);
@@ -149,7 +149,7 @@ public class SubscriptionPlanServiceTests
     [Fact]
     public async Task GetPlanPriceByIdAsync_ShouldThrow_WhenNotFound()
     {
-        _repo.Setup(r => r.GetPlanPriceByIdAsync(999, true, false, It.IsAny<CancellationToken>()))
+        _repo.Setup(r => r.GetPlanPriceByIdAsync(999, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((PlanPrice?)null);
 
         var act = async () => await _sut.GetPlanPriceByIdAsync(999);
@@ -168,7 +168,7 @@ public class SubscriptionPlanServiceTests
         var planPrice = TestData.CreatePlanPrice();
         var rDto = new PlanPriceRDTO { Id = 1, PlanId = 1, Amount = 75m };
 
-        _repo.Setup(r => r.GetPlanPriceByIdAsync(1, true, true, It.IsAny<CancellationToken>()))
+        _repo.Setup(r => r.GetPlanPriceByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(planPrice);
         _mapper.Setup(m => m.Map<PlanPriceUDTO, PlanPrice>(It.IsAny<PlanPriceUDTO>(), planPrice))
             .Returns(planPrice);
@@ -195,7 +195,7 @@ public class SubscriptionPlanServiceTests
     [Fact]
     public async Task UpdatePlanPriceAsync_ShouldThrow_WhenNotFound()
     {
-        _repo.Setup(r => r.GetPlanPriceByIdAsync(999, true, true, It.IsAny<CancellationToken>()))
+        _repo.Setup(r => r.GetPlanPriceByIdAsync(999, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((PlanPrice?)null);
 
         var udto = new PlanPriceUDTO
@@ -222,7 +222,7 @@ public class SubscriptionPlanServiceTests
         var planPrice = TestData.CreatePlanPrice();
         var rDto = new PlanPriceRDTO { Id = 1, PlanId = 1, Amount = 50m };
 
-        _repo.Setup(r => r.GetPlanPriceByIdAsync(1, true, true, It.IsAny<CancellationToken>()))
+        _repo.Setup(r => r.GetPlanPriceByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(planPrice);
         _repo.Setup(r => r.DeletePlanPriceAsync(planPrice, It.IsAny<CancellationToken>()))
             .ReturnsAsync(planPrice);
@@ -242,7 +242,7 @@ public class SubscriptionPlanServiceTests
     [Fact]
     public async Task DeletePlanPriceAsync_ShouldThrow_WhenNotFound()
     {
-        _repo.Setup(r => r.GetPlanPriceByIdAsync(999, true, true, It.IsAny<CancellationToken>()))
+        _repo.Setup(r => r.GetPlanPriceByIdAsync(999, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((PlanPrice?)null);
 
         var act = async () => await _sut.DeletePlanPriceAsync(999);

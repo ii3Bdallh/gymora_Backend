@@ -79,11 +79,11 @@ public class OwnerSubscriptionServiceTests
             Status = OwnerSubscriptionStatus.Active
         };
 
-        _paymentRequestRepo.Setup(r => r.GetByIdIgnoringSecurityAsync(1, true, false, It.IsAny<CancellationToken>(), null))
+        _paymentRequestRepo.Setup(r => r.GetByIdIgnoringSecurityAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(paymentRequest);
         _currentPlanService.Setup(s => s.GetCurrentPlanAsync(paymentRequest.CreatedById, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CurrentPlanResult { IsFree = true, PlanId = 0 });
-        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(1, true, false, It.IsAny<CancellationToken>()))
+        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(planPrice);
         _repo.Setup(r => r.AddAsync(It.IsAny<OwnerSubscription>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(subscription);
@@ -106,7 +106,7 @@ public class OwnerSubscriptionServiceTests
     [Fact]
     public async Task CreateFromApprovedPaymentAsync_ShouldThrow_WhenPaymentNotFound()
     {
-        _paymentRequestRepo.Setup(r => r.GetByIdIgnoringSecurityAsync(999, true, false, It.IsAny<CancellationToken>(), null))
+        _paymentRequestRepo.Setup(r => r.GetByIdIgnoringSecurityAsync(999, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync((PaymentRequest?)null);
 
         var act = async () => await _sut.CreateFromApprovedPaymentAsync(999);
@@ -120,7 +120,7 @@ public class OwnerSubscriptionServiceTests
     {
         var paymentRequest = TestData.CreatePaymentRequest(status: PaymentRequestStatus.Pending);
 
-        _paymentRequestRepo.Setup(r => r.GetByIdIgnoringSecurityAsync(1, true, false, It.IsAny<CancellationToken>(), null))
+        _paymentRequestRepo.Setup(r => r.GetByIdIgnoringSecurityAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(paymentRequest);
 
         var act = async () => await _sut.CreateFromApprovedPaymentAsync(1);
@@ -134,7 +134,7 @@ public class OwnerSubscriptionServiceTests
     {
         var paymentRequest = TestData.CreatePaymentRequest(status: PaymentRequestStatus.Approved);
 
-        _paymentRequestRepo.Setup(r => r.GetByIdIgnoringSecurityAsync(1, true, false, It.IsAny<CancellationToken>(), null))
+        _paymentRequestRepo.Setup(r => r.GetByIdIgnoringSecurityAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(paymentRequest);
         _currentPlanService.Setup(s => s.GetCurrentPlanAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CurrentPlanResult { IsFree = false, PlanId = 1 });
@@ -150,11 +150,11 @@ public class OwnerSubscriptionServiceTests
     {
         var paymentRequest = TestData.CreatePaymentRequest(status: PaymentRequestStatus.Approved, planPriceId: 999);
 
-        _paymentRequestRepo.Setup(r => r.GetByIdIgnoringSecurityAsync(1, true, false, It.IsAny<CancellationToken>(), null))
+        _paymentRequestRepo.Setup(r => r.GetByIdIgnoringSecurityAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(paymentRequest);
         _currentPlanService.Setup(s => s.GetCurrentPlanAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CurrentPlanResult { IsFree = true });
-        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(999, true, false, It.IsAny<CancellationToken>()))
+        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(999, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((PlanPrice?)null);
 
         var act = async () => await _sut.CreateFromApprovedPaymentAsync(1);
@@ -179,11 +179,11 @@ public class OwnerSubscriptionServiceTests
             Status = OwnerSubscriptionStatus.Active
         };
 
-        _paymentRequestRepo.Setup(r => r.GetByIdIgnoringSecurityAsync(1, true, false, It.IsAny<CancellationToken>(), null))
+        _paymentRequestRepo.Setup(r => r.GetByIdIgnoringSecurityAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(paymentRequest);
         _currentPlanService.Setup(s => s.GetCurrentPlanAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CurrentPlanResult { IsFree = true });
-        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(1, true, false, It.IsAny<CancellationToken>()))
+        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(planPrice);
         _repo.Setup(r => r.AddAsync(It.IsAny<OwnerSubscription>(), It.IsAny<CancellationToken>()))
             .Callback<OwnerSubscription, CancellationToken>((e, _) =>

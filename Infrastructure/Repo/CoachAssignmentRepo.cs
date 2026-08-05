@@ -22,12 +22,11 @@ namespace Infrastructure.Repo
 
         public override IQueryable<CoachAssignment> GetAllQuery(
             PaginatedSearchReq searchReq,
-            bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<CoachAssignment>, IQueryable<CoachAssignment>>? include = null)
         {
-            var query = base.GetAllQuery(searchReq, isActive, trackChanges, cancellationToken, include);
+            var query = base.GetAllQuery(searchReq, trackChanges, cancellationToken, include);
 
             if (searchReq is GetAssignedMemberForCoachPagedReq getAssignedMemberForCoachPagedReq)
             {
@@ -43,24 +42,22 @@ namespace Infrastructure.Repo
 
         public override async Task<PaginatedRes<CoachAssignment>> GetPageAsync(
             PaginatedSearchReq searchReq,
-            bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<CoachAssignment>, IQueryable<CoachAssignment>>? include = null)
         {
             include ??= Includes();
-            return await base.GetPageAsync(searchReq, isActive, trackChanges, cancellationToken, include);
+            return await base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
 
         public override async Task<CoachAssignment?> GetByIdAsync(
             int id,
-            bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<CoachAssignment>, IQueryable<CoachAssignment>>? include = null)
         {
             include ??= Includes();
-            return await base.GetByIdAsync(id, isActive, trackChanges, cancellationToken, include);
+            return await base.GetByIdAsync(id, trackChanges, cancellationToken, include);
         }
 
     }

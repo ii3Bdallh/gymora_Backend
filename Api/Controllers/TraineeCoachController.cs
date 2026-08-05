@@ -41,7 +41,7 @@ public class TraineeCoachController(
                 Result<object>.Failure("VALIDATION_ERROR", "Invalid pagination parameters."));
         }
 
-        var result = await coachAssignmentService.GetPageAsync(req, true, false, ct);
+        var result = await coachAssignmentService.GetPageAsync(req, false, ct);
         return Ok(Result<PaginatedRes<CoachAssignmentRDTO>>.Success(result));
     }
 

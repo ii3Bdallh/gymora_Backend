@@ -39,7 +39,7 @@ namespace Application.Service
         public async Task IncrementUsageAsync(int couponId, CancellationToken ct = default)
         {
 
-            Coupon? coupon = await _couponRepo.GetByIdAsync(couponId, true, true, ct);
+            Coupon? coupon = await _couponRepo.GetByIdAsync(couponId, true, ct);
             if (coupon == null) return;
 
             if (coupon.UsageLimit.HasValue && coupon.UsedCount >= coupon.UsageLimit.Value)
@@ -53,7 +53,7 @@ namespace Application.Service
         // نقص الاستخدام (عند Reject / Cancel)
         public async Task DecrementUsageAsync(int couponId, CancellationToken ct = default)
         {
-            Coupon? coupon = await _couponRepo.GetByIdAsync(couponId, true, true, ct);
+            Coupon? coupon = await _couponRepo.GetByIdAsync(couponId, true, ct);
             if (coupon == null || coupon.UsedCount <= 0)
                 return;
 
@@ -69,8 +69,8 @@ namespace Application.Service
                 CancellationToken ct = default)
         {
             var coupon = await _couponRepo.GetByCodeAsync(code, ct);
-            if (coupon == null || !coupon.IsActive)
-                return CouponValidationResult.Failure("Coupon not found or inactive.");
+            if (coupon == null)
+                return CouponValidationResult.Failure("Coupon not found.");
 
             // Validation Logic (يمكن توسيعه)
             if (DateTime.UtcNow < coupon.ValidFrom || DateTime.UtcNow > coupon.ValidTo)

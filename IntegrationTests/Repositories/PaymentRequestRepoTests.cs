@@ -42,7 +42,6 @@ public class PaymentRequestRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -65,7 +64,6 @@ public class PaymentRequestRepoTests : IDisposable
             FinalAmount = 100m,
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Pending,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow,
             CreatedById = 1,
             StoredFilePath = string.Empty,
@@ -100,7 +98,6 @@ public class PaymentRequestRepoTests : IDisposable
             FinalAmount = 100m,
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Pending,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow,
             CreatedById = 1,
             StoredFilePath = string.Empty,
@@ -127,7 +124,6 @@ public class PaymentRequestRepoTests : IDisposable
             FinalAmount = 100m,
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Approved,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow,
             CreatedById = 1,
             StoredFilePath = string.Empty,
@@ -154,7 +150,6 @@ public class PaymentRequestRepoTests : IDisposable
             FinalAmount = 100m,
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Pending,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow,
             CreatedById = 999,
             StoredFilePath = string.Empty,
@@ -187,7 +182,6 @@ public class PaymentRequestRepoTests : IDisposable
             FinalAmount = 90m,
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Approved,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow,
             CreatedById = 1,
             StoredFilePath = string.Empty,
@@ -223,7 +217,6 @@ public class PaymentRequestRepoTests : IDisposable
             FinalAmount = 100m,
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Pending,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow,
             CreatedById = 1,
             StoredFilePath = string.Empty,
@@ -254,7 +247,6 @@ public class PaymentRequestRepoTests : IDisposable
             FinalAmount = 100m,
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Pending,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow,
             CreatedById = 1,
             StoredFilePath = string.Empty,
@@ -295,7 +287,6 @@ public class PaymentRequestRepoTests : IDisposable
                 FinalAmount = 100m,
                 CurrencyCode = "USD",
                 Status = PaymentRequestStatus.Pending,
-                IsActive = true,
                 CreatedOn = DateTime.UtcNow,
                 CreatedById = 1,
                 StoredFilePath = string.Empty,
@@ -309,7 +300,6 @@ public class PaymentRequestRepoTests : IDisposable
                 FinalAmount = 200m,
                 CurrencyCode = "USD",
                 Status = PaymentRequestStatus.Approved,
-                IsActive = true,
                 CreatedOn = DateTime.UtcNow,
                 CreatedById = 1,
                 StoredFilePath = string.Empty,
@@ -342,7 +332,6 @@ public class PaymentRequestRepoTests : IDisposable
                 FinalAmount = i * 10m,
                 CurrencyCode = "USD",
                 Status = PaymentRequestStatus.Pending,
-                IsActive = true,
                 CreatedOn = DateTime.UtcNow,
                 CreatedById = 1,
                 StoredFilePath = string.Empty,
@@ -377,7 +366,6 @@ public class PaymentRequestRepoTests : IDisposable
             FinalAmount = 100m,
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Pending,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow,
             CreatedById = 1,
             StoredFilePath = string.Empty,
@@ -389,7 +377,7 @@ public class PaymentRequestRepoTests : IDisposable
         var result = await _sut.DeleteAsync(paymentRequest);
         await _context.SaveChangesAsync();
 
-        result.IsActive.Should().BeFalse();
+        
     }
 
     #endregion

@@ -24,8 +24,7 @@ namespace Infrastructure.Repo
         {
             return await DbSet.AnyAsync(x =>
                 x.CreatedById == UserId &&
-                x.Status == PaymentRequestStatus.Pending &&
-                x.IsActive, ct);
+                x.Status == PaymentRequestStatus.Pending, ct);
         }
 
         public async Task<bool> HasUsedThisCouponBeforeAsync(int UserId, int CouponId, CancellationToken ct = default)
@@ -33,8 +32,7 @@ namespace Infrastructure.Repo
             return await DbSet.AnyAsync(x =>
                 x.CreatedById == UserId &&
                 x.CouponId == CouponId &&
-                x.Status == PaymentRequestStatus.Approved &&
-                x.IsActive, ct);
+                x.Status == PaymentRequestStatus.Approved, ct);
         }
     }
 }

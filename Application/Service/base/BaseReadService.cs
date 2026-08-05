@@ -113,7 +113,6 @@ namespace Application.Service
         #region Read By Id
         public virtual async Task<RDTO> GetByIdAsync(
     int id,
-    bool isActive = true,
     bool trackChanges = false,
     CancellationToken cancellationToken = default)
         {
@@ -133,7 +132,6 @@ namespace Application.Service
 
                     var entity = await _repo.GetByIdAsync(
                         id,
-                        isActive,
                         trackChanges,
                         cancellationToken);
 
@@ -168,13 +166,11 @@ namespace Application.Service
 
         public virtual async Task<PaginatedRes<RDTO>> GetPageAsync(
             PaginatedSearchReq searchReq,
-            bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default)
         {
             var page = await _repo.GetPageAsync(
                 searchReq,
-                isActive,
                 trackChanges,
                 cancellationToken);
 

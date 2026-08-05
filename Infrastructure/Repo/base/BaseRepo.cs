@@ -28,10 +28,9 @@ namespace Infrastructure.Repo.Base
         #region Protected Methods
         protected virtual Func<IQueryable<T>, IQueryable<T>>? Includes() => null;
 
-        protected virtual IQueryable<T> BuildQuery(bool isActive = true, bool trackChanges = false)
+        protected virtual IQueryable<T> BuildQuery(bool trackChanges = false)
         {
             IQueryable<T> query = trackChanges ? DbSet : DbSet.AsNoTracking();
-            query = query.Where(x => x.IsActive == isActive);
 
             // نقطة التوسّع: كل Repo مشتق يعمل Override ليها لو محتاج فلترة إضافية (Gym/Owned/etc)
             query = ApplyExtraFilters(query);
@@ -51,19 +50,18 @@ namespace Infrastructure.Repo.Base
 
         public virtual async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            IQueryable<T> query = BuildQuery(true);
+            IQueryable<T> query = BuildQuery(false);
             if (include != null) query = include(query);
             return await query.ToListAsync(cancellationToken);
         }
 
         public virtual IQueryable<T> GetAllQuery(
             PaginatedSearchReq searchReq,
-            bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            IQueryable<T> query = BuildQuery(isActive, trackChanges);
+            IQueryable<T> query = BuildQuery(trackChanges);
 
             if (!string.IsNullOrEmpty(searchReq.SearchTerm))
                 query = query.Search(searchReq.SearchTerm, queryCache);
@@ -82,15 +80,14 @@ namespace Infrastructure.Repo.Base
 
         public virtual async Task<PaginatedRes<T>> GetPageAsync(
             PaginatedSearchReq searchReq,
-            bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            var countQuery = GetAllQuery(searchReq, isActive, trackChanges, cancellationToken);
+            var countQuery = GetAllQuery(searchReq, trackChanges, cancellationToken);
             var totalCount = await countQuery.CountAsync(cancellationToken);
 
-            var dataQuery = GetAllQuery(searchReq, isActive, trackChanges, cancellationToken);
+            var dataQuery = GetAllQuery(searchReq, trackChanges, cancellationToken);
             if (include != null) dataQuery = include(dataQuery);
 
             var pageItems = await dataQuery
@@ -108,19 +105,18 @@ namespace Infrastructure.Repo.Base
         }
 
         public virtual async Task<T?> GetByIdAsync(
-            int id, bool isActive = true, bool trackChanges = false,
+            int id, bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
-            IQueryable<T> query = BuildQuery(isActive, trackChanges);
+            IQueryable<T> query = BuildQuery(trackChanges);
             if (include != null) query = include(query);
             return await query.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 
-        public Task<T?> GetByIdIgnoringSecurityAsync(int id, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<T>, IQueryable<T>>? include = null)
+        public Task<T?> GetByIdIgnoringSecurityAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
             IQueryable<T> query = trackChanges ? DbSet : DbSet.AsNoTracking();
-            query = query.Where(x => x.IsActive == isActive);
             if (include != null) query = include(query);
             return query.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
@@ -139,8 +135,7 @@ namespace Infrastructure.Repo.Base
 
         public virtual Task<T> DeleteAsync(T item, CancellationToken cancellationToken = default)
         {
-            item.IsActive = false;
-            DbSet.Update(item);
+            DbSet.Remove(item);
             return Task.FromResult(item);
         }
 

@@ -8,6 +8,5 @@ namespace Domain.Interface
     public interface IBaseEntity
     {
          int Id { get; set; }
-         bool     IsActive { get; set; }
     }
 }

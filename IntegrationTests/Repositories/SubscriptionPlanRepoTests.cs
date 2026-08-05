@@ -45,7 +45,6 @@ public class SubscriptionPlanRepoTests : IDisposable
             MaxOwnedGyms = 5,
             MaxCoaches = 20,
             MaxMembers = 200,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
 
@@ -74,7 +73,6 @@ public class SubscriptionPlanRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -108,7 +106,6 @@ public class SubscriptionPlanRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -123,7 +120,6 @@ public class SubscriptionPlanRepoTests : IDisposable
                 DurationMonths = 1,
                 Amount = 50m,
                 CreatedOn = DateTime.UtcNow,
-                IsActive = true
             },
             new PlanPrice
             {
@@ -133,7 +129,6 @@ public class SubscriptionPlanRepoTests : IDisposable
                 DurationMonths = 12,
                 Amount = 500m,
                 CreatedOn = DateTime.UtcNow,
-                IsActive = true
             }
         );
         await _context.SaveChangesAsync();
@@ -158,7 +153,6 @@ public class SubscriptionPlanRepoTests : IDisposable
                 MaxOwnedGyms = i,
                 MaxCoaches = i * 5,
                 MaxMembers = i * 50,
-                IsActive = true,
                 CreatedOn = DateTime.UtcNow
             });
         }
@@ -186,7 +180,6 @@ public class SubscriptionPlanRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -200,7 +193,6 @@ public class SubscriptionPlanRepoTests : IDisposable
             DurationMonths = 1,
             Amount = 50m,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true
         };
 
         var result = await _sut.AddPlanPriceAsync(planPrice);
@@ -228,7 +220,6 @@ public class SubscriptionPlanRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -242,7 +233,6 @@ public class SubscriptionPlanRepoTests : IDisposable
             DurationMonths = 1,
             Amount = 50m,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true
         };
         _context.PlanPrice.Add(planPrice);
         await _context.SaveChangesAsync();
@@ -270,7 +260,6 @@ public class SubscriptionPlanRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -284,12 +273,11 @@ public class SubscriptionPlanRepoTests : IDisposable
             DurationMonths = 1,
             Amount = 50m,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true
         };
         _context.PlanPrice.Add(planPrice);
         await _context.SaveChangesAsync();
 
-        var result = await _sut.GetPlanPriceByIdAsync(planPrice.Id, true, false);
+        var result = await _sut.GetPlanPriceByIdAsync(planPrice.Id, false);
 
         result.Should().NotBeNull();
         result!.Amount.Should().Be(50m);
@@ -298,45 +286,10 @@ public class SubscriptionPlanRepoTests : IDisposable
     [Fact]
     public async Task GetPlanPriceByIdAsync_ShouldReturnNull_WhenNotFound()
     {
-        var result = await _sut.GetPlanPriceByIdAsync(999, true, false);
+        var result = await _sut.GetPlanPriceByIdAsync(999, false);
 
         result.Should().BeNull();
     }
-
-    [Fact]
-    public async Task GetPlanPriceByIdAsync_ShouldReturnNull_WhenInactive()
-    {
-        var plan = new SubscriptionPlan
-        {
-            Name = "Basic",
-            IsFree = false,
-            MaxOwnedGyms = 1,
-            MaxCoaches = 5,
-            MaxMembers = 50,
-            IsActive = true,
-            CreatedOn = DateTime.UtcNow
-        };
-        _context.SubscriptionPlan.Add(plan);
-        await _context.SaveChangesAsync();
-
-        var planPrice = new PlanPrice
-        {
-            PlanId = plan.Id,
-            CountryCode = "US",
-            CurrencyCode = "USD",
-            DurationMonths = 1,
-            Amount = 50m,
-            CreatedOn = DateTime.UtcNow,
-            IsActive = false
-        };
-        _context.PlanPrice.Add(planPrice);
-        await _context.SaveChangesAsync();
-
-        var result = await _sut.GetPlanPriceByIdAsync(planPrice.Id, isActive: true);
-
-        result.Should().BeNull();
-    }
-
     #endregion
 
     #region GetFreePlanAsync
@@ -351,7 +304,6 @@ public class SubscriptionPlanRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 2,
             MaxMembers = 10,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(freePlan);
@@ -385,7 +337,6 @@ public class SubscriptionPlanRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -417,7 +368,6 @@ public class SubscriptionPlanRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -426,10 +376,10 @@ public class SubscriptionPlanRepoTests : IDisposable
         var result = await _sut.DeleteAsync(plan);
         await _context.SaveChangesAsync();
 
-        result.IsActive.Should().BeFalse();
+        
 
         var fromDb = await _context.SubscriptionPlan.FindAsync(plan.Id);
-        fromDb!.IsActive.Should().BeFalse();
+        fromDb.Should().BeNull();
     }
 
     #endregion
@@ -446,7 +396,6 @@ public class SubscriptionPlanRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);

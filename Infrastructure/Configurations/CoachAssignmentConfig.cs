@@ -12,9 +12,6 @@ namespace Infrastructure.Config
             builder.HasKey(x => x.Id);
             builder.ConfigureGymOwned();
 
-            builder.Property(x => x.IsActive)
-                .HasDefaultValue(true);
-
             builder.HasOne(x => x.Member)
                 .WithMany()
                 .HasForeignKey(x => x.MemberId)
@@ -32,7 +29,7 @@ namespace Infrastructure.Config
                 ;
 
 
-            builder.HasIndex(x => new { x.MemberId, x.CoachStaffId, x.IsActive })
+            builder.HasIndex(x => new { x.MemberId, x.CoachStaffId })
                 .IsUnique();
         }
     }

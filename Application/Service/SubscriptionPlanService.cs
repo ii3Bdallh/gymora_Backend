@@ -38,7 +38,7 @@ namespace Application.Service.Entity
 
         public async Task<PlanPriceRDTO> AddPlanPriceAsync(int PlanId, PlanPriceCDTO dto, CancellationToken cancellationToken = default)
         {
-            SubscriptionPlan? entity = await _subscriptionPlanRepo.GetByIdAsync(PlanId, isActive: true, trackChanges: false, cancellationToken: cancellationToken);
+            SubscriptionPlan? entity = await _subscriptionPlanRepo.GetByIdAsync(PlanId, trackChanges: false, cancellationToken: cancellationToken);
 
             if (entity is null)
                 throw new NotFoundException($"{typeof(SubscriptionPlan).Name} with ID {PlanId} was not found.");
@@ -58,7 +58,7 @@ namespace Application.Service.Entity
 
         public async Task<PlanPriceRDTO> DeletePlanPriceAsync(int id, CancellationToken cancellationToken = default)
         {
-            PlanPrice? entity = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(id, isActive: true, trackChanges: true, cancellationToken: cancellationToken);
+            PlanPrice? entity = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(id, trackChanges: true, cancellationToken: cancellationToken);
 
             if (entity is null)
                 throw new NotFoundException($"{typeof(PlanPrice).Name} with ID {id} was not found.");
@@ -77,7 +77,7 @@ namespace Application.Service.Entity
 
         public async Task<PlanPriceRDTO?> GetPlanPriceByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            PlanPrice? entity = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(id, isActive: true, trackChanges: false, cancellationToken: cancellationToken);
+            PlanPrice? entity = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(id, trackChanges: false, cancellationToken: cancellationToken);
 
             if (entity is null)
                 throw new NotFoundException($"{typeof(PlanPrice).Name} with ID {id} was not found.");
@@ -88,7 +88,7 @@ namespace Application.Service.Entity
 
         public async Task<PlanPriceRDTO> UpdatePlanPriceAsync(int id, PlanPriceUDTO dto, CancellationToken cancellationToken = default)
         {
-            PlanPrice? entity = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(id, isActive: true, trackChanges: true, cancellationToken: cancellationToken);
+            PlanPrice? entity = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(id, trackChanges: true, cancellationToken: cancellationToken);
 
             if (entity is null)
                 throw new NotFoundException($"{typeof(PlanPrice).Name} with ID {id} was not found.");

@@ -32,15 +32,14 @@ namespace Infrastructure.Repo
                 .AsNoTracking()
                 .Where(x =>
                     x.UserId == ownerUserId &&
-                    x.PersonType == PersonType.Owner &&
-                    x.IsActive)
+                    x.PersonType == PersonType.Owner)
                 .CountAsync(ct);
         }
 
         public async Task<int> GetOwnerIdAsync(int gymId)
         {
             return await context.GymPerson
-                .Where(x => x.GymId == gymId && x.PersonType == PersonType.Owner && x.IsActive && x.UserId != null)
+                .Where(x => x.GymId == gymId && x.PersonType == PersonType.Owner && x.UserId != null)
                 .Select(x => x.UserId!.Value)
                 .SingleAsync();
         }
@@ -59,9 +58,7 @@ namespace Infrastructure.Repo
             var baseQuery = context.GymPerson
                 .AsNoTracking()
                 .Where(x =>
-                    x.UserId == userId &&
-                    x.IsActive &&
-                    x.Gym.IsActive);
+                    x.UserId == userId);
 
             //----------------------------------------------------
             // Total Count (pure SQL COUNT, no rows loaded)
@@ -133,7 +130,6 @@ namespace Infrastructure.Repo
                 .Where(x =>
                     gymIds.Contains(x.GymId) &&
                     x.PersonType == PersonType.Owner &&
-                    x.IsActive &&
                     x.UserId != null)
                 .ToDictionaryAsync(
                     x => x.GymId,
@@ -151,8 +147,7 @@ namespace Infrastructure.Repo
             var gymCounts = await context.Gym
                 .AsNoTracking()
                 .Where(x =>
-                    ownerIds.Contains(x.OwnerUserId) &&
-                    x.IsActive)
+                    ownerIds.Contains(x.OwnerUserId))
                 .GroupBy(x => x.OwnerUserId)
                 .ToDictionaryAsync(
                     g => g.Key,
@@ -163,7 +158,6 @@ namespace Infrastructure.Repo
                 .AsNoTracking()
                 .Where(x =>
                     ownerIds.Contains(x.Gym.OwnerUserId) &&
-                    x.IsActive &&
                     (x.PersonType == PersonType.Member ||
                      x.PersonType == PersonType.StaffMember))
                 .GroupBy(x => x.Gym.OwnerUserId)
@@ -176,7 +170,6 @@ namespace Infrastructure.Repo
                 .AsNoTracking()
                 .Where(x =>
                     ownerIds.Contains(x.Gym.OwnerUserId) &&
-                    x.IsActive &&
                     (x.PersonType == PersonType.Staff ||
                      x.PersonType == PersonType.StaffMember))
                 .GroupBy(x => x.Gym.OwnerUserId)
@@ -192,8 +185,7 @@ namespace Infrastructure.Repo
             var ownerSubscriptions = await context.OwnerSubscription
                 .AsNoTracking()
                 .Where(x =>
-                    ownerIds.Contains(x.CreatedById) &&
-                    x.IsActive)
+                    ownerIds.Contains(x.CreatedById))
                 .GroupBy(x => x.CreatedById)
                 .Select(g => g
                     .OrderByDescending(x => x.EndDate)
@@ -208,7 +200,7 @@ namespace Infrastructure.Repo
 
             SubscriptionPlan? freePlan = await context.SubscriptionPlan
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.IsActive && x.IsFree, cancellationToken);
+                .FirstOrDefaultAsync(x => x.IsFree, cancellationToken);
 
             if (freePlan is null)
                 throw new NotFoundException("Free subscription plan not found.");
@@ -229,7 +221,6 @@ namespace Infrastructure.Repo
                 .AsNoTracking()
                 .AnyAsync(x =>
                     x.CreatedById == userId &&
-                    x.IsActive &&
                     now <= x.GraceEndDate,
                     cancellationToken);
 

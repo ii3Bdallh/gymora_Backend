@@ -27,20 +27,19 @@ namespace Infrastructure.Repo.Entity
         }
 
         public override Task<PaginatedRes<SubscriptionPlan>> GetPageAsync(PaginatedSearchReq searchReq,
-         bool isActive = true,
           bool trackChanges = false,
            CancellationToken cancellationToken = default,
             Func<IQueryable<SubscriptionPlan>, IQueryable<SubscriptionPlan>>? include = null)
 
         {
             include ??= Includes();
-            return base.GetPageAsync(searchReq, isActive, trackChanges, cancellationToken, include);
+            return base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
 
-        public override async Task<SubscriptionPlan?> GetByIdAsync(int id, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<SubscriptionPlan>, IQueryable<SubscriptionPlan>>? include = null)
+        public override async Task<SubscriptionPlan?> GetByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<SubscriptionPlan>, IQueryable<SubscriptionPlan>>? include = null)
         {
             include ??= Includes();
-            return await base.GetByIdAsync(id, isActive, trackChanges, cancellationToken, include);
+            return await base.GetByIdAsync(id, trackChanges, cancellationToken, include);
         }
 
 
@@ -68,13 +67,13 @@ namespace Infrastructure.Repo.Entity
                 .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 
-        public async Task<PlanPrice?> GetPlanPriceByIdAsync(int id, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default)
+        public async Task<PlanPrice?> GetPlanPriceByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default)
         {
             IQueryable<PlanPrice> query = trackChanges ? context.PlanPrice : context.PlanPrice.AsNoTracking();
 
             return await query
                 .Include(x => x.Plan)
-                .Where(x => x.Id == id && x.IsActive == isActive)
+                .Where(x => x.Id == id)
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
@@ -84,7 +83,7 @@ namespace Infrastructure.Repo.Entity
         {
             return await context.SubscriptionPlan
               .AsNoTracking()
-              .FirstOrDefaultAsync(x => x.IsFree && x.IsActive == true, ct);
+              .FirstOrDefaultAsync(x => x.IsFree, ct);
         }
     }
 }

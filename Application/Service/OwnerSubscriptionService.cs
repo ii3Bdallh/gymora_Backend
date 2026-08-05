@@ -50,7 +50,7 @@ namespace Application.Service
         }
         public async Task<OwnerSubscriptionRDTO> CreateFromApprovedPaymentAsync(int paymentRequestId, CancellationToken ct = default)
         {
-            var payment = await _paymentRequestRepo.GetByIdIgnoringSecurityAsync(paymentRequestId, true, false, ct);
+            var payment = await _paymentRequestRepo.GetByIdIgnoringSecurityAsync(paymentRequestId, false, ct);
             if (payment == null || payment.Status != PaymentRequestStatus.Approved)
                 throw new ApplicationException("Payment request is not approved.");
 
@@ -60,7 +60,7 @@ namespace Application.Service
             if (existingSubscription.IsFree == false)
                 throw new ApplicationException("User already has an active subscription.");
 
-            PlanPrice? planPrice = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(payment.PlanPriceId, true, false, ct);
+            PlanPrice? planPrice = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(payment.PlanPriceId, false, ct);
             if (planPrice == null)
                 throw new ApplicationException("Invalid subscription plan price.");
 

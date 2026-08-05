@@ -100,7 +100,7 @@ public class CouponRedemptionServiceTests
             DiscountAmount = 10m
         };
 
-        _repo.Setup(r => r.GetByIdAsync(1, true, false, It.IsAny<CancellationToken>(), null))
+        _repo.Setup(r => r.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(entity);
         _cacheService.Setup(c => c.GetAsync<CouponRedemptionRDTO>(It.IsAny<string>()))
             .ReturnsAsync((CouponRedemptionRDTO?)null);
@@ -160,7 +160,7 @@ public class CouponRedemptionServiceTests
             .ReturnsAsync((Application.DTO.Pagintion.PaginatedRes<CouponRedemptionRDTO>?)null);
         _cacheService.Setup(c => c.SetAsync(It.IsAny<string>(), It.IsAny<Application.DTO.Pagintion.PaginatedRes<CouponRedemptionRDTO>>(), It.IsAny<TimeSpan?>()))
             .Returns(Task.CompletedTask);
-        _repo.Setup(r => r.GetPageAsync(searchReq, true, false, It.IsAny<CancellationToken>(), null))
+        _repo.Setup(r => r.GetPageAsync(searchReq, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(pageResult);
         _mapper.Setup(m => m.Map<List<CouponRedemptionRDTO>>(entities))
             .Returns(rDtos);

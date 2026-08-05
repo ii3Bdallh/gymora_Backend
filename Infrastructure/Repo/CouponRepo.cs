@@ -22,7 +22,7 @@ namespace Infrastructure.Repo
         public async Task<Coupon?> GetByCodeAsync(string code, CancellationToken ct = default)
         {
             return await DbSet
-                .FirstOrDefaultAsync(x => x.Code.ToUpper() == code.ToUpper() && x.IsActive, ct);
+                .FirstOrDefaultAsync(x => x.Code.ToUpper() == code.ToUpper(), ct);
         }
 
         public Coupon IncrementUsageAsync(Coupon entity, CancellationToken ct = default)

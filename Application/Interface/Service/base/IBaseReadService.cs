@@ -22,13 +22,11 @@ namespace Application.Interface.Service
 
         Task<RDTO> GetByIdAsync(
             int id,
-            bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default);
 
         Task<PaginatedRes<RDTO>> GetPageAsync(
             PaginatedSearchReq searchReq,
-            bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default);
 

@@ -50,8 +50,7 @@ namespace Infrastructure.Config
       // ✅ الفهارس
       builder.HasIndex(g => g.Status);
       builder.HasIndex(g => g.OwnerUserId);
-      builder.HasIndex(g => g.IsActive);
-      builder.HasIndex(g => new { g.OwnerUserId, g.IsActive, g.Status });
+      builder.HasIndex(g => new { g.OwnerUserId, g.Status });
 
 
 

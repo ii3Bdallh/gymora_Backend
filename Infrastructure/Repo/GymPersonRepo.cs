@@ -29,24 +29,22 @@ namespace Infrastructure.Repo
 
         public override Task<PaginatedRes<GymPerson>> GetPageAsync(
             PaginatedSearchReq searchReq,
-            bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<GymPerson>, IQueryable<GymPerson>>? include = null)
         {
             include ??= Includes();
-            return base.GetPageAsync(searchReq, isActive, trackChanges, cancellationToken, include);
+            return base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
 
         public override Task<GymPerson?> GetByIdAsync(
             int id,
-            bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<GymPerson>, IQueryable<GymPerson>>? include = null)
         {
             include ??= Includes();
-            return base.GetByIdAsync(id, isActive, trackChanges, cancellationToken, include);
+            return base.GetByIdAsync(id, trackChanges, cancellationToken, include);
         }
 
 
@@ -61,7 +59,7 @@ namespace Infrastructure.Repo
             var gymPerson = await context.GymPerson
                 .Include(x => x.StaffProfile)
                 .Include(x => x.MemberProfile)
-                .FirstOrDefaultAsync(x => x.GymId == gymId && x.InviteCode == inviteCode && x.IsActive, ct);
+                .FirstOrDefaultAsync(x => x.GymId == gymId && x.InviteCode == inviteCode, ct);
 
             if (gymPerson is null)
                 throw new InvalidOperationException("Invalid invite code.");
@@ -80,7 +78,7 @@ namespace Infrastructure.Repo
             CancellationToken ct = default)
         {
             var ownedGymIds = await context.GymPerson
-                .Where(x => x.UserId == ownerUserId && x.PersonType == PersonType.Owner && x.IsActive)
+                .Where(x => x.UserId == ownerUserId && x.PersonType == PersonType.Owner)
                 .Select(x => x.GymId)
                 .ToListAsync(ct);
 
@@ -88,7 +86,6 @@ namespace Infrastructure.Repo
                 return 0;
 
             return await context.GymPerson.CountAsync(x =>
-                x.IsActive &&
                 ownedGymIds.Contains(x.GymId) &&
                 (x.PersonType == personType || x.PersonType == PersonType.StaffMember),
                 ct);
@@ -98,12 +95,12 @@ namespace Infrastructure.Repo
 
         public async Task<GymPerson?> GetGymOwnerAsync(int gymId, CancellationToken ct = default)
         {
-            return await DbSet.Where(x => x.GymId == gymId && x.PersonType == PersonType.Owner && x.IsActive).FirstOrDefaultAsync(ct);
+            return await DbSet.Where(x => x.GymId == gymId && x.PersonType == PersonType.Owner).FirstOrDefaultAsync(ct);
         }
 
         public async Task<GymPerson?> GetGymPersonAsync(int gymId, int userId, CancellationToken ct = default)
         {
-            return await DbSet.Where(x => x.GymId == gymId && x.UserId == userId && x.IsActive).FirstOrDefaultAsync(ct);
+            return await DbSet.Where(x => x.GymId == gymId && x.UserId == userId).FirstOrDefaultAsync(ct);
         }
     }
 }

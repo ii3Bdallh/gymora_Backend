@@ -95,7 +95,7 @@ namespace Infrastructure.Repo
         {
             var ownerPerson = await context.GymPerson
                 .AsNoTracking()
-                .Where(x => x.GymId == gymId && x.PersonType == PersonType.Owner && x.IsActive)
+                .Where(x => x.GymId == gymId && x.PersonType == PersonType.Owner)
                 .FirstOrDefaultAsync(ct);
 
             if (ownerPerson == null || ownerPerson.UserId == null)
@@ -138,8 +138,7 @@ namespace Infrastructure.Repo
                 .Where(x =>
                     x.GymId == gymId &&
                     x.UserId == userId &&
-                    x.PersonType == PersonType.Owner &&
-                    x.IsActive)
+                    x.PersonType == PersonType.Owner)
                 .FirstOrDefaultAsync(ct);
 
             if (ownerPerson != null)
@@ -169,8 +168,7 @@ namespace Infrastructure.Repo
                 // .ThenInclude(x => x.Membership)
                 .Where(x =>
                     x.UserId == userId &&
-                    x.GymId == gymId &&
-                    x.IsActive)
+                    x.GymId == gymId)
                 .FirstOrDefaultAsync(ct);
 
             if (gymPerson == null)
@@ -182,7 +180,7 @@ namespace Infrastructure.Repo
 
             var ownerPersonId = await context.GymPerson
                 .AsNoTracking()
-                .Where(x => x.GymId == gymPerson.GymId && x.PersonType == PersonType.Owner && x.IsActive)
+                .Where(x => x.GymId == gymPerson.GymId && x.PersonType == PersonType.Owner)
                 .Select(x => x.UserId)
                 .FirstOrDefaultAsync(ct);
 

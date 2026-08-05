@@ -54,7 +54,7 @@ public class TraineeCoachControllerTests
             PageSize = 10
         };
 
-        _service.Setup(s => s.GetPageAsync(req, true, false, It.IsAny<CancellationToken>()))
+        _service.Setup(s => s.GetPageAsync(req, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(listResult);
 
         // Act

@@ -19,7 +19,6 @@ namespace Application.Interface.Repo
         // بناء الـ Query الأساسية مع الفلاتر والسيرش والـ Includes
         IQueryable<T> GetAllQuery(
             PaginatedSearchReq searchReq,
-            bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<T>, IQueryable<T>>? include = null);
@@ -27,7 +26,6 @@ namespace Application.Interface.Repo
         // جلب صفحة معينة (Pagination) ودعم الـ Includes للـ Children
         Task<PaginatedRes<T>> GetPageAsync(
             PaginatedSearchReq searchReq,
-            bool isActive = true,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<T>, IQueryable<T>>? include = null);
@@ -35,7 +33,6 @@ namespace Application.Interface.Repo
         // جلب عنصر واحد بـ ID مع الـ Includes بتوعه
         Task<T?> GetByIdAsync(
         int id,
-        bool isActive = true,
         bool trackChanges = false,
         CancellationToken cancellationToken = default,
         Func<IQueryable<T>, IQueryable<T>>? include = null);
@@ -43,7 +40,6 @@ namespace Application.Interface.Repo
         // جلب عنصر واحد بـ ID مع الـ Includes بتوعه
         Task<T?> GetByIdIgnoringSecurityAsync(
         int id,
-        bool isActive = true,
         bool trackChanges = false,
         CancellationToken cancellationToken = default,
         Func<IQueryable<T>, IQueryable<T>>? include = null);

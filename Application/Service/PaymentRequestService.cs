@@ -58,7 +58,7 @@ namespace Application.Service
             if (await _paymentRepo.HasPendingRequestAsync(_currentUser.UserId, ct))
                 throw new ApplicationException("You already have a pending payment request.");
 
-            PlanPrice? planPrice = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(dto.PlanPriceId, true, false, ct);
+            PlanPrice? planPrice = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(dto.PlanPriceId, false, ct);
 
             if (planPrice == null || planPrice.Plan == null || planPrice.Plan.IsFree == true)
                 throw new ApplicationException("Invalid subscription plan.");
@@ -136,7 +136,7 @@ namespace Application.Service
 
         public async Task<PaymentRequestRDTO> ApproveAsync(int id, PaymentRequestApprove dto, CancellationToken ct = default)
         {
-            var entity = await _paymentRepo.GetByIdAsync(id, true, true, ct);
+            var entity = await _paymentRepo.GetByIdAsync(id, true, ct);
             if (entity == null)
                 throw new NotFoundException("Payment request not found.");
 
@@ -157,7 +157,7 @@ namespace Application.Service
 
         public async Task<PaymentRequestRDTO> RejectAsync(int id, PaymentRequestReject dto, CancellationToken ct = default)
         {
-            var entity = await _paymentRepo.GetByIdAsync(id, true, true, ct);
+            var entity = await _paymentRepo.GetByIdAsync(id, true, ct);
             if (entity == null)
                 throw new NotFoundException("Payment request not found.");
 

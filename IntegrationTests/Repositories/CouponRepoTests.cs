@@ -51,7 +51,6 @@ public class CouponRepoTests : IDisposable
             ValidTo = DateTime.UtcNow.AddDays(30),
             UsageLimit = 100,
             UsedCount = 0,
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
 
@@ -80,7 +79,6 @@ public class CouponRepoTests : IDisposable
             DiscountValue = 10m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
             ValidTo = DateTime.UtcNow.AddDays(30),
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.Coupon.Add(coupon);
@@ -100,27 +98,7 @@ public class CouponRepoTests : IDisposable
         result.Should().BeNull();
     }
 
-    [Fact]
-    public async Task GetByIdAsync_ShouldReturnNull_WhenEntityIsSoftDeleted()
-    {
-        var coupon = new Coupon
-        {
-            Code = "DELETED",
-            Name = "Deleted Coupon",
-            DiscountType = DiscountType.FixedAmount,
-            DiscountValue = 5m,
-            ValidFrom = DateTime.UtcNow.AddDays(-1),
-            ValidTo = DateTime.UtcNow.AddDays(30),
-            IsActive = false,
-            RowVersion = [1, 2, 3]
-        };
-        _context.Coupon.Add(coupon);
-        await _context.SaveChangesAsync();
 
-        var result = await _sut.GetByIdAsync(coupon.Id, isActive: true);
-
-        result.Should().BeNull();
-    }
 
     #endregion
 
@@ -137,7 +115,6 @@ public class CouponRepoTests : IDisposable
             DiscountValue = 10m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
             ValidTo = DateTime.UtcNow.AddDays(30),
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.Coupon.Add(coupon);
@@ -170,7 +147,6 @@ public class CouponRepoTests : IDisposable
             DiscountValue = 5m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
             ValidTo = DateTime.UtcNow.AddDays(30),
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.Coupon.Add(coupon);
@@ -179,10 +155,10 @@ public class CouponRepoTests : IDisposable
         var result = await _sut.DeleteAsync(coupon);
         await _context.SaveChangesAsync();
 
-        result.IsActive.Should().BeFalse();
+        
 
         var fromDb = await _context.Coupon.FindAsync(coupon.Id);
-        fromDb!.IsActive.Should().BeFalse();
+        fromDb.Should().BeNull();
     }
 
     #endregion
@@ -190,7 +166,7 @@ public class CouponRepoTests : IDisposable
     #region GetAllAsync
 
     [Fact]
-    public async Task GetAllAsync_ShouldReturnAllActiveEntities()
+    public async Task GetAllAsync_ShouldReturnAllEntities()
     {
         _context.Coupon.AddRange(
             new Coupon
@@ -200,7 +176,6 @@ public class CouponRepoTests : IDisposable
                 DiscountValue = 10m,
                 ValidFrom = DateTime.UtcNow.AddDays(-1),
                 ValidTo = DateTime.UtcNow.AddDays(30),
-                IsActive = true,
                 RowVersion = [1, 2, 3]
             },
             new Coupon
@@ -210,7 +185,6 @@ public class CouponRepoTests : IDisposable
                 DiscountValue = 20m,
                 ValidFrom = DateTime.UtcNow.AddDays(-1),
                 ValidTo = DateTime.UtcNow.AddDays(30),
-                IsActive = true,
                 RowVersion = [1, 2, 3]
             },
             new Coupon
@@ -220,7 +194,6 @@ public class CouponRepoTests : IDisposable
                 DiscountValue = 5m,
                 ValidFrom = DateTime.UtcNow.AddDays(-1),
                 ValidTo = DateTime.UtcNow.AddDays(30),
-                IsActive = false,
                 RowVersion = [1, 2, 3]
             }
         );
@@ -228,7 +201,7 @@ public class CouponRepoTests : IDisposable
 
         var result = await _sut.GetAllAsync();
 
-        result.Should().HaveCount(2);
+        result.Should().HaveCount(3);
     }
 
     #endregion
@@ -248,7 +221,6 @@ public class CouponRepoTests : IDisposable
                 DiscountValue = i * 10m,
                 ValidFrom = DateTime.UtcNow.AddDays(-1),
                 ValidTo = DateTime.UtcNow.AddDays(30),
-                IsActive = true,
                 RowVersion = [1, 2, 3]
             });
         }
@@ -277,7 +249,6 @@ public class CouponRepoTests : IDisposable
                 DiscountValue = i * 10m,
                 ValidFrom = DateTime.UtcNow.AddDays(-1),
                 ValidTo = DateTime.UtcNow.AddDays(30),
-                IsActive = true,
                 RowVersion = [1, 2, 3]
             });
         }
@@ -306,7 +277,6 @@ public class CouponRepoTests : IDisposable
             DiscountValue = 10m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
             ValidTo = DateTime.UtcNow.AddDays(30),
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.Coupon.Add(coupon);
@@ -329,7 +299,6 @@ public class CouponRepoTests : IDisposable
             DiscountValue = 10m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
             ValidTo = DateTime.UtcNow.AddDays(30),
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.Coupon.Add(coupon);
@@ -364,7 +333,6 @@ public class CouponRepoTests : IDisposable
             DiscountValue = 5m,
             ValidFrom = DateTime.UtcNow.AddDays(-1),
             ValidTo = DateTime.UtcNow.AddDays(30),
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.Coupon.Add(coupon);

@@ -41,7 +41,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             MaxOwnedGyms = 1,
             MaxCoaches = 5,
             MaxMembers = 50,
-            IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
         _context.SubscriptionPlan.Add(plan);
@@ -55,7 +54,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             DurationMonths = 1,
             Amount = 50m,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true
         };
         _context.PlanPrice.Add(planPrice);
         await _context.SaveChangesAsync();
@@ -81,7 +79,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             GraceEndDate = DateTime.UtcNow.AddMonths(1).AddDays(7),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
 
@@ -112,7 +109,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             GraceEndDate = DateTime.UtcNow.AddMonths(1).AddDays(7),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.OwnerSubscription.Add(subscription);
@@ -139,7 +135,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             GraceEndDate = DateTime.UtcNow.AddMonths(-1).AddDays(7),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.OwnerSubscription.Add(subscription);
@@ -166,7 +161,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             GraceEndDate = DateTime.UtcNow.AddMonths(1).AddDays(7),
             CreatedById = 999,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.OwnerSubscription.Add(subscription);
@@ -197,7 +191,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             GraceEndDate = DateTime.UtcNow.AddDays(5),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.OwnerSubscription.Add(subscription);
@@ -224,7 +217,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             GraceEndDate = DateTime.UtcNow.AddMonths(-2).AddDays(7),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.OwnerSubscription.Add(subscription);
@@ -255,7 +247,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             GraceEndDate = DateTime.UtcNow.AddMonths(1).AddDays(7),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.OwnerSubscription.Add(subscription);
@@ -295,7 +286,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             GraceEndDate = DateTime.UtcNow.AddMonths(1).AddDays(7),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.OwnerSubscription.Add(subscription);
@@ -335,7 +325,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             GraceEndDate = DateTime.UtcNow.AddMonths(1).AddDays(7),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
-            IsActive = true,
             RowVersion = [1, 2, 3]
         };
         _context.OwnerSubscription.Add(subscription);
@@ -344,7 +333,7 @@ public class OwnerSubscriptionRepoTests : IDisposable
         var result = await _sut.DeleteAsync(subscription);
         await _context.SaveChangesAsync();
 
-        result.IsActive.Should().BeFalse();
+        
     }
 
     #endregion

@@ -16,7 +16,6 @@ public static class ConfigurationExtensions
                .HasForeignKey(e => e.CreatedById)
                .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(e => e.IsActive);
     }
 
     public static void ConfigureFileAuditing<T>(this EntityTypeBuilder<T> builder)
@@ -27,7 +26,6 @@ public static class ConfigurationExtensions
                .HasForeignKey(e => e.CreatedById)
                .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(e => e.IsActive);
     }
 
     public static void ConfigureGymAuditing<T>(this EntityTypeBuilder<T> builder)
@@ -38,7 +36,6 @@ public static class ConfigurationExtensions
                .HasForeignKey(e => e.CreatedByPersonId)
                .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(e => e.IsActive);
     }
 
     public static void ConfigureGymOwned<T>(this EntityTypeBuilder<T> builder)
@@ -49,6 +46,5 @@ public static class ConfigurationExtensions
                .HasForeignKey(e => e.GymId)
                .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(e => e.IsActive);
     }
 }

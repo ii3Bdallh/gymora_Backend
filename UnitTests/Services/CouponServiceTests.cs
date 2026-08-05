@@ -80,19 +80,7 @@ public class CouponServiceTests
         result.Message.Should().Contain("not found");
     }
 
-    [Fact]
-    public async Task ValidateCouponAsync_ShouldReturnFailure_WhenCouponIsInactive()
-    {
-        var coupon = TestData.CreateCoupon(isActive: false);
 
-        _couponRepo.Setup(r => r.GetByCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(coupon);
-
-        var result = await _sut.ValidateCouponAsync(coupon.Code, 100m, 1);
-
-        result.IsValid.Should().BeFalse();
-        result.Message.Should().Contain("inactive");
-    }
 
     [Fact]
     public async Task ValidateCouponAsync_ShouldReturnFailure_WhenCouponIsExpired()
@@ -181,7 +169,7 @@ public class CouponServiceTests
     {
         var coupon = TestData.CreateCoupon(usedCount: 5, usageLimit: 10);
 
-        _couponRepo.Setup(r => r.GetByIdAsync(1, true, true, It.IsAny<CancellationToken>(), null))
+        _couponRepo.Setup(r => r.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(coupon);
         _unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
@@ -195,7 +183,7 @@ public class CouponServiceTests
     [Fact]
     public async Task IncrementUsageAsync_ShouldNotIncrement_WhenCouponNotFound()
     {
-        _couponRepo.Setup(r => r.GetByIdAsync(999, true, true, It.IsAny<CancellationToken>(), null))
+        _couponRepo.Setup(r => r.GetByIdAsync(999, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync((Coupon?)null);
 
         await _sut.IncrementUsageAsync(999);
@@ -208,7 +196,7 @@ public class CouponServiceTests
     {
         var coupon = TestData.CreateCoupon(usedCount: 10, usageLimit: 10);
 
-        _couponRepo.Setup(r => r.GetByIdAsync(1, true, true, It.IsAny<CancellationToken>(), null))
+        _couponRepo.Setup(r => r.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(coupon);
 
         await _sut.IncrementUsageAsync(1);
@@ -226,7 +214,7 @@ public class CouponServiceTests
     {
         var coupon = TestData.CreateCoupon(usedCount: 5);
 
-        _couponRepo.Setup(r => r.GetByIdAsync(1, true, true, It.IsAny<CancellationToken>(), null))
+        _couponRepo.Setup(r => r.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(coupon);
         _unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
@@ -240,7 +228,7 @@ public class CouponServiceTests
     [Fact]
     public async Task DecrementUsageAsync_ShouldNotDecrement_WhenCouponNotFound()
     {
-        _couponRepo.Setup(r => r.GetByIdAsync(999, true, true, It.IsAny<CancellationToken>(), null))
+        _couponRepo.Setup(r => r.GetByIdAsync(999, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync((Coupon?)null);
 
         await _sut.DecrementUsageAsync(999);
@@ -253,7 +241,7 @@ public class CouponServiceTests
     {
         var coupon = TestData.CreateCoupon(usedCount: 0);
 
-        _couponRepo.Setup(r => r.GetByIdAsync(1, true, true, It.IsAny<CancellationToken>(), null))
+        _couponRepo.Setup(r => r.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(coupon);
 
         await _sut.DecrementUsageAsync(1);

@@ -164,7 +164,7 @@ namespace Application.Service
 
         public async Task PaySalaryAsync(int staffId, DateTime? salaryValidFrom, DateTime? salaryValidUntil, CancellationToken ct = default)
         {
-            var person = await _repo.GetByIdAsync(staffId, isActive: true, trackChanges: true, cancellationToken: ct);
+            var person = await _repo.GetByIdAsync(staffId, trackChanges: true, cancellationToken: ct);
             if (person == null)
             {
                 throw new KeyNotFoundException($"GymPerson with ID {staffId} not found or is inactive.");

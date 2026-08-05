@@ -76,7 +76,7 @@ public class CoachAssignmentServiceTests
     {
         // Arrange
         var dto = new CoachAssignmentCDTO { GymId = 1, MemberId = 99, CoachStaffId = 2 };
-        _gymPersonRepo.Setup(x => x.GetByIdAsync(dto.MemberId, true, false, It.IsAny<CancellationToken>(), null))
+        _gymPersonRepo.Setup(x => x.GetByIdAsync(dto.MemberId, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync((GymPerson?)null);
 
         // Act
@@ -94,9 +94,9 @@ public class CoachAssignmentServiceTests
         var dto = new CoachAssignmentCDTO { GymId = 1, MemberId = 1, CoachStaffId = 99 };
         var member = new GymPerson { Id = 1, GymId = 1, PersonType = PersonType.Member };
         
-        _gymPersonRepo.Setup(x => x.GetByIdAsync(dto.MemberId, true, false, It.IsAny<CancellationToken>(), null))
+        _gymPersonRepo.Setup(x => x.GetByIdAsync(dto.MemberId, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(member);
-        _gymPersonRepo.Setup(x => x.GetByIdAsync(dto.CoachStaffId, true, false, It.IsAny<CancellationToken>(), null))
+        _gymPersonRepo.Setup(x => x.GetByIdAsync(dto.CoachStaffId, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync((GymPerson?)null);
 
         // Act
@@ -115,9 +115,9 @@ public class CoachAssignmentServiceTests
         var member = new GymPerson { Id = 1, GymId = 1, PersonType = PersonType.Member };
         var coachAsMember = new GymPerson { Id = 2, GymId = 1, PersonType = PersonType.Member };
 
-        _gymPersonRepo.Setup(x => x.GetByIdAsync(dto.MemberId, true, false, It.IsAny<CancellationToken>(), null))
+        _gymPersonRepo.Setup(x => x.GetByIdAsync(dto.MemberId, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(member);
-        _gymPersonRepo.Setup(x => x.GetByIdAsync(dto.CoachStaffId, true, false, It.IsAny<CancellationToken>(), null))
+        _gymPersonRepo.Setup(x => x.GetByIdAsync(dto.CoachStaffId, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(coachAsMember);
 
         // Act

@@ -73,7 +73,7 @@ public class PaymentRequestServiceTests
 
         _repo.Setup(r => r.HasPendingRequestAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
-        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(It.IsAny<int>(), true, false, It.IsAny<CancellationToken>()))
+        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(planPrice);
         _currentPlanService.Setup(s => s.GetCurrentPlanAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CurrentPlanResult { IsFree = true });
@@ -121,7 +121,7 @@ public class PaymentRequestServiceTests
     {
         _repo.Setup(r => r.HasPendingRequestAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
-        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(It.IsAny<int>(), true, false, It.IsAny<CancellationToken>()))
+        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((PlanPrice?)null);
 
         var cdto = new PaymentRequestCDTO { PlanPriceId = 999, PlanId = 1 };
@@ -137,7 +137,7 @@ public class PaymentRequestServiceTests
     {
         _repo.Setup(r => r.HasPendingRequestAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
-        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(It.IsAny<int>(), true, false, It.IsAny<CancellationToken>()))
+        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.CreatePlanPrice());
         _currentPlanService.Setup(s => s.GetCurrentPlanAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CurrentPlanResult { IsFree = false, PlanId = 1 });
@@ -163,7 +163,7 @@ public class PaymentRequestServiceTests
 
         _repo.Setup(r => r.HasPendingRequestAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
-        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(It.IsAny<int>(), true, false, It.IsAny<CancellationToken>()))
+        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(planPrice);
         _currentPlanService.Setup(s => s.GetCurrentPlanAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CurrentPlanResult { IsFree = true });
@@ -204,7 +204,7 @@ public class PaymentRequestServiceTests
 
         _repo.Setup(r => r.HasPendingRequestAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
-        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(It.IsAny<int>(), true, false, It.IsAny<CancellationToken>()))
+        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(planPrice);
         _currentPlanService.Setup(s => s.GetCurrentPlanAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CurrentPlanResult { IsFree = true });
@@ -233,7 +233,7 @@ public class PaymentRequestServiceTests
 
         _repo.Setup(r => r.HasPendingRequestAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
-        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(It.IsAny<int>(), true, false, It.IsAny<CancellationToken>()))
+        _subscriptionPlanRepo.Setup(r => r.GetPlanPriceByIdAsync(It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(planPrice);
         _currentPlanService.Setup(s => s.GetCurrentPlanAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CurrentPlanResult { IsFree = true });
@@ -262,7 +262,7 @@ public class PaymentRequestServiceTests
             Status = PaymentRequestStatus.Approved
         };
 
-        _repo.Setup(r => r.GetByIdAsync(1, true, true, It.IsAny<CancellationToken>(), null))
+        _repo.Setup(r => r.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(entity);
         _mapper.Setup(m => m.Map<PaymentRequestRDTO>(It.IsAny<PaymentRequest>()))
             .Returns(rDto);
@@ -281,7 +281,7 @@ public class PaymentRequestServiceTests
     [Fact]
     public async Task ApproveAsync_ShouldThrow_WhenPaymentNotFound()
     {
-        _repo.Setup(r => r.GetByIdAsync(999, true, true, It.IsAny<CancellationToken>(), null))
+        _repo.Setup(r => r.GetByIdAsync(999, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync((PaymentRequest?)null);
 
         var act = async () => await _sut.ApproveAsync(999, new PaymentRequestApprove());
@@ -294,7 +294,7 @@ public class PaymentRequestServiceTests
     {
         var entity = TestData.CreatePaymentRequest(status: PaymentRequestStatus.Approved);
 
-        _repo.Setup(r => r.GetByIdAsync(1, true, true, It.IsAny<CancellationToken>(), null))
+        _repo.Setup(r => r.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(entity);
 
         var act = async () => await _sut.ApproveAsync(1, new PaymentRequestApprove());
@@ -317,7 +317,7 @@ public class PaymentRequestServiceTests
             Status = PaymentRequestStatus.Rejected
         };
 
-        _repo.Setup(r => r.GetByIdAsync(1, true, true, It.IsAny<CancellationToken>(), null))
+        _repo.Setup(r => r.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(entity);
         _mapper.Setup(m => m.Map<PaymentRequestRDTO>(It.IsAny<PaymentRequest>()))
             .Returns(rDto);
@@ -335,7 +335,7 @@ public class PaymentRequestServiceTests
     [Fact]
     public async Task RejectAsync_ShouldThrow_WhenPaymentNotFound()
     {
-        _repo.Setup(r => r.GetByIdAsync(999, true, true, It.IsAny<CancellationToken>(), null))
+        _repo.Setup(r => r.GetByIdAsync(999, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync((PaymentRequest?)null);
 
         var act = async () => await _sut.RejectAsync(999, new PaymentRequestReject { RejectionReason = "test" });
@@ -348,7 +348,7 @@ public class PaymentRequestServiceTests
     {
         var entity = TestData.CreatePaymentRequest(status: PaymentRequestStatus.Approved);
 
-        _repo.Setup(r => r.GetByIdAsync(1, true, true, It.IsAny<CancellationToken>(), null))
+        _repo.Setup(r => r.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(entity);
 
         var act = async () => await _sut.RejectAsync(1, new PaymentRequestReject { RejectionReason = "test" });
@@ -365,7 +365,7 @@ public class PaymentRequestServiceTests
             couponId: 1);
         var rDto = new PaymentRequestRDTO { Id = 1, Status = PaymentRequestStatus.Rejected };
 
-        _repo.Setup(r => r.GetByIdAsync(1, true, true, It.IsAny<CancellationToken>(), null))
+        _repo.Setup(r => r.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(entity);
         _mapper.Setup(m => m.Map<PaymentRequestRDTO>(It.IsAny<PaymentRequest>()))
             .Returns(rDto);
@@ -387,7 +387,7 @@ public class PaymentRequestServiceTests
     {
         var entity = TestData.CreatePaymentRequest(status: PaymentRequestStatus.Pending, couponId: 1);
 
-        _repo.Setup(r => r.GetByIdAsync(1, true, true, It.IsAny<CancellationToken>(), null))
+        _repo.Setup(r => r.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
             .ReturnsAsync(entity);
         _unitOfWork.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("DB error"));
