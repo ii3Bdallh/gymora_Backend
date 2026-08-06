@@ -25,11 +25,11 @@ public class CoachAssignmentService : BaseService<CoachAssignment, CoachAssignme
 {
 
 
-    private readonly IBaseRepo<GymPerson> _gymPersonRepo;
+    private readonly IGymPersonRepo _gymPersonRepo;
 
     public CoachAssignmentService(
-        IBaseRepo<CoachAssignment> repo,
-        IBaseRepo<GymPerson> gymPersonRepo,
+        ICoachAssignmentRepo repo,
+        IGymPersonRepo gymPersonRepo,
         IUnitOfWork unitOfWork,
         IMapper mapper,
         ICacheService cacheService,

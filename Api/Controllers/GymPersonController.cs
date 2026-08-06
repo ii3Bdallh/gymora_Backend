@@ -27,7 +27,7 @@ namespace Api.Controllers
         public async Task<ActionResult<IEnumerable<GymPersonRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
         {
             logger.LogInformation("Fetching all GymPersons");
-            PaginatedRes<GymPersonRDTO> GymPersons = await service.GetPageAsync(searchReq, true);
+            PaginatedRes<GymPersonRDTO> GymPersons = await service.GetPageAsync(searchReq, false);
             logger.LogInformation("Successfully fetched all GymPersons");
             return Ok(Result<PaginatedRes<GymPersonRDTO>>.Success(GymPersons));
         }
@@ -38,7 +38,7 @@ namespace Api.Controllers
         {
             logger.LogInformation("Fetching GymPerson with Id: {Id}", id);
 
-            var GymPerson = await service.GetByIdAsync(id, true, cancellationToken: cancellationToken);
+            var GymPerson = await service.GetByIdAsync(id, false, cancellationToken: cancellationToken);
 
             logger.LogInformation("Successfully fetched GymPerson with Id: {Id}", id);
             return Ok(Result<GymPersonRDTO>.Success(GymPerson));

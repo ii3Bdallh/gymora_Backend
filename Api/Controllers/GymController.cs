@@ -22,7 +22,7 @@ namespace Api.Controllers
         public async Task<ActionResult<IEnumerable<GymRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
         {
             logger.LogInformation("Fetching all Gyms");
-            PaginatedRes<GymRDTO> Gyms = await service.GetPageAsync(searchReq, true);
+            PaginatedRes<GymRDTO> Gyms = await service.GetPageAsync(searchReq, false);
             logger.LogInformation("Successfully fetched all Gyms");
             return Ok(Result<PaginatedRes<GymRDTO>>.Success(Gyms));
         }
@@ -31,7 +31,7 @@ namespace Api.Controllers
         {
             logger.LogInformation("Fetching Gym with Id: {Id}", id);
 
-            var Gym = await service.GetByIdAsync(id, true, cancellationToken: cancellationToken);
+            var Gym = await service.GetByIdAsync(id, false, cancellationToken: cancellationToken);
 
             logger.LogInformation("Successfully fetched Gym with Id: {Id}", id);
             return Ok(Result<GymRDTO>.Success(Gym));

@@ -22,7 +22,7 @@ namespace Api.Controllers
         public async Task<ActionResult<IEnumerable<OwnerSubscriptionRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
         {
             logger.LogInformation("Fetching all OwnerSubscriptions");
-            PaginatedRes<OwnerSubscriptionRDTO> OwnerSubscriptions = await service.GetPageAsync(searchReq, true);
+            PaginatedRes<OwnerSubscriptionRDTO> OwnerSubscriptions = await service.GetPageAsync(searchReq, false);
             logger.LogInformation("Successfully fetched all OwnerSubscriptions");
             return Ok(Result<PaginatedRes<OwnerSubscriptionRDTO>>.Success(OwnerSubscriptions));
         }
@@ -31,7 +31,7 @@ namespace Api.Controllers
         {
             logger.LogInformation("Fetching OwnerSubscription with Id: {Id}", id);
 
-            var OwnerSubscription = await service.GetByIdAsync(id, true, cancellationToken: cancellationToken);
+            var OwnerSubscription = await service.GetByIdAsync(id, false, cancellationToken: cancellationToken);
 
             logger.LogInformation("Successfully fetched OwnerSubscription with Id: {Id}", id);
             return Ok(Result<OwnerSubscriptionRDTO>.Success(OwnerSubscription));

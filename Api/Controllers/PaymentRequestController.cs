@@ -21,7 +21,7 @@ namespace Api.Controllers
         public async Task<ActionResult<IEnumerable<PaymentRequestRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
         {
             logger.LogInformation("Fetching all PaymentRequests");
-            PaginatedRes<PaymentRequestRDTO> PaymentRequests = await service.GetPageAsync(searchReq, true);
+            PaginatedRes<PaymentRequestRDTO> PaymentRequests = await service.GetPageAsync(searchReq, false);
             logger.LogInformation("Successfully fetched all PaymentRequests");
             return Ok(Result<PaginatedRes<PaymentRequestRDTO>>.Success(PaymentRequests));
         }
@@ -31,7 +31,7 @@ namespace Api.Controllers
         {
             logger.LogInformation("Fetching PaymentRequest with Id: {Id}", id);
 
-            var PaymentRequest = await service.GetByIdAsync(id, true, cancellationToken: cancellationToken);
+            var PaymentRequest = await service.GetByIdAsync(id, false, cancellationToken: cancellationToken);
 
             logger.LogInformation("Successfully fetched PaymentRequest with Id: {Id}", id);
             return Ok(Result<PaymentRequestRDTO>.Success(PaymentRequest));

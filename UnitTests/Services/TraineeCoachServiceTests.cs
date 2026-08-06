@@ -24,8 +24,8 @@ namespace UnitTests.Services;
 
 public class CoachAssignmentServiceTests
 {
-    private readonly Mock<IBaseRepo<CoachAssignment>> _repo;
-    private readonly Mock<IBaseRepo<GymPerson>> _gymPersonRepo;
+    private readonly Mock<ICoachAssignmentRepo> _repo;
+    private readonly Mock<IGymPersonRepo> _gymPersonRepo;
     private readonly Mock<IUnitOfWork> _unitOfWork;
     private readonly Mock<IMapper> _mapper;
     private readonly Mock<ICacheService> _cacheService;
@@ -36,8 +36,8 @@ public class CoachAssignmentServiceTests
 
     public CoachAssignmentServiceTests()
     {
-        _repo = new Mock<IBaseRepo<CoachAssignment>>();
-        _gymPersonRepo = new Mock<IBaseRepo<GymPerson>>();
+        _repo = new Mock<ICoachAssignmentRepo>();
+        _gymPersonRepo = new Mock<IGymPersonRepo>();
         _unitOfWork = new Mock<IUnitOfWork>();
         _mapper = new Mock<IMapper>();
         _cacheService = new Mock<ICacheService>();

@@ -15,19 +15,17 @@ namespace Infrastructure.Config
             builder.HasOne(x => x.Member)
                 .WithMany()
                 .HasForeignKey(x => x.MemberId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(x => x.Coach)
                 .WithMany()
                 .HasForeignKey(x => x.CoachStaffId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(x => x.Gym)
+            builder.HasOne(x => x.AssignedBy)
                 .WithMany()
-                .HasForeignKey(x => x.GymId)
-                .OnDelete(DeleteBehavior.Cascade)
-                ;
-
+                .HasForeignKey(x => x.AssignedById)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(x => new { x.MemberId, x.CoachStaffId })
                 .IsUnique();

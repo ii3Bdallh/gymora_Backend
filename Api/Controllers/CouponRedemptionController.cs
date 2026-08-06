@@ -21,7 +21,7 @@ namespace Api.Controllers
         public async Task <ActionResult<IEnumerable<CouponRedemptionRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
         {
             logger.LogInformation("Fetching all CouponRedemptions");
-            PaginatedRes<CouponRedemptionRDTO> CouponRedemptions = await service.GetPageAsync(searchReq , true);
+            PaginatedRes<CouponRedemptionRDTO> CouponRedemptions = await service.GetPageAsync(searchReq , false);
             logger.LogInformation("Successfully fetched all CouponRedemptions");
             return Ok(Result<PaginatedRes<CouponRedemptionRDTO>>.Success(CouponRedemptions));
         }
@@ -30,7 +30,7 @@ namespace Api.Controllers
         {
             logger.LogInformation("Fetching CouponRedemption with Id: {Id}", id);
 
-            var CouponRedemption = await service.GetByIdAsync(id, true, cancellationToken: cancellationToken);
+            var CouponRedemption = await service.GetByIdAsync(id, false, cancellationToken: cancellationToken);
 
             logger.LogInformation("Successfully fetched CouponRedemption with Id: {Id}", id);
             return Ok(Result<CouponRedemptionRDTO>.Success(CouponRedemption));
