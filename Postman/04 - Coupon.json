@@ -1,7 +1,7 @@
 ﻿{
     "info":  {
                  "_postman_id":  "f6cedf3c-fac5-4359-8c79-02d315f6cf42",
-                 "name":  "4 - Coupon",
+                 "name":  "04 - Coupon",
                  "description":  "Endpoints to manage and validate discount coupons.",
                  "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
              },

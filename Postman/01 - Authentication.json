@@ -1,13 +1,42 @@
 {
     "info":  {
                  "_postman_id":  "f0e70db9-c428-46ae-ab32-b7b371af6042",
-                 "name":  "1 - Auth",
+                 "name":  "01 - Auth",
                  "description":  "Authentication and user account management endpoints.",
                  "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
              },
     "item":  [
                  {
-                     "name":  "Register",
+                     "name":  "Register (SuperAdmin)",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                   "raw":  "{\n  \"personName\": \"abdallhmamdouh079\",\n  \"email\": \"{{superAdmin_email}}\",\n  \"phoneNumber\": \"+201234567890\",\n  \"password\": \"{{superAdmin_password}}\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/register",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "register"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+                                  ]
+                 },
+                 {
+                     "name":  "Register (First User)",
                      "request":  {
                                      "method":  "POST",
                                      "header":  [
@@ -19,6 +48,35 @@
                                      "body":  {
                                                   "mode":  "raw",
                                                    "raw":  "{\n  \"personName\": \"abdallh.dev87\",\n  \"email\": \"{{user1_email}}\",\n  \"phoneNumber\": \"+201234567890\",\n  \"password\": \"{{user1_password}}\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Auth/register",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Auth",
+                                                              "register"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+                                  ]
+                 },
+                 {
+                     "name":  "Register (Second User)",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                   "raw":  "{\n  \"personName\": \"abdallhmamdouh463\",\n  \"email\": \"{{user2_email}}\",\n  \"phoneNumber\": \"+201234567890\",\n  \"password\": \"{{user2_password}}\"\n}"
                                               },
                                      "url":  {
                                                  "raw":  "{{baseUrl}}/api/Auth/register",

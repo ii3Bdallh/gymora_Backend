@@ -1,7 +1,7 @@
 ﻿{
     "info":  {
                  "_postman_id":  "b00a2b97-aa1b-46b8-82fe-738e0e3779ad",
-                 "name":  "9 - Users",
+                 "name":  "09 - Users",
                  "description":  "Endpoints to fetch application user accounts.",
                  "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
              },

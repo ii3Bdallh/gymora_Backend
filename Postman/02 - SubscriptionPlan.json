@@ -1,7 +1,7 @@
 ﻿{
     "info": {
         "_postman_id": "2d1b3805-9f9e-4a52-84fc-ac86f72642c9",
-        "name": "2 - Subscription Plan",
+        "name": "02 - Subscription Plan",
         "description": "Endpoints to manage and purchase pricing plans.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },

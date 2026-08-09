@@ -81,7 +81,6 @@ namespace Infrastructure.Config
             builder.Property(x => x.PricePaid).HasPrecision(18, 2);
             builder.Property(x => x.DiscountAmount).HasPrecision(18, 2);
             builder.Property(x => x.FinalAmount).HasPrecision(18, 2);
-            builder.Property(x => x.PaymentMethod).HasMaxLength(50);
 
             builder.HasOne(x => x.GymPerson)
                    .WithOne(x => x.MemberProfile)
