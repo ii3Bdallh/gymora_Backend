@@ -147,10 +147,7 @@ namespace Application.Service
             if (canCreateNew.IsOverCoachLimit)
                 throw new InvalidOperationException("You Have Reached Your Coach Limit");
 
-            if (canCreateNew.IsOverGymLimit)
-                throw new InvalidOperationException("You Have Reached Your Gym Limit");
-            // Update old owner record to inactive status
-            currentOwnerPerson.AccessStatus = GymPersonAccessStatus.LeftGym;
+
 
             // Update new owner record if they already have one in GymPerson, or create a new one
             var newOwnerPerson = await _gymPersonRepo.GetGymPersonAsync(gymId, newOwnerUserId, ct);

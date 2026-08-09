@@ -10,5 +10,8 @@ namespace Domain.Interface
         public int CreatedById { get; set; }
     }
 
-
+    public interface IOnlyMeCanSeeAtGym
+    {
+        public int CreatedByPersonId { get; set; }
+    }
 }

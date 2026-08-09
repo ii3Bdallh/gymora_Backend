@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 namespace Application.Service.Base
 {
     public abstract class BaseAuditableGymService<T, RDTO, CDTO, UDTO>
-        : BaseService<T, RDTO, CDTO, UDTO>
+        : BaseGymService<T, RDTO, CDTO, UDTO>
         where T : BaseAuditableGymEntity
         where RDTO : BaseGymAuditableRDTO
         where CDTO : BaseGymAuditableCDTO
@@ -34,6 +34,11 @@ namespace Application.Service.Base
         {
         }
 
+        protected override bool CanAccess(int createdByPersonId)
+        {
+            return HasFullAccess || CurrentUser.IsGymOwner || CurrentUser.IsGymManager || createdByPersonId == (CurrentUser.CurrentPersonId ?? 0);
+        }
+
         public override async Task<RDTO> AddAsync(CDTO dto, CancellationToken cancellationToken = default)
         {
             dto.CreatedByPersonId = _currentUser.CurrentPersonId ?? throw new InvalidOperationException("Forbiden: You cannot add record");
@@ -41,12 +46,23 @@ namespace Application.Service.Base
             return await base.AddAsync(dto, cancellationToken);
         }
 
+        protected override Task AfterMapReadAsync(T entity, RDTO dto, CancellationToken cancellationToken)
+        {
+            if (entity is IOnlyMeCanSeeAtGym &&
+   !CanAccess(entity.CreatedByPersonId))
+            {
+                throw new UnauthorizedAccessException(
+                    "You do not have permission to access this resource.");
+            }
+            return base.AfterMapReadAsync(entity, dto, cancellationToken);
+        }
+
         protected override Task BeforeUpdateAsync(
             T entity,
             UDTO dto,
             CancellationToken cancellationToken)
         {
-            if (!CanModify(entity))
+            if (!CanAccess(entity.CreatedByPersonId))
             {
                 _logger.LogWarning(
                     "Unauthorized attempt to update {EntityType} with ID {Id} by user {UserId}",
@@ -66,7 +82,7 @@ namespace Application.Service.Base
             T entity,
             CancellationToken cancellationToken)
         {
-            if (!CanModify(entity))
+            if (!CanAccess(entity.CreatedByPersonId))
             {
                 throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
             }
@@ -75,18 +91,12 @@ namespace Application.Service.Base
         }
 
         protected override Task BeforeAddAsync(
-    CDTO dto,
-    CancellationToken cancellationToken)
+            CDTO dto,
+            CancellationToken cancellationToken)
         {
             dto.CreatedByPersonId = _currentUser.CurrentPersonId ?? throw new InvalidOperationException("CurrentPersonId is null. Cannot add entity without a valid person ID.");
 
             return Task.CompletedTask;
         }
-
-        protected virtual bool CanModify(T entity)
-        {
-            return CanAccess(entity.CreatedByPersonId);
-        }
-
     }
 }

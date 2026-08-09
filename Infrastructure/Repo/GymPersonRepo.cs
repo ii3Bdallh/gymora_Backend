@@ -102,5 +102,38 @@ namespace Infrastructure.Repo
         {
             return await DbSet.Where(x => x.GymId == gymId && x.UserId == userId).FirstOrDefaultAsync(ct);
         }
+
+        public async Task<int> GetActiveMembersCountAsync(int gymId, CancellationToken ct = default)
+        {
+            var now = DateTime.UtcNow;
+            return await DbSet
+                .Where(x => x.GymId == gymId && 
+                            x.PersonType == PersonType.Member && 
+                            x.MemberProfile != null && 
+                            x.MemberProfile.MembershipEndDate.HasValue && 
+                            x.MemberProfile.MembershipEndDate.Value > now && 
+                            x.AccessStatus == GymPersonAccessStatus.Active)
+                .CountAsync(ct);
+        }
+
+        public async Task<int> GetExpiredMembersCountAsync(int gymId, CancellationToken ct = default)
+        {
+            var now = DateTime.UtcNow;
+            return await DbSet
+                .Where(x => x.GymId == gymId && 
+                            x.PersonType == PersonType.Member && 
+                            x.MemberProfile != null && 
+                            (!x.MemberProfile.MembershipEndDate.HasValue || x.MemberProfile.MembershipEndDate.Value <= now) && 
+                            x.AccessStatus == GymPersonAccessStatus.Active)
+                .CountAsync(ct);
+        }
+
+        // public async Task<List<GymPerson>> GetMembersForReportAsync(int gymId, CancellationToken ct = default)
+        // {
+        //     return await DbSet
+        //         .Include(x => x.MemberProfile)
+        //         .Where(x => x.GymId == gymId && x.PersonType == PersonType.Member && x.MemberProfile != null)
+        //         .ToListAsync(ct);
+        // }
     }
 }

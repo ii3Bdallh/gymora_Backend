@@ -210,6 +210,66 @@
             "response": []
         },
         {
+            "name": "Renew Membership",
+            "request": {
+                "description": "Renews or extends a member's subscription using a membership plan.\n\n### Request Fields (`RenewMembershipDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `membershipPlanId` | `int` | Yes | Membership plan to renew against |\n| `pricePaid` | `decimal` | No | Amount paid (defaults to 0) |\n| `discountAmount` | `decimal` | No | Discount applied (defaults to 0) |\n| `finalAmount` | `decimal` | No | Final charged amount (defaults to 0) |\n| `notes` | `string?` | No | Optional notes (max 500 chars) |\n\n### Behavior\n\n- Fails with `400` if the gym person is not a `Member` or the membership plan does not belong to the gym.\n- Returns the updated `GymPersonRDTO`.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, or `Receptionist`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"membershipPlanId\": {{membershipPlanId}},\n  \"pricePaid\": 499.00,\n  \"discountAmount\": 0,\n  \"finalAmount\": 499.00,\n  \"notes\": \"Renewed for another month\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/GymPerson/{{gymPersonId}}/renew-membership",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "GymPerson",
+                        "{{gymPersonId}}",
+                        "renew-membership"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Change Access Status",
+            "request": {
+                "description": "Suspends or reactivates a gym person's access to the gym.\n\n### Request Fields (`UpdateAccessStatusDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `status` | `Enum (int)` | Yes | `1` = Active, `2` = Suspended |\n\n### Behavior\n\n- Fails with `400` if the gym person already has the requested status.\n- Returns the updated `GymPersonRDTO`.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"status\": 2\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/GymPerson/{{gymPersonId}}/change-status",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "GymPerson",
+                        "{{gymPersonId}}",
+                        "change-status"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
             "name": "Delete Gym Person",
             "request": {
                 "description": "Soft-deletes a gym person by ID.\n\nRequires gym membership with role `Owner`, `Manager`, `Coach`, or `Receptionist`. SuperAdmin bypasses all gym checks.",

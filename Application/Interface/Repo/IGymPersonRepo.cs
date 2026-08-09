@@ -15,6 +15,8 @@ namespace Application.Interface.Repo
         public Task<GymPerson?> GetGymPersonAsync(int gymId, int userId , CancellationToken ct = default);
 
         Task<int> CountPeopleTypeByOwnerAsync(int ownerUserId, PersonType personType, CancellationToken ct = default);
-
+        Task<int> GetActiveMembersCountAsync(int gymId, CancellationToken ct = default);
+        Task<int> GetExpiredMembersCountAsync(int gymId, CancellationToken ct = default);
+        // Task<List<GymPerson>> GetMembersForReportAsync(int gymId, CancellationToken ct = default);
     }
 }

@@ -1,6 +1,8 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using Application.DTO.Base;
 using Domain.Enum;
+using Domain.Model;
 
 namespace Application.DTO.Model
 {
@@ -56,7 +58,7 @@ namespace Application.DTO.Model
     // ==========================================
     // Gym Person DTOs
     // ==========================================
-    public record GymPersonCDTO : BaseAuditableCDTO
+    public record GymPersonCDTO : BaseGymCDTO
     {
         public int? UserId { get; set; }
         public PersonType PersonType { get; set; }
@@ -66,13 +68,14 @@ namespace Application.DTO.Model
         public string? Gender { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? PhotoUrl { get; set; }
-        
+
+        public int CreatedById { get; set; }
 
         public GymStaffProfileCDTO? StaffProfile { get; set; }
         public GymMemberProfileCDTO? MemberProfile { get; set; }
     }
 
-    public record GymPersonUDTO : BaseAuditableUDTO
+    public record GymPersonUDTO : BaseGymUDTO
     {
         public int? UserId { get; set; }
         public PersonType PersonType { get; set; }
@@ -82,12 +85,13 @@ namespace Application.DTO.Model
         public string? Gender { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? PhotoUrl { get; set; }
+        public int CreatedById { get; set; }
 
         public GymStaffProfileUDTO? StaffProfile { get; set; }
         public GymMemberProfileUDTO? MemberProfile { get; set; }
     }
 
-    public record GymPersonRDTO : BaseAuditableRDTO
+    public record GymPersonRDTO : BaseGymRDTO
     {
         public int? UserId { get; set; }
         public PersonType PersonType { get; set; }
@@ -101,5 +105,35 @@ namespace Application.DTO.Model
 
         public GymStaffProfileRDTO? StaffProfile { get; set; }
         public GymMemberProfileRDTO? MemberProfile { get; set; }
+
+        public DateTime CreatedOn { get; set; }
+        public int CreatedById { get; set; }
+
+    }
+
+    public record RenewMembershipDTO
+    {
+        [Required(ErrorMessage = "MembershipPlanId is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Invalid MembershipPlanId")]
+        public int MembershipPlanId { get; init; }
+
+        [Range(0.0, double.MaxValue, ErrorMessage = "PricePaid must be non-negative")]
+        public decimal PricePaid { get; init; }
+
+        [Range(0.0, double.MaxValue, ErrorMessage = "DiscountAmount must be non-negative")]
+        public decimal DiscountAmount { get; init; }
+
+        [Range(0.0, double.MaxValue, ErrorMessage = "FinalAmount must be non-negative")]
+        public decimal FinalAmount { get; init; }
+
+
+        [MaxLength(500)]
+        public string? Notes { get; init; }
+    }
+
+    public record UpdateAccessStatusDTO
+    {
+        [Required(ErrorMessage = "Status is required")]
+        public GymPersonAccessStatus Status { get; init; }
     }
 }

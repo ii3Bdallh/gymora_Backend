@@ -18,10 +18,12 @@ using Application.DTO.Exceptions;
 
 namespace Application.Service
 {
-    public class GymPersonService : BaseService<GymPerson, GymPersonRDTO, GymPersonCDTO, GymPersonUDTO>, IGymPersonService
+    public class GymPersonService : BaseGymService<GymPerson, GymPersonRDTO, GymPersonCDTO, GymPersonUDTO>, IGymPersonService
     {
         private readonly IGymPersonRepo _gymPersonRepo;
         private readonly ICurrentPlanService _currentPlanService;
+
+        private readonly IMembershipPlanService _membershipPlanService;
 
         private readonly IGymRepo _gymRepo;
 
@@ -34,12 +36,14 @@ namespace Application.Service
             CurrentUser currentUser,
             ILogger<GymPersonService> logger,
             ICurrentPlanService currentPlanService,
+            IMembershipPlanService membershipPlanService,
             IGymRepo gymRepo
             )
             : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser, logger)
         {
             _gymPersonRepo = repo;
             _currentPlanService = currentPlanService;
+            _membershipPlanService = membershipPlanService;
             _gymRepo = gymRepo;
         }
 
@@ -212,10 +216,60 @@ namespace Application.Service
             await _unitOfWork.SaveChangesAsync(ct);
         }
 
+        public async Task<GymPersonRDTO> RenewMemberSubscriptionAsync(int memberId, RenewMembershipDTO dto, CancellationToken ct = default)
+        {
+            var member = await _gymPersonRepo.GetByIdAsync(memberId, trackChanges: true, cancellationToken: ct);
+            if (member == null || (member.PersonType != PersonType.Member && member.PersonType != PersonType.StaffMember))
+                throw new NotFoundException($"Member with ID {memberId} was not found.");
 
+            var plan = await _membershipPlanService.GetByIdAsync(dto.MembershipPlanId, false, ct);
+            if (plan == null)
+                throw new NotFoundException($"Membership plan with ID {dto.MembershipPlanId} was not found.");
 
+            if (member.MemberProfile == null)
+            {
+                member.MemberProfile = new GymMemberProfile();
+            }
 
+            var now = DateTime.UtcNow;
+            var currentEndDate = member.MemberProfile.MembershipEndDate;
 
+            member.MemberProfile.MembershipPlanId = plan.Id;
+            member.MemberProfile.PlanName = plan.Name;
+            member.MemberProfile.DurationDays = plan.DurationDays;
+            member.MemberProfile.PricePaid = dto.PricePaid;
+            member.MemberProfile.DiscountAmount = dto.DiscountAmount;
+            member.MemberProfile.FinalAmount = dto.FinalAmount;
+            member.MemberProfile.Notes = dto.Notes;
 
+            if (currentEndDate.HasValue && currentEndDate.Value > now)
+            {
+                member.MemberProfile.MembershipEndDate = currentEndDate.Value.AddDays(plan.DurationDays);
+            }
+            else
+            {
+                member.MemberProfile.MembershipStartDate = now;
+                member.MemberProfile.MembershipEndDate = now.AddDays(plan.DurationDays);
+            }
+
+            await _gymPersonRepo.UpdateAsync(member, ct);
+            await _unitOfWork.SaveChangesAsync(ct);
+
+            return _mapper.Map<GymPersonRDTO>(member);
+        }
+
+        public async Task<GymPersonRDTO> UpdateAccessStatusAsync(int id, UpdateAccessStatusDTO dto, CancellationToken ct = default)
+        {
+            var member = await _gymPersonRepo.GetByIdAsync(id, trackChanges: true, cancellationToken: ct);
+            if (member == null)
+                throw new NotFoundException($"GymPerson with ID {id} was not found.");
+
+            member.AccessStatus = dto.Status;
+
+            await _gymPersonRepo.UpdateAsync(member, ct);
+            await _unitOfWork.SaveChangesAsync(ct);
+
+            return _mapper.Map<GymPersonRDTO>(member);
+        }
     }
 }

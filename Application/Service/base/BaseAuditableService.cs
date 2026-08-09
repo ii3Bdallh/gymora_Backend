@@ -13,6 +13,7 @@ using Application.Interface.Service.Shared;
 using Application.Model;
 using Domain.Events;
 using Microsoft.Extensions.Logging;
+using Domain.Interface;
 
 namespace Application.Service.Base
 {
@@ -49,12 +50,22 @@ namespace Application.Service.Base
             return await base.AddAsync(dto, cancellationToken);
         }
 
+        protected override Task AfterMapReadAsync(T entity, RDTO dto, CancellationToken cancellationToken)
+        {
+            if (entity is IOnlyMeCanSee &&
+   !CanAccess(entity.CreatedById))
+            {
+                throw new UnauthorizedAccessException(
+                    "You do not have permission to access this resource.");
+            }
+            return base.AfterMapReadAsync(entity, dto, cancellationToken);
+        }
         protected override Task BeforeUpdateAsync(
             T entity,
             UDTO dto,
             CancellationToken cancellationToken)
         {
-            if (!CanModify(entity))
+            if (!CanAccess(entity.CreatedById))
             {
                 _logger.LogWarning(
                     "Unauthorized attempt to update {EntityType} with ID {Id} by user {UserId}",
@@ -74,7 +85,7 @@ namespace Application.Service.Base
             T entity,
             CancellationToken cancellationToken)
         {
-            if (!CanModify(entity))
+            if (!CanAccess(entity.CreatedById))
             {
                 throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
             }
@@ -91,10 +102,11 @@ namespace Application.Service.Base
             return Task.CompletedTask;
         }
 
-        protected virtual bool CanModify(T entity)
+        protected virtual bool CanAccess(int userId)
         {
-            return CanAccess(entity.CreatedById);
+            return HasFullAccess || userId == CurrentUserId;
         }
+
     }
 }
 

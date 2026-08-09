@@ -189,11 +189,11 @@ namespace Infrastructure.Repo
 
             await ValidateOwnerSubscriptionAsync(ownerPersonId.Value, ct);
 
-            // if (gymPerson.PersonType == PersonType.Member ||
-            //     gymPerson.PersonType == PersonType.StaffMember)
-            // {
-            //     ValidateMembership(gymPerson.MemberProfile?.Membership);
-            // }
+            if (gymPerson.PersonType == PersonType.Member ||
+                gymPerson.PersonType == PersonType.StaffMember)
+            {
+                ValidateMembership(gymPerson.MemberProfile?.MembershipEndDate > DateTime.UtcNow);
+            }
 
             return new MyGymDto
             {
@@ -222,11 +222,7 @@ namespace Infrastructure.Repo
                 case GymPersonAccessStatus.Suspended:
                     throw new ForbiddenException("Gym person access is suspended.");
 
-                case GymPersonAccessStatus.Blocked:
-                    throw new ForbiddenException("Gym person access is blocked.");
 
-                case GymPersonAccessStatus.LeftGym:
-                    throw new ForbiddenException("Gym person access is left gym.");
 
 
 
@@ -265,29 +261,20 @@ namespace Infrastructure.Repo
             }
         }
 
-        // private static void ValidateMembership(Membership? membership)
-        // {
-        //     if (membership == null)
-        //         throw new ForbiddenException("Membership not found.");
+        private static void ValidateMembership(bool HasActiveMembership)
+        {
 
-        //     switch (membership.Status)
-        //     {
-        //         case MembershipStatus.Active:
-        //             return;
 
-        //         case MembershipStatus.Expired:
-        //             throw new ForbiddenException("Your membership has expired.");
+            switch (HasActiveMembership)
+            {
+                case true:
+                    return;
 
-        //         case MembershipStatus.Frozen:
-        //             throw new ForbiddenException("Your membership is frozen.");
+                case false:
+                    throw new ForbiddenException("Your membership has expired.");
 
-        //         case MembershipStatus.Suspended:
-        //             throw new ForbiddenException("Your membership is suspended.");
-
-        //         default:
-        //             throw new ForbiddenException("Membership is not active.");
-        //     }
-        // }
+            }
+        }
 
 
 

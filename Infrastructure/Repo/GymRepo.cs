@@ -84,7 +84,7 @@ namespace Infrastructure.Repo
             //----------------------------------------------------
 
             var gyms = await baseQuery
-                .OrderBy(x => x.Gym.Name)
+                .OrderBy(x => x.PersonType)
                 .ThenBy(x => x.GymId)
                 .Skip((req.PageNumber - 1) * req.PageSize)
                 .Take(req.PageSize)
@@ -109,7 +109,10 @@ namespace Infrastructure.Repo
 
                     GymStatus = x.Gym.Status,
 
-                    PersonAccessStatus = x.AccessStatus
+                    PersonAccessStatus = x.AccessStatus,
+
+                    MembershipEndDate = x.MemberProfile!.MembershipEndDate,
+
                 })
                 .ToListAsync(cancellationToken);
 
@@ -334,51 +337,30 @@ namespace Infrastructure.Repo
                             inaccessibleReason = "Your access has been suspended.";
                             break;
 
-                        case GymPersonAccessStatus.Blocked:
-                            accessStatus = GymAccessStatus.PersonBlocked;
-                            isAccessible = false;
-                            inaccessibleReason = "You have been blocked.";
-                            break;
 
-                        case GymPersonAccessStatus.LeftGym:
-                            accessStatus = GymAccessStatus.LeftGym;
-                            isAccessible = false;
-                            inaccessibleReason = "You are no longer part of this gym.";
-                            break;
                     }
                 }
+
+                // throw new Exception("PersonAccessStatus is not Active");
 
                 //----------------------------------------------------
                 // Membership (kept for future use, as in the original)
                 //----------------------------------------------------
 
-                // if (isAccessible &&
-                //     item.Membership != null)
-                // {
-                //     switch (item.Membership.Status)
-                //     {
-                //         case MembershipStatus.Active:
-                //             break;
-                //         case MembershipStatus.Grace:
-                //             accessStatus = GymAccessStatus.MembershipGrace;
-                //             break;
-                //         case MembershipStatus.Expired:
-                //             accessStatus = GymAccessStatus.MembershipExpired;
-                //             isAccessible = false;
-                //             inaccessibleReason = "Your membership has expired.";
-                //             break;
-                //         case MembershipStatus.Frozen:
-                //             accessStatus = GymAccessStatus.MembershipFrozen;
-                //             isAccessible = false;
-                //             inaccessibleReason = "Your membership is frozen.";
-                //             break;
-                //         case MembershipStatus.Cancelled:
-                //             accessStatus = GymAccessStatus.MembershipCancelled;
-                //             isAccessible = false;
-                //             inaccessibleReason = "Your membership has been cancelled.";
-                //             break;
-                //     }
-                // }
+                if (isAccessible &&
+                    item.HasActiveMembership)
+                {
+                    switch (item.HasActiveMembership)
+                    {
+                        case true:
+                            break;
+                        case false:
+                            accessStatus = GymAccessStatus.MembershipExpired;
+                            isAccessible = false;
+                            inaccessibleReason = "Your membership has expired.";
+                            break;
+                    }
+                }
 
                 result.Add(new UserGymRDTO
                 {

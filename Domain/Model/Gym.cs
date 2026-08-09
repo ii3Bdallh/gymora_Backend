@@ -41,7 +41,7 @@ namespace Domain.Model
     // Navigation Properties
     public int OwnerUserId { get; set; }
 
-    public ApplicationUser OwnerUser { get; set; }
+    public required ApplicationUser OwnerUser { get; set; }
 
   }
 }

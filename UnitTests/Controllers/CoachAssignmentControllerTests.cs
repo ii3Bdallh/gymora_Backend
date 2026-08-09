@@ -16,21 +16,21 @@ using Xunit;
 
 namespace UnitTests.Controllers;
 
-public class TraineeCoachControllerTests
+public class CoachAssignmentControllerTests
 {
     private readonly Mock<ICoachAssignmentService> _service;
-    private readonly Mock<ILogger<TraineeCoachController>> _logger;
-    private readonly TraineeCoachController _sut;
+    private readonly Mock<ILogger<CoachAssignmentController>> _logger;
+    private readonly CoachAssignmentController _sut;
 
-    public TraineeCoachControllerTests()
+    public CoachAssignmentControllerTests()
     {
         _service = new Mock<ICoachAssignmentService>();
-        _logger = new Mock<ILogger<TraineeCoachController>>();
-        _sut = new TraineeCoachController(_service.Object, _logger.Object);
+        _logger = new Mock<ILogger<CoachAssignmentController>>();
+        _sut = new CoachAssignmentController(_service.Object, _logger.Object);
     }
 
     [Fact]
-    public async Task GetAssignedTrainees_ShouldReturnOk_WhenRequestIsValid()
+    public async Task GetAssignedMembers_ShouldReturnOk_WhenRequestIsValid()
     {
         // Arrange
         int gymId = 1;
@@ -58,29 +58,14 @@ public class TraineeCoachControllerTests
             .ReturnsAsync(listResult);
 
         // Act
-        var result = await _sut.GetAssignedTrainees(gymId, req, CancellationToken.None);
+        var result = await _sut.GetAssignedMembers(req);
 
         // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value.Should().BeAssignableTo<Result<PaginatedRes<CoachAssignmentRDTO>>>().Subject;
         response.IsSuccess.Should().BeTrue();
         response.Data!.Items.Should().HaveCount(1);
         response.Data.Items.First().Member!.Name.Should().Be("John Doe");
-    }
-
-    [Fact]
-    public async Task GetAssignedTrainees_ShouldReturnUnprocessableEntity_WhenParametersAreInvalid()
-    {
-        // Arrange
-        int gymId = 1;
-        var req = new GetAssignedMemberForCoachPagedReq { PageNumber = 0, PageSize = 10, CoachId = 5, GymId = gymId };
-
-        // Act
-        var result = await _sut.GetAssignedTrainees(gymId, req, CancellationToken.None);
-
-        // Assert
-        var badResult = result.Should().BeOfType<ObjectResult>().Subject;
-        badResult.StatusCode.Should().Be(422);
     }
 
     [Fact]
@@ -103,7 +88,7 @@ public class TraineeCoachControllerTests
             .ReturnsAsync(rDto);
 
         // Act
-        var result = await _sut.AssignCoach(gymId, dto, CancellationToken.None);
+        var result = await _sut.AssignCoach(dto, CancellationToken.None);
 
         // Assert
         var objectResult = result.Should().BeOfType<ObjectResult>().Subject;

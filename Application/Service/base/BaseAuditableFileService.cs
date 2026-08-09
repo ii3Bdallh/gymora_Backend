@@ -10,6 +10,7 @@ using Domain.Model.Base;
 using MassTransit;
 using System.Threading;
 using Microsoft.Extensions.Logging;
+using Domain.Interface;
 
 namespace Application.Service.Base
 {
@@ -38,7 +39,16 @@ namespace Application.Service.Base
 
         }
 
-
+        protected override Task AfterMapReadAsync(T entity, RDTO dto, CancellationToken cancellationToken)
+        {
+            if (entity is IOnlyMeCanSee &&
+   !CanAccess(entity.CreatedById))
+            {
+                throw new UnauthorizedAccessException(
+                    "You do not have permission to access this resource.");
+            }
+            return base.AfterMapReadAsync(entity, dto, cancellationToken);
+        }
         protected override async Task BeforeAddAsync(
     CDTO dto,
     CancellationToken cancellationToken)
@@ -53,7 +63,7 @@ namespace Application.Service.Base
     CancellationToken cancellationToken)
         {
 
-            if (!CanModify(entity))
+            if (!CanAccess(entity.CreatedById))
                 throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
 
             dto.CreatedById = entity.CreatedById;
@@ -64,16 +74,14 @@ namespace Application.Service.Base
             CancellationToken cancellationToken)
         {
 
-            if (!CanModify(entity))
+            if (!CanAccess(entity.CreatedById))
                 throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
         }
 
-        protected virtual bool CanModify(T entity)
+        protected virtual bool CanAccess(int createdById)
         {
-            return CanAccess(entity.CreatedById);
+            return HasFullAccess || createdById == CurrentUserId;
         }
-
-
 
     }
 }

@@ -132,5 +132,38 @@ namespace Api.Controllers
             logger.LogInformation("Successfully initiated salary payment for GymPerson with Id: {Id}", id);
             return Ok(Result<string>.Success("Salary payment initiated successfully."));
         }
+
+        [HttpPost("{id}/renew-membership")]
+        [GymAuthorize(
+            GymRoleString.Owner,
+            GymRoleString.Manager,
+            GymRoleString.Receptionist
+        )]
+        public async Task<ActionResult<GymPersonRDTO>> RenewMembershipAsync(
+            int id,
+            [FromBody] RenewMembershipDTO dto,
+            CancellationToken ct = default)
+        {
+            logger.LogInformation("Renewing membership for GymPerson with Id: {Id}", id);
+            var result = await service.RenewMemberSubscriptionAsync(id, dto, ct);
+            logger.LogInformation("Successfully renewed membership for GymPerson with Id: {Id}", id);
+            return Ok(Result<GymPersonRDTO>.Success(result));
+        }
+
+        [HttpPost("{id}/change-status")]
+        [GymAuthorize(
+            GymRoleString.Owner,
+            GymRoleString.Manager
+        )]
+        public async Task<ActionResult<GymPersonRDTO>> ChangeStatusAsync(
+            int id,
+            [FromBody] UpdateAccessStatusDTO dto,
+            CancellationToken ct = default)
+        {
+            logger.LogInformation("Changing access status for GymPerson with Id: {Id}", id);
+            var result = await service.UpdateAccessStatusAsync(id, dto, ct);
+            logger.LogInformation("Successfully changed access status for GymPerson with Id: {Id}", id);
+            return Ok(Result<GymPersonRDTO>.Success(result));
+        }
     }
 }

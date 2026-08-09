@@ -1,0 +1,195 @@
+{
+    "info":  {
+                 "_postman_id":  "e03c4d5e-6f7a-4b8c-9d0e-2f3a4b5c6d7e",
+                 "name":  "12 - Coach Assignment",
+                 "description":  "Endpoints to assign coaches to members and query coach-member assignments per gym.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Get Assigned Members For Coach",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "var jsonData = pm.response.json();",
+                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
+                                                                   "    pm.environment.set(\"coachAssignmentId\", jsonData.data.items[0].id);",
+                                                                   "}"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "description":  "Fetches all members assigned to a specific coach within a gym.\n\n### Request Fields (`GetAssignedMemberForCoachPagedReq`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `coachId` | `int` | Yes | Gym person ID of the coach (staff) |\n| `gymId` | `int` | Yes | Target gym ID |\n| `pageNumber` | `int` | No | Defaults to 1 |\n| `pageSize` | `int` | No | Defaults to 10, max 50 |\n| `orderBy` | `string` | No | Defaults to `Id` |\n| `orderDirection` | `string` | No | `asc` or `desc` |\n\nReturns `Result<PaginatedRes<CoachAssignmentRDTO>>`.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, or `Coach`. SuperAdmin bypasses all gym checks.",
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"coachId\": 1,\n  \"gymId\": {{gymId}},\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/CoachAssignment/get-assigned-members-for-coach",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "CoachAssignment",
+                                                              "get-assigned-members-for-coach"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Get Assigned Coaches For Member",
+                     "request":  {
+                                     "description":  "Fetches all coaches assigned to a specific member within a gym.\n\n### Request Fields (`GetAssignCoachForMemberPagedReq`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `memberId` | `int` | Yes | Gym person ID of the member |\n| `gymId` | `int` | Yes | Target gym ID |\n| `pageNumber` | `int` | No | Defaults to 1 |\n| `pageSize` | `int` | No | Defaults to 10, max 50 |\n| `orderBy` | `string` | No | Defaults to `Id` |\n| `orderDirection` | `string` | No | `asc` or `desc` |\n\nReturns `Result<PaginatedRes<CoachAssignmentRDTO>>`.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"memberId\": {{gymPersonId}},\n  \"gymId\": {{gymId}},\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/CoachAssignment/get-assigned-coaches-for-member",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "CoachAssignment",
+                                                              "get-assigned-coaches-for-member"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Get Gym Coach Assignments",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "var jsonData = pm.response.json();",
+                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
+                                                                   "    pm.environment.set(\"coachAssignmentId\", jsonData.data.items[0].id);",
+                                                                   "}"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "description":  "Fetches all coach-member assignments in the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `MemberId` | `int` | Exact | Assigned member gym person ID |\n| `CoachStaffId` | `int` | Exact | Coach (staff) gym person ID |\n| `AssignedById` | `int` | Exact | Gym person ID who created the assignment |\n| `AssignedAt` | `DateTime` | Between | ISO assignment timestamp |\n| `EndedAt` | `DateTime?` | - | ISO end timestamp (nullable) |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"CoachStaffId\": [\"2\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"AssignedAt\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/CoachAssignment/get-gym-coach-assignments",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "CoachAssignment",
+                                                              "get-gym-coach-assignments"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Assign Coach",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 201\", function () {",
+                                                                   "    pm.response.to.have.status(201);",
+                                                                   "});",
+                                                                   "var jsonData = pm.response.json();",
+                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
+                                                                   "    pm.environment.set(\"coachAssignmentId\", jsonData.data.id);",
+                                                                   "}"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "description":  "Assigns a coach (staff member) to a member. `gymId` and `assignedBy` are resolved from the authenticated user.\n\n### Request Fields (`CoachAssignmentCDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `memberId` | `int` | Yes | Gym person ID of the member |\n| `coachStaffId` | `int` | Yes | Gym person ID of the coach (must not be a `Member`) |\n\n### Behavior\n\n- Fails with `404` if the member does not exist.\n- Fails with `404` if the coach does not exist or is a `Member` type.\n\nReturns `201 Created` with `Result<CoachAssignmentRDTO>`.\n\n### Authorization\n\nRequires `[Authorize]` (any authenticated user). Rate-limited via `UserRateLimiter`.",
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"memberId\": {{gymPersonId}},\n  \"coachStaffId\": 1\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/CoachAssignment/coach-assignments",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "CoachAssignment",
+                                                              "coach-assignments"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 }
+             ],
+    "auth":  {
+                 "type":  "bearer",
+                 "bearer":  [
+                                {
+                                    "key":  "token",
+                                    "value":  "{{token}}",
+                                    "type":  "string"
+                                }
+                            ]
+             }
+}

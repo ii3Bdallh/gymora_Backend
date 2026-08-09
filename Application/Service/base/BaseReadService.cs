@@ -54,10 +54,10 @@ namespace Application.Service
 
         protected bool HasFullAccess => CurrentUser.IsSuperAdmin;
 
-        protected virtual bool CanAccess(int createdById)
-        {
-            return HasFullAccess || createdById == CurrentUserId;
-        }
+        // protected virtual bool CanAccess(T entity)
+        // {
+        //     return HasFullAccess || entity.CreatedById == CurrentUserId;
+        // }
 
 
         /// <summary>
@@ -138,12 +138,7 @@ namespace Application.Service
                     if (entity is null)
                         throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
 
-                    if (entity is IOnlyMeCanSee owned &&
-                       !CanAccess(owned.CreatedById))
-                    {
-                        throw new UnauthorizedAccessException(
-                            "You do not have permission to access this resource.");
-                    }
+
 
                     var dto = _mapper.Map<RDTO>(entity);
 

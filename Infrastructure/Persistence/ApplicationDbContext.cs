@@ -25,6 +25,8 @@ public sealed class ApplicationDbContext
     public DbSet<SubscriptionPlan> SubscriptionPlan { get; set; }
     public DbSet<PlanPrice> PlanPrice { get; set; }
     public DbSet<CoachAssignment> CoachAssignment { get; set; }
+    public DbSet<Attendance> Attendances { get; set; }
+    public DbSet<MembershipPlan> MembershipPlans { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 

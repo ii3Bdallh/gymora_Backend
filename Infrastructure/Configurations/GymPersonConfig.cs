@@ -77,10 +77,21 @@ namespace Infrastructure.Config
             builder.Property(x => x.MedicalNotes).HasMaxLength(1000);
             builder.Property(x => x.Notes).HasMaxLength(1000);
 
+            builder.Property(x => x.PlanName).HasMaxLength(100).IsRequired();
+            builder.Property(x => x.PricePaid).HasPrecision(18, 2);
+            builder.Property(x => x.DiscountAmount).HasPrecision(18, 2);
+            builder.Property(x => x.FinalAmount).HasPrecision(18, 2);
+            builder.Property(x => x.PaymentMethod).HasMaxLength(50);
+
             builder.HasOne(x => x.GymPerson)
                    .WithOne(x => x.MemberProfile)
                    .HasForeignKey<GymMemberProfile>(x => x.Id)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(x => x.MembershipPlan)
+                   .WithMany()
+                   .HasForeignKey(x => x.MembershipPlanId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

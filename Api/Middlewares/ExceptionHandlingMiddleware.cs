@@ -55,6 +55,13 @@ namespace Api.Middalewares
                 httpContext.Response.ContentType = "application/json";
                 await httpContext.Response.WriteAsJsonAsync(Result<object>.Failure("NOT_FOUND", ex.Message));
             }
+            catch (UnprocessableEntityException ex)
+            {
+                _logger.LogWarning(ex, "Unprocessable entity: {Message}", ex.Message);
+                httpContext.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+                httpContext.Response.ContentType = "application/json";
+                await httpContext.Response.WriteAsJsonAsync(Result<object>.Failure(ex.Code, ex.Message));
+            }
             catch (ForbiddenException ex)
             {
                 _logger.LogWarning(ex, "Forbidden: {Message}", ex.Message);

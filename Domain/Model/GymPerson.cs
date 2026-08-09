@@ -42,7 +42,6 @@ namespace Domain.Model
 
         public int CreatedById { get; set; }
 
-        public DateTime? UpdatedAt { get; set; }
 
         public GymPersonAccessStatus AccessStatus { get; set; }
 
@@ -63,8 +62,5 @@ namespace Domain.Model
 
         Suspended = 2,
 
-        Blocked = 3,
-
-        LeftGym = 4
     }
 }

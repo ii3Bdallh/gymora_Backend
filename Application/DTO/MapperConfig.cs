@@ -209,6 +209,27 @@ namespace Application.DTO
                 .ForMember(x => x.StoredFilePath, opt => opt.Ignore());
             #endregion
 
+            CreateMap<Attendance, AttendanceLogItemRDTO>()
+                .IncludeBase<BaseEntity, BaseRDTO>()
+                .ForMember(dest => dest.MemberFullName, opt => opt.MapFrom(src => src.Member.Name))
+                .ForMember(dest => dest.DisplayId, opt => opt.MapFrom(src => $"#M-{src.MemberId}"))
+                .ForMember(dest => dest.MembershipStatus, opt => opt.MapFrom(src => (src.Member.MemberProfile != null && src.Member.MemberProfile.MembershipEndDate.HasValue && src.Member.MemberProfile.MembershipEndDate.Value > DateTime.UtcNow) ? "Active" : "Expired"))
+                .ForMember(dest => dest.RecordedByStaffName, opt => opt.MapFrom(src => src.RecordedBy != null ? src.RecordedBy.Name : null));
+
+            CreateMap<RecordCheckInCDTO, Attendance>().ReverseMap();
+            CreateMap<RecordCheckInUDTO, Attendance>().ReverseMap();
+
+            CreateMap<MembershipPlan, MembershipPlanRDTO>()
+                .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>()
+                .ReverseMap();
+            CreateMap<MembershipPlan, MembershipPlanCDTO>()
+                .IncludeBase<BaseAuditableEntity, BaseAuditableCDTO>()
+                .ReverseMap();
+            CreateMap<MembershipPlan, MembershipPlanUDTO>()
+                .IncludeBase<BaseAuditableEntity, BaseAuditableUDTO>()
+                .ReverseMap();
+
+
 
 
 

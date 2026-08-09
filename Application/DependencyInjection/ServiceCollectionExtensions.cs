@@ -38,6 +38,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICouponService, CouponService>();
         services.AddScoped<IPaymentRequestService, PaymentRequestService>();
         services.AddScoped<ICoachAssignmentService, CoachAssignmentService>();
+        services.AddScoped<IAttendanceService, AttendanceService>();
+        services.AddScoped<IMembershipPlanService, MembershipPlanService>();
 
         return services;
     }

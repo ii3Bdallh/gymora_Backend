@@ -1,0 +1,155 @@
+{
+    "info":  {
+                 "_postman_id":  "d02b3c4d-5e6f-4a7b-9c8d-1e2f3a4b5c6d",
+                 "name":  "11 - Attendance",
+                 "description":  "Endpoints to record member check-ins and retrieve gym attendance dashboards, logs, and per-member history.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Get Attendance Dashboard",
+                     "request":  {
+                                     "description":  "Fetches today's attendance stats and the 10 most recent check-ins for a gym.\n\n### Route Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID |\n\n### Response (`GymAttendanceDashboardRDTO`)\n\n- `gymId` (`int`)\n- `stats` — `todayCheckInsCount`, `currentlyInsideCount`, `activeMembersCount`, `expiredMembersCount`\n- `recentEntries` — list of `{ attendanceId, memberId, memberFullName, profilePictureUrl, planType, checkInTime }`\n\nFails with `403` if the gym is not the current user's active gym.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Receptionist`, or `Coach`. SuperAdmin bypasses all gym checks.",
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Attendance/dashboard/{{gymId}}",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Attendance",
+                                                              "dashboard",
+                                                              "{{gymId}}"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Check In Member",
+                     "request":  {
+                                     "description":  "Records a check-in for a member. `gymId` is resolved from the authenticated user's active gym.\n\n### Request Fields (`RecordCheckInCDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `memberId` | `int` | Yes | Gym person ID of an active member |\n\n### Behavior\n\n- Fails with `404` if the member does not exist, is not a `Member`, belongs to another gym, or is not `Active`.\n- Fails with `422 MEMBERSHIP_INACTIVE_OR_EXPIRED` if the membership is inactive or expired.\n\nReturns `201 Created` with `Result<object>` containing message \"Check-in recorded successfully.\".\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, or `Receptionist`. SuperAdmin bypasses all gym checks. Rate-limited via `UserRateLimiter`.",
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"memberId\": {{gymPersonId}}\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Attendance/check-in",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Attendance",
+                                                              "check-in"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Get Attendance History",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\"Status code is 200\", function () {",
+                                                                   "    pm.response.to.have.status(200);",
+                                                                   "});",
+                                                                   "var jsonData = pm.response.json();",
+                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
+                                                                   "    pm.environment.set(\"attendanceId\", jsonData.data.items[0].id);",
+                                                                   "}"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "description":  "Fetches the full gym attendance log with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `MemberId` | `int` | Exact | Gym person ID of the member |\n| `CheckInTime` | `DateTime` | Between | ISO check-in timestamp |\n| `RecordedById` | `int?` | Exact | Gym person ID who recorded the entry |\n| `EntryMethod` | `string` | Exact | e.g. `Staff Override` |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"MemberId\": [\"5\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CheckInTime\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, or `Receptionist`. SuperAdmin bypasses all gym checks.",
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Attendance/history",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Attendance",
+                                                              "history"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 },
+                 {
+                     "name":  "Get Member Attendance History",
+                     "request":  {
+                                     "description":  "Fetches the attendance log filtered to a single member.\n\n### Request Fields (`MemberAttendanceHistoryPagedReq`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `memberId` | `int` | Yes | Gym person ID of the member |\n| `pageNumber` | `int` | No | Defaults to 1 |\n| `pageSize` | `int` | No | Defaults to 10, max 50 |\n| `orderBy` | `string` | No | Defaults to `Id` |\n| `orderDirection` | `string` | No | `asc` or `desc` |\n\nReturns `Result<PaginatedRes<AttendanceLogItemRDTO>>`.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Receptionist`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"memberId\": {{gymPersonId}},\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{baseUrl}}/api/Attendance/member-history",
+                                                 "host":  [
+                                                              "{{baseUrl}}"
+                                                          ],
+                                                 "path":  [
+                                                              "api",
+                                                              "Attendance",
+                                                              "member-history"
+                                                          ]
+                                             }
+                                 },
+                     "response":  [
+
+                                  ]
+                 }
+             ],
+    "auth":  {
+                 "type":  "bearer",
+                 "bearer":  [
+                                {
+                                    "key":  "token",
+                                    "value":  "{{token}}",
+                                    "type":  "string"
+                                }
+                            ]
+             }
+}

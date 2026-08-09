@@ -1,5 +1,4 @@
 using Domain.Enum;
-using Domain.Model.Base;
 using System;
 
 namespace Domain.Model
