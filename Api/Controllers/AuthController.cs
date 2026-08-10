@@ -71,7 +71,7 @@ namespace Api.Controllers
             if (!ModelState.IsValid)
                 return UnprocessableEntity(Result<object>.Failure("VALIDATION_ERROR", "Invalid input data."));
 
-            var result = await _authService.LoginAsync(loginReqDto, cancellationToken);
+            AuthResponseDto result = await _authService.LoginAsync(loginReqDto, cancellationToken);
 
 
 

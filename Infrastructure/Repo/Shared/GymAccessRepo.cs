@@ -105,8 +105,7 @@ namespace Infrastructure.Repo
             if (currentPlan == null)
                 return false;
 
-            if (currentPlan.SubscriptionStatus != OwnerSubscriptionStatus.Active &&
-                currentPlan.SubscriptionStatus != OwnerSubscriptionStatus.Grace)
+            if (currentPlan.SubscriptionStatus != OwnerSubscriptionStatus.Active)
             {
                 return false;
             }
@@ -247,7 +246,6 @@ namespace Infrastructure.Repo
             switch (subscription.SubscriptionStatus)
             {
                 case OwnerSubscriptionStatus.Active:
-                case OwnerSubscriptionStatus.Grace:
                     return;
 
                 case OwnerSubscriptionStatus.Expired:

@@ -19,6 +19,7 @@ namespace Api.Controllers
 
 
         [HttpPost]
+        [Authorize(Roles = $"{AppRole.SuperAdmin}")]
         public async Task<ActionResult<IEnumerable<OwnerSubscriptionRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
         {
             logger.LogInformation("Fetching all OwnerSubscriptions");
@@ -27,6 +28,7 @@ namespace Api.Controllers
             return Ok(Result<PaginatedRes<OwnerSubscriptionRDTO>>.Success(OwnerSubscriptions));
         }
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<OwnerSubscriptionRDTO>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching OwnerSubscription with Id: {Id}", id);

@@ -14,13 +14,11 @@ namespace Application.DTO.Model
         public string CurrencyCode { get; set; } = null!;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public DateTime GraceEndDate { get; set; }
     }
 
     public record OwnerSubscriptionUDTO : BaseAuditableUDTO
     {
         public DateTime EndDate { get; set; }
-        public DateTime GraceEndDate { get; set; }
     }
 
     public record OwnerSubscriptionRDTO : BaseAuditableRDTO
@@ -32,7 +30,6 @@ namespace Application.DTO.Model
         public string CurrencyCode { get; set; } = null!;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public DateTime GraceEndDate { get; set; }
         public OwnerSubscriptionStatus Status
         {
             get; set;

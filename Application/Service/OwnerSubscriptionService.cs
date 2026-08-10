@@ -76,9 +76,7 @@ namespace Application.Service
                 AmountPaid = payment.FinalAmount,
                 CurrencyCode = payment.CurrencyCode,
                 StartDate = startDate,
-                EndDate = endDate,
-                GraceEndDate = endDate.AddDays(7)
-
+                EndDate = endDate
             };
 
             await _repo.AddAsync(subscription, ct);

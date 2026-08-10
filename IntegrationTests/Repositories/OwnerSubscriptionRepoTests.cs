@@ -76,7 +76,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             CurrencyCode = "USD",
             StartDate = DateTime.UtcNow,
             EndDate = DateTime.UtcNow.AddMonths(1),
-            GraceEndDate = DateTime.UtcNow.AddMonths(1).AddDays(7),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
             RowVersion = [1, 2, 3]
@@ -106,7 +105,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             CurrencyCode = "USD",
             StartDate = DateTime.UtcNow.AddDays(-1),
             EndDate = DateTime.UtcNow.AddMonths(1),
-            GraceEndDate = DateTime.UtcNow.AddMonths(1).AddDays(7),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
             RowVersion = [1, 2, 3]
@@ -132,7 +130,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             CurrencyCode = "USD",
             StartDate = DateTime.UtcNow.AddMonths(-2),
             EndDate = DateTime.UtcNow.AddMonths(-1),
-            GraceEndDate = DateTime.UtcNow.AddMonths(-1).AddDays(7),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
             RowVersion = [1, 2, 3]
@@ -158,7 +155,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             CurrencyCode = "USD",
             StartDate = DateTime.UtcNow.AddDays(-1),
             EndDate = DateTime.UtcNow.AddMonths(1),
-            GraceEndDate = DateTime.UtcNow.AddMonths(1).AddDays(7),
             CreatedById = 999,
             CreatedOn = DateTime.UtcNow,
             RowVersion = [1, 2, 3]
@@ -173,61 +169,7 @@ public class OwnerSubscriptionRepoTests : IDisposable
 
     #endregion
 
-    #region HasGraceSubscriptionAsync
 
-    [Fact]
-    public async Task HasGraceSubscriptionAsync_ShouldReturnTrue_WhenInGracePeriod()
-    {
-        var (planPrice, plan) = await SeedPlanAsync();
-
-        var subscription = new OwnerSubscription
-        {
-            PlanId = plan.Id,
-            PlanPriceId = planPrice.Id,
-            AmountPaid = 50m,
-            CurrencyCode = "USD",
-            StartDate = DateTime.UtcNow.AddMonths(-2),
-            EndDate = DateTime.UtcNow.AddDays(-1),
-            GraceEndDate = DateTime.UtcNow.AddDays(5),
-            CreatedById = 1,
-            CreatedOn = DateTime.UtcNow,
-            RowVersion = [1, 2, 3]
-        };
-        _context.OwnerSubscription.Add(subscription);
-        await _context.SaveChangesAsync();
-
-        var result = await _sut.HasGraceSubscriptionAsync(1);
-
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task HasGraceSubscriptionAsync_ShouldReturnFalse_WhenNotInGracePeriod()
-    {
-        var (planPrice, plan) = await SeedPlanAsync();
-
-        var subscription = new OwnerSubscription
-        {
-            PlanId = plan.Id,
-            PlanPriceId = planPrice.Id,
-            AmountPaid = 50m,
-            CurrencyCode = "USD",
-            StartDate = DateTime.UtcNow.AddMonths(-3),
-            EndDate = DateTime.UtcNow.AddMonths(-2),
-            GraceEndDate = DateTime.UtcNow.AddMonths(-2).AddDays(7),
-            CreatedById = 1,
-            CreatedOn = DateTime.UtcNow,
-            RowVersion = [1, 2, 3]
-        };
-        _context.OwnerSubscription.Add(subscription);
-        await _context.SaveChangesAsync();
-
-        var result = await _sut.HasGraceSubscriptionAsync(1);
-
-        result.Should().BeFalse();
-    }
-
-    #endregion
 
     #region GetCurrentSubscriptionAsync
 
@@ -244,7 +186,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             CurrencyCode = "USD",
             StartDate = DateTime.UtcNow.AddDays(-1),
             EndDate = DateTime.UtcNow.AddMonths(1),
-            GraceEndDate = DateTime.UtcNow.AddMonths(1).AddDays(7),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
             RowVersion = [1, 2, 3]
@@ -283,7 +224,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             CurrencyCode = "USD",
             StartDate = DateTime.UtcNow,
             EndDate = DateTime.UtcNow.AddMonths(1),
-            GraceEndDate = DateTime.UtcNow.AddMonths(1).AddDays(7),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
             RowVersion = [1, 2, 3]
@@ -322,7 +262,6 @@ public class OwnerSubscriptionRepoTests : IDisposable
             CurrencyCode = "USD",
             StartDate = DateTime.UtcNow,
             EndDate = DateTime.UtcNow.AddMonths(1),
-            GraceEndDate = DateTime.UtcNow.AddMonths(1).AddDays(7),
             CreatedById = 1,
             CreatedOn = DateTime.UtcNow,
             RowVersion = [1, 2, 3]

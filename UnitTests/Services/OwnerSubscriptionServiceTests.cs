@@ -75,7 +75,6 @@ public class OwnerSubscriptionServiceTests
             CurrencyCode = "USD",
             StartDate = DateTime.UtcNow,
             EndDate = DateTime.UtcNow.AddMonths(1),
-            GraceEndDate = DateTime.UtcNow.AddMonths(1).AddDays(7),
             Status = OwnerSubscriptionStatus.Active
         };
 
@@ -190,7 +189,6 @@ public class OwnerSubscriptionServiceTests
             {
                 e.StartDate = DateTime.UtcNow;
                 e.EndDate = e.StartDate.AddMonths(3);
-                e.GraceEndDate = e.EndDate.AddDays(7);
             })
             .ReturnsAsync(subscription);
         _mapper.Setup(m => m.Map<OwnerSubscriptionRDTO>(It.IsAny<OwnerSubscription>()))
@@ -204,8 +202,7 @@ public class OwnerSubscriptionServiceTests
 
         result.Should().NotBeNull();
         _repo.Verify(r => r.AddAsync(It.Is<OwnerSubscription>(e =>
-            e.EndDate > e.StartDate &&
-            e.GraceEndDate > e.EndDate), It.IsAny<CancellationToken>()), Times.Once);
+            e.EndDate > e.StartDate), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     #endregion

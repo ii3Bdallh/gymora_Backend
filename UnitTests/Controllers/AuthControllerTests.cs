@@ -48,12 +48,7 @@ namespace UnitTests.Controllers
                 Password = "Password123!" 
             };
             
-            var responseDto = new RegisterResponseDto
-            {
-         
-                IsNewUser = true,
-                User = new UserInfoDto { UserId = "1", Email = "test@test.com", FullName = "Test User" }
-            };
+
 
             _authService.Setup(a => a.RegisterAsync(dto, It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);

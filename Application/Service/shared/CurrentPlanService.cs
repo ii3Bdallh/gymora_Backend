@@ -62,8 +62,7 @@ namespace Application.Service.shared
 
 
             if (subscription != null &&
-                (subscription.Status == OwnerSubscriptionStatus.Active ||
-                 subscription.Status == OwnerSubscriptionStatus.Grace))
+                subscription.Status == OwnerSubscriptionStatus.Active)
             {
 
 

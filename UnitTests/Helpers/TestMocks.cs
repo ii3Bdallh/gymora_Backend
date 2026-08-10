@@ -121,12 +121,10 @@ public static class TestData
         string currencyCode = "USD",
         int createdById = 1,
         DateTime? startDate = null,
-        DateTime? endDate = null,
-        DateTime? graceEndDate = null)
+        DateTime? endDate = null)
     {
         var start = startDate ?? DateTime.UtcNow;
         var end = endDate ?? start.AddMonths(1);
-        var grace = graceEndDate ?? end.AddDays(7);
         return new OwnerSubscription
         {
             Id = id,
@@ -139,7 +137,6 @@ public static class TestData
             CreatedOn = DateTime.UtcNow,
             StartDate = start,
             EndDate = end,
-            GraceEndDate = grace,
             RowVersion = [1, 2, 3]
         };
     }

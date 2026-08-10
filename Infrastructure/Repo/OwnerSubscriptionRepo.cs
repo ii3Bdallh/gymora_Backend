@@ -27,14 +27,6 @@ namespace Infrastructure.Repo
                DateTime.Now <= x.EndDate, ct);
         }
 
-        public async Task<bool> HasGraceSubscriptionAsync(int ownerUserId, CancellationToken ct = default)
-        {
-            return await DbSet.AnyAsync(x =>
-                x.CreatedById == ownerUserId &&
-                DateTime.Now > x.EndDate &&
-                DateTime.Now <= x.GraceEndDate, ct);
-        }
-
         public async Task<OwnerSubscription?> GetCurrentSubscriptionAsync(int ownerUserId, CancellationToken ct = default)
         {
             return await DbSet

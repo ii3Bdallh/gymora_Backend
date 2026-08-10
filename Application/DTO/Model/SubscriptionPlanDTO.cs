@@ -15,8 +15,8 @@ namespace Application.DTO.Model
 
         public string? Description { get; set; }
         public int MaxOwnedGyms { get; set; }
-        public int MaxCoaches { get; set; }
-        public int MaxMembers { get; set; }
+        public int MaxCoaches { get; set; } // MaxCoaches
+        public int MaxMembers { get; set; } // MaxMembers
         public string? FeaturesJson { get; set; }
 
         public ICollection<PlanPriceCDTO> Prices { get; set; } = new List<PlanPriceCDTO>();

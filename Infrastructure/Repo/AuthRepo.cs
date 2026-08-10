@@ -161,7 +161,8 @@ namespace Infrastructure.Repo
                 {
                     UserId = user.Id.ToString(),
                     FullName = user.PersonName,
-                    Email = user.Email!
+                    Email = user.Email!,
+                    Role = roles
                 },
             };
         }

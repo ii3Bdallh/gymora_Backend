@@ -62,6 +62,13 @@ namespace Api.Middalewares
                 httpContext.Response.ContentType = "application/json";
                 await httpContext.Response.WriteAsJsonAsync(Result<object>.Failure(ex.Code, ex.Message));
             }
+            catch (ApplicationException ex)
+            {
+                _logger.LogWarning(ex, "Application exception: {Message}", ex.Message);
+                httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+                httpContext.Response.ContentType = "application/json";
+                await httpContext.Response.WriteAsJsonAsync(Result<object>.Failure("BAD_REQUEST", ex.Message));
+            }
             catch (ForbiddenException ex)
             {
                 _logger.LogWarning(ex, "Forbidden: {Message}", ex.Message);
@@ -75,7 +82,7 @@ namespace Api.Middalewares
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 httpContext.Response.ContentType = "application/json";
                 //await httpContext.Response.WriteAsJsonAsync(Result<object>.Failure("INTERNAL_ERROR", "An unexpected error occurred. Please try again later."));
-                await httpContext.Response.WriteAsJsonAsync(Result<object>.Failure("INTERNAL_ERROR", ex.Message));
+                await httpContext.Response.WriteAsJsonAsync(Result<object>.Failure("INTERNAL_ERROR", $"Message: {ex.Message}\nStackTrace: {ex.StackTrace}\nData: {ex.Data}\nSource: {ex.Source} -    TargetSite: {ex.TargetSite} -    InnerException: {ex.InnerException} -    HResult: {ex.HResult}"));
             }
         }
     }

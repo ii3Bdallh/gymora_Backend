@@ -52,20 +52,22 @@ namespace Infrastructure.Repo
             CancellationToken cancellationToken)
         {
             //----------------------------------------------------
-            // Base filter (shared by Count + Page queries)
+            // 1) Base filter: get all GymPerson rows belonging to this user
+            //    (reused for both the Count query and the Page query)
             //----------------------------------------------------
-
             var baseQuery = context.GymPerson
-                .AsNoTracking()
+                .AsNoTracking() // read-only data, so disable EF change tracking for performance
                 .Where(x =>
                     x.UserId == userId);
 
             //----------------------------------------------------
-            // Total Count (pure SQL COUNT, no rows loaded)
+            // 2) Get the total number of gyms for this user
+            //    Executed as a pure SQL COUNT(*), no rows are loaded into memory
             //----------------------------------------------------
-
             var totalCount = await baseQuery.CountAsync(cancellationToken);
 
+            // If the user has no gyms at all, return an empty result immediately
+            // (avoids running all the extra queries below for nothing)
             if (totalCount == 0)
             {
                 return new UserGymsListRDTO
@@ -79,15 +81,15 @@ namespace Infrastructure.Repo
             }
 
             //----------------------------------------------------
-            // Get User Gyms — Skip/Take executed in SQL, with an
-            // explicit ordering (required for stable pagination)
+            // 3) Fetch the requested page of gyms (Pagination)
+            //    - Skip/Take run in SQL, not in memory
+            //    - An explicit OrderBy is required for stable/consistent pagination
             //----------------------------------------------------
-
             var gyms = await baseQuery
-                .OrderBy(x => x.PersonType)
-                .ThenBy(x => x.GymId)
-                .Skip((req.PageNumber - 1) * req.PageSize)
-                .Take(req.PageSize)
+                .OrderBy(x => x.PersonType)   // primary sort by person type
+                .ThenBy(x => x.GymId)         // secondary sort by GymId, to keep ordering stable across pages
+                .Skip((req.PageNumber - 1) * req.PageSize) // skip previous pages
+                .Take(req.PageSize)                        // take only this page's items
                 .Select(x => new UserGymRDTO
                 {
                     GymId = x.GymId,
@@ -98,6 +100,10 @@ namespace Infrastructure.Repo
 
                     GymPersonId = x.Id,
 
+                    // Determine the user's role inside this gym:
+                    // - Owner -> GymRole.Owner
+                    // - has a StaffProfile -> use their assigned GymRoleId
+                    // - otherwise -> plain Member
                     GymRole =
                         x.PersonType == PersonType.Owner
                             ? GymRole.Owner
@@ -105,29 +111,30 @@ namespace Infrastructure.Repo
                                 ? x.StaffProfile.GymRoleId
                                 : GymRole.Member,
 
-                    // Membership = x.MemberProfile!.Membership,
+                    // Membership = x.MemberProfile!.Membership, // (currently disabled/unused)
 
                     GymStatus = x.Gym.Status,
 
                     PersonAccessStatus = x.AccessStatus,
 
+                    // Membership end date (may be null if the user isn't a Member)
                     MembershipEndDate = x.MemberProfile!.MembershipEndDate,
 
                 })
                 .ToListAsync(cancellationToken);
 
             //----------------------------------------------------
-            // Gym Ids — only for the current page
+            // 4) Extract the GymIds for ONLY the current page
+            //    (not all gyms — just the ones returned in this page)
             //----------------------------------------------------
-
             var gymIds = gyms
                 .Select(x => x.GymId)
                 .ToList();
 
             //----------------------------------------------------
-            // Get Gym Owners — only for gyms in the current page
+            // 5) Get the Owners of the gyms in the current page only
+            //    Build a Dictionary: GymId -> OwnerUserId
             //----------------------------------------------------
-
             var gymOwners = await context.GymPerson
                 .AsNoTracking()
                 .Where(x =>
@@ -140,13 +147,16 @@ namespace Infrastructure.Repo
                     cancellationToken);
 
             //----------------------------------------------------
-            // Collect Owner Ids — derived from verified owners only,
-            // so every downstream query targets exactly the owners
-            // that matter for this page
+            // 6) Collect the distinct Owner Ids
+            //    So every downstream query targets exactly the owners
+            //    that matter for this page (no wasted queries)
             //----------------------------------------------------
-
             var ownerIds = gymOwners.Values.Distinct().ToList();
 
+            //----------------------------------------------------
+            // 7) Number of gyms owned by each Owner
+            //    (used later to compare against the Free Plan limit)
+            //----------------------------------------------------
             var gymCounts = await context.Gym
                 .AsNoTracking()
                 .Where(x =>
@@ -157,6 +167,10 @@ namespace Infrastructure.Repo
                     g => g.Count(),
                     cancellationToken);
 
+            //----------------------------------------------------
+            // 8) Number of Members (Member + StaffMember) across
+            //    all gyms owned by each Owner
+            //----------------------------------------------------
             var memberCounts = await context.GymPerson
                 .AsNoTracking()
                 .Where(x =>
@@ -169,6 +183,10 @@ namespace Infrastructure.Repo
                     g => g.Count(),
                     cancellationToken);
 
+            //----------------------------------------------------
+            // 9) Number of Coaches (Staff + StaffMember) across
+            //    all gyms owned by each Owner
+            //----------------------------------------------------
             var coachCounts = await context.GymPerson
                 .AsNoTracking()
                 .Where(x =>
@@ -182,9 +200,10 @@ namespace Infrastructure.Repo
                     cancellationToken);
 
             //----------------------------------------------------
-            // Latest Subscription For Each Owner
+            // 10) Latest subscription for each Owner
+            //     Group by CreatedById, order each group by EndDate
+            //     descending, and pick the most recent one
             //----------------------------------------------------
-
             var ownerSubscriptions = await context.OwnerSubscription
                 .AsNoTracking()
                 .Where(x =>
@@ -198,33 +217,36 @@ namespace Infrastructure.Repo
                     cancellationToken);
 
             //----------------------------------------------------
-            // Free Plan limits
+            // 11) Load the Free Plan limits
+            //     Used as a reference point, e.g. for owners without
+            //     an active paid subscription
             //----------------------------------------------------
-
             SubscriptionPlan? freePlan = await context.SubscriptionPlan
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.IsFree, cancellationToken);
 
+            // If no Free Plan is configured in the system at all, that's an
+            // unexpected/invalid state -> throw
             if (freePlan is null)
                 throw new NotFoundException("Free subscription plan not found.");
 
-            int maxGyms = freePlan.MaxOwnedGyms;
+            int maxGyms = freePlan.MaxOwnedGyms;     // max gyms allowed on the Free Plan
 
-            int maxMembers = freePlan.MaxMembers;
+            int maxMembers = freePlan.MaxMembers;    // max members allowed
 
-            int maxCoaches = freePlan.MaxCoaches;
+            int maxCoaches = freePlan.MaxCoaches;    // max coaches allowed
 
             //----------------------------------------------------
-            // Current User Platform Subscription
+            // 12) Check whether the CURRENT requesting user has an
+            //     active subscription right now (EndDate hasn't passed yet)
             //----------------------------------------------------
-
             var now = DateTime.UtcNow;
 
             var hasActivePlatformSubscription = await context.OwnerSubscription
                 .AsNoTracking()
                 .AnyAsync(x =>
                     x.CreatedById == userId &&
-                    now <= x.GraceEndDate,
+                    now <= x.EndDate,
                     cancellationToken);
 
             //----------------------------------------------------
@@ -280,10 +302,6 @@ namespace Infrastructure.Repo
                             switch (subscription.Status)
                             {
                                 case OwnerSubscriptionStatus.Active:
-                                    break;
-
-                                case OwnerSubscriptionStatus.Grace:
-                                    accessStatus = GymAccessStatus.OwnerSubscriptionGrace;
                                     break;
 
                                 case OwnerSubscriptionStatus.Expired:

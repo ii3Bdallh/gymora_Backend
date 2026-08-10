@@ -49,7 +49,7 @@ namespace Api.Controllers
             }
 
             logger.LogInformation("Creating a new PaymentRequest: {@PaymentRequestDto}", PaymentRequestDto);
-
+            PaymentRequestDto.IsPublic = false;
             var createdPaymentRequest = await service.AddAsync(PaymentRequestDto);
 
 

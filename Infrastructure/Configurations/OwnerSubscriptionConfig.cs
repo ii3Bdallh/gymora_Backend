@@ -28,9 +28,9 @@ namespace Infrastructure.Config
       builder.HasOne(x => x.PlanPrice).WithMany().HasForeignKey(x => x.PlanPriceId).OnDelete(DeleteBehavior.Restrict);
       builder.HasOne(x => x.PaymentRequest).WithMany().HasForeignKey(x => x.PaymentRequestId).OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasIndex(x => new { x.CreatedById, x.EndDate, x.GraceEndDate });
+            builder.HasIndex(x => new { x.CreatedById, x.EndDate });
 
-            builder.ToTable(t => t.HasCheckConstraint("CK_OwnerSubscriptions_Dates", "\"StartDate\" < \"EndDate\" AND \"EndDate\" <= \"GraceEndDate\""));
+            builder.ToTable(t => t.HasCheckConstraint("CK_OwnerSubscriptions_Dates", "\"StartDate\" < \"EndDate\""));
     }
   }
 }

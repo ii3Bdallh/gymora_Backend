@@ -37,7 +37,7 @@ namespace Application.DTO.Model
         [Required(ErrorMessage = "Longitude is required.")]
         public decimal Longitude { get; set; }
 
-        public GymStatus Status { get; set; } = GymStatus.Active;
+        // public GymStatus Status { get; set; } = GymStatus.Active;
 
         public int OwnerUserId { get; set; }
 
@@ -100,10 +100,7 @@ namespace Application.DTO.Model
         public string AccessToken { get; set; } = null!;
     }
 
-    public class SwitchGymDTO
-    {
-        public int GymId { get; set; }
-    }
+
 
     public sealed record ChangeOwnerDTO
     {
@@ -128,16 +125,6 @@ namespace Application.DTO.Model
 
         public string? DeniedReason { get; set; }
 
-    }
-
-    public class SwitchGymResponse
-    {
-
-        public MyGymDto CurrentGym { get; set; } = default!;
-
-        public string AccessToken { get; set; } = default!;
-
-        public string RefreshToken { get; set; } = default!;
     }
 
 
@@ -167,7 +154,6 @@ namespace Application.DTO.Model
     {
         Active,
         GymSuspended,
-        OwnerSubscriptionGrace,
         OwnerPlanLimitReached,
         OwnerSubscriptionSuspended,
         PersonSuspended,

@@ -166,6 +166,39 @@ namespace Application.DTO
 
 
             // ===========================
+            // Gym Base
+            // ===========================
+
+            CreateMap<BaseGymEntity, BaseGymRDTO>()
+                .IncludeBase<BaseEntity, BaseRDTO>()
+                .ReverseMap();
+
+            CreateMap<BaseGymEntity, BaseGymCDTO>()
+                .IncludeBase<BaseEntity, BaseCDTO>()
+                .ReverseMap();
+
+            CreateMap<BaseGymEntity, BaseGymUDTO>()
+                .IncludeBase<BaseEntity, BaseUDTO>()
+                .ReverseMap();
+
+            // ===========================
+            // Gym Auditable
+            // ===========================
+
+            CreateMap<BaseAuditableGymEntity, BaseGymAuditableRDTO>()
+                .IncludeBase<BaseGymEntity, BaseGymRDTO>()
+                .ReverseMap();
+
+            CreateMap<BaseAuditableGymEntity, BaseGymAuditableCDTO>()
+                .IncludeBase<BaseGymEntity, BaseGymCDTO>()
+                .ReverseMap();
+
+            CreateMap<BaseAuditableGymEntity, BaseGymAuditableUDTO>()
+                .IncludeBase<BaseGymEntity, BaseGymUDTO>()
+                .ReverseMap();
+
+
+            // ===========================
             // File
             // ===========================
 
@@ -220,13 +253,13 @@ namespace Application.DTO
             CreateMap<RecordCheckInUDTO, Attendance>().ReverseMap();
 
             CreateMap<MembershipPlan, MembershipPlanRDTO>()
-                .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>()
+                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableRDTO>()
                 .ReverseMap();
             CreateMap<MembershipPlan, MembershipPlanCDTO>()
-                .IncludeBase<BaseAuditableEntity, BaseAuditableCDTO>()
+                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableCDTO>()
                 .ReverseMap();
             CreateMap<MembershipPlan, MembershipPlanUDTO>()
-                .IncludeBase<BaseAuditableEntity, BaseAuditableUDTO>()
+                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableUDTO>()
                 .ReverseMap();
 
 

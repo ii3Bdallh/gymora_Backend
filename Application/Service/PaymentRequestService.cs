@@ -55,6 +55,7 @@ namespace Application.Service
         }
         public override async Task<PaymentRequestRDTO> AddAsync(PaymentRequestCDTO dto, CancellationToken ct = default)
         {
+
             if (await _paymentRepo.HasPendingRequestAsync(_currentUser.UserId, ct))
                 throw new ApplicationException("You already have a pending payment request.");
 

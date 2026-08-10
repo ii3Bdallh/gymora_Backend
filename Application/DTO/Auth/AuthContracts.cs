@@ -34,20 +34,12 @@ namespace Gymora.Contracts.Authentication
         public string UserId { get; set; } = null!;
         public string FullName { get; set; } = null!;
         public string Email { get; set; } = null!;
+
+        public IList<string> Role { get; set; } = new List<string>();
     }
 
-    public class AvailableGymDto
-    {
-        public string GymId { get; set; } = null!;
-        public string GymName { get; set; } = null!;
-        public string Role { get; set; } = null!;
-    }
 
-    public class RegisterResponseDto
-    {
-        public bool IsNewUser { get; set; }
-        public UserInfoDto User { get; set; } = null!;
-    }
+
 
     // --- Login DTOs ---
 
@@ -81,12 +73,7 @@ namespace Gymora.Contracts.Authentication
         public CurrentGymDto? CurrentGym { get; set; }
     }
 
-    public class RequireGymSelectionResponseDto
-    {
-        public string TemporaryAccessToken { get; set; } = null!;
-        public UserInfoDto User { get; set; } = null!;
-        public List<AvailableGymDto> AvailableGyms { get; set; } = new();
-    }
+
 
     public class GoogleAuthResponseDto
     {

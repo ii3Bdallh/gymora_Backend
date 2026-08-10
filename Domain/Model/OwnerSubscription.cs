@@ -37,9 +37,6 @@ namespace Domain.Model
     [Filterable(FilterType.Between)]
     public DateTime EndDate { get; set; }
 
-    [Filterable(FilterType.Between)]
-    public DateTime GraceEndDate { get; set; }
-
     [NotMapped]
     public OwnerSubscriptionStatus Status
     {
@@ -49,9 +46,6 @@ namespace Domain.Model
 
         if (now <= EndDate)
           return OwnerSubscriptionStatus.Active;
-
-        if (now <= GraceEndDate)
-          return OwnerSubscriptionStatus.Grace;
 
         return OwnerSubscriptionStatus.Expired;
       }
