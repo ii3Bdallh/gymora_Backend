@@ -288,6 +288,27 @@
                 }
             },
             "response": []
+        },
+        {
+            "name": "Leave Gym",
+            "request": {
+                "description": "Allows the currently authenticated user to leave a gym they are registered in.\n\n- Requires `[Authorize]` (any logged-in user).\n- The user's `GymPerson` record is soft-deleted.\n- Owners cannot leave their gym; they must transfer ownership first.",
+                "method": "POST",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/GymPerson/leave-gym/{{gymId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "GymPerson",
+                        "leave-gym",
+                        "{{gymId}}"
+                    ]
+                }
+            },
+            "response": []
         }
     ],
     "auth": {

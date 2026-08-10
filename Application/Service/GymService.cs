@@ -70,18 +70,18 @@ namespace Application.Service
         {
             await base.AfterMapAddAsync(entity, dto, cancellationToken);
 
-            var currentUserObj = await _usersRepo.GetByIdAsync(CurrentUserId, true, cancellationToken);
-            if (currentUserObj == null)
-                throw new NotFoundException($"User with ID {CurrentUserId} was not found.");
+            var ownerUser = await _usersRepo.GetByIdAsync(entity.OwnerUserId, true, cancellationToken);
+            if (ownerUser == null)
+                throw new NotFoundException($"User with ID {entity.OwnerUserId} was not found.");
 
             var ownerPerson = new GymPerson
             {
                 Gym = entity,
-                UserId = CurrentUserId,
+                UserId = entity.OwnerUserId,
                 PersonType = PersonType.Owner,
-                Name = currentUserObj.PersonName ?? currentUserObj.UserName ?? currentUserObj.Email ?? "Gym Owner",
-                PhoneNumber = currentUserObj.PhoneNumber ?? "0000000000",
-                Email = currentUserObj.Email,
+                Name = ownerUser.PersonName ?? ownerUser.UserName ?? ownerUser.Email ?? "Gym Owner",
+                PhoneNumber = ownerUser.PhoneNumber ?? "0000000000",
+                Email = ownerUser.Email,
                 AccessStatus = GymPersonAccessStatus.Active,
                 CreatedById = CurrentUserId
             };
@@ -135,11 +135,6 @@ namespace Application.Service
             if (newOwner == null)
                 throw new NotFoundException($"User with ID {newOwnerUserId} was not found.");
 
-            //bool canCreateNewGym = await _currentPlanService.(newOwner.Id, ct);
-
-            //if (!canCreateNewGym)
-            //    throw new InvalidOperationException("The new owner has exceeded the maximum number of gyms allowed for their current subscription plan.");
-
             CurrentPlanResult canCreateNew = await _currentPlanService.GetCurrentPlanAsync(newOwner.Id, ct);
             if (canCreateNew.IsOverMemberLimit)
                 throw new InvalidOperationException("You Have Reached Your Member Limit");
@@ -147,7 +142,14 @@ namespace Application.Service
             if (canCreateNew.IsOverCoachLimit)
                 throw new InvalidOperationException("You Have Reached Your Coach Limit");
 
+            if (canCreateNew.IsOverGymLimit)
+                throw new InvalidOperationException("The new owner has reached their gym limit.");
 
+            // Update Gym entity owner
+            gym.OwnerUserId = newOwnerUserId;
+
+            // Delete old owner record from the gym completely
+            await _gymPersonRepo.DeleteAsync(currentOwnerPerson, ct);
 
             // Update new owner record if they already have one in GymPerson, or create a new one
             var newOwnerPerson = await _gymPersonRepo.GetGymPersonAsync(gymId, newOwnerUserId, ct);

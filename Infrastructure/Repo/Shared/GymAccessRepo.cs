@@ -188,10 +188,19 @@ namespace Infrastructure.Repo
 
             await ValidateOwnerSubscriptionAsync(ownerPersonId.Value, ct);
 
-            if (gymPerson.PersonType == PersonType.Member ||
-                gymPerson.PersonType == PersonType.StaffMember)
+            if (gymPerson.PersonType == PersonType.Member)
             {
                 ValidateMembership(gymPerson.MemberProfile?.MembershipEndDate > DateTime.UtcNow);
+            }
+            else if (gymPerson.PersonType == PersonType.Staff)
+            {
+                ValidateSalary(gymPerson.StaffProfile?.SalaryValidUntil > DateTime.UtcNow);
+            }
+            else if (gymPerson.PersonType == PersonType.StaffMember)
+            {
+                ValidateMembershipAndSalary(
+                    gymPerson.MemberProfile?.MembershipEndDate > DateTime.UtcNow,
+                    gymPerson.StaffProfile?.SalaryValidUntil > DateTime.UtcNow);
             }
 
             return new MyGymDto
@@ -220,10 +229,6 @@ namespace Infrastructure.Repo
 
                 case GymPersonAccessStatus.Suspended:
                     throw new ForbiddenException("Gym person access is suspended.");
-
-
-
-
 
                 default:
                     throw new ForbiddenException("Gym person access is not active.");
@@ -261,8 +266,6 @@ namespace Infrastructure.Repo
 
         private static void ValidateMembership(bool HasActiveMembership)
         {
-
-
             switch (HasActiveMembership)
             {
                 case true:
@@ -270,15 +273,25 @@ namespace Infrastructure.Repo
 
                 case false:
                     throw new ForbiddenException("Your membership has expired.");
-
             }
         }
 
+        private static void ValidateSalary(bool isSalaryPaid)
+        {
+            if (!isSalaryPaid)
+                throw new ForbiddenException("Your staff salary payment period has expired or has not been paid.");
+        }
 
+        private static void ValidateMembershipAndSalary(bool hasActiveMembership, bool isSalaryPaid)
+        {
+            if (!hasActiveMembership && !isSalaryPaid)
+                throw new ForbiddenException("Both your membership and staff salary payment period have expired.");
 
+            if (!hasActiveMembership)
+                throw new ForbiddenException("Your membership has expired.");
 
-
-
-
+            if (!isSalaryPaid)
+                throw new ForbiddenException("Your staff salary payment period has expired or has not been paid.");
+        }
     }
 }

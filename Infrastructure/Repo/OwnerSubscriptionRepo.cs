@@ -24,7 +24,7 @@ namespace Infrastructure.Repo
             return await DbSet.AnyAsync(x =>
                 x.CreatedById == ownerUserId &&
 
-               DateTime.Now <= x.EndDate, ct);
+               DateTime.UtcNow <= x.EndDate, ct);
         }
 
         public async Task<OwnerSubscription?> GetCurrentSubscriptionAsync(int ownerUserId, CancellationToken ct = default)
@@ -34,7 +34,7 @@ namespace Infrastructure.Repo
                 .Include(x => x.PlanPrice)
                 .FirstOrDefaultAsync(x =>
                     x.CreatedById == ownerUserId &&
-                    DateTime.Now <= x.EndDate, ct);
+                    DateTime.UtcNow <= x.EndDate, ct);
         }
     }
 }

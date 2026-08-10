@@ -96,7 +96,10 @@ namespace Api.Controllers
         {
             await service.ChangeOwnerOfGymAsync(dto.GymId, dto.NewOwnerUserId, ct);
 
-            return Ok("Owner changed successfully.");
+            
+
+            return Ok(Result<string>.Success("Owner changed successfully."));
+
         }
 
 

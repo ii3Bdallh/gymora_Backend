@@ -16,5 +16,7 @@ namespace Application.Interface.Service
         public Task<GymPersonRDTO> RenewMemberSubscriptionAsync(int memberId, RenewMembershipDTO dto, CancellationToken ct = default);
 
         public Task<GymPersonRDTO> UpdateAccessStatusAsync(int id, UpdateAccessStatusDTO dto, CancellationToken ct = default);
+
+        public Task LeaveGymAsync(int gymId, CancellationToken ct = default);
     }
 }

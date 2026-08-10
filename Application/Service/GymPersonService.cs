@@ -271,5 +271,19 @@ namespace Application.Service
 
             return _mapper.Map<GymPersonRDTO>(member);
         }
+
+        public async Task LeaveGymAsync(int gymId, CancellationToken ct = default)
+        {
+            var person = await _gymPersonRepo.GetGymPersonAsync(gymId, CurrentUserId, ct);
+
+            if (person == null)
+                throw new NotFoundException($"You are not a registered person in gym with ID {gymId}.");
+
+            if (person.PersonType == PersonType.Owner)
+                throw new InvalidOperationException("Owners cannot leave their own gym. Use Change Owner instead.");
+
+            await _gymPersonRepo.DeleteAsync(person, ct);
+            await _unitOfWork.SaveChangesAsync(ct);
+        }
     }
 }

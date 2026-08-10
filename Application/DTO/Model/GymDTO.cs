@@ -147,7 +147,7 @@ namespace Application.DTO.Model
         public GymPersonAccessStatus? PersonAccessStatus { get; set; }
 
         public DateTime? MembershipEndDate { get; set; }
-        public bool HasActiveMembership => MembershipEndDate > DateTime.Now;
+        public bool HasActiveMembership => MembershipEndDate > DateTime.UtcNow;
     }
 
     public enum GymAccessStatus
@@ -163,7 +163,8 @@ namespace Application.DTO.Model
         MembershipExpired,
         MembershipFrozen,
         MembershipCancelled,
-        OwnerNotFound
+        OwnerNotFound,
+        StaffSalaryNotPaid
     }
 
     public class UserGymsListRDTO

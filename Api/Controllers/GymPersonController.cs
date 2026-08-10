@@ -165,5 +165,15 @@ namespace Api.Controllers
             logger.LogInformation("Successfully changed access status for GymPerson with Id: {Id}", id);
             return Ok(Result<GymPersonRDTO>.Success(result));
         }
+
+        [HttpPost("leave-gym/{gymId}")]
+        [Authorize]
+        public async Task<ActionResult> LeaveGymAsync(int gymId, CancellationToken ct = default)
+        {
+            logger.LogInformation("User leaving gym with ID: {GymId}", gymId);
+            await service.LeaveGymAsync(gymId, ct);
+            logger.LogInformation("User successfully left gym with ID: {GymId}", gymId);
+            return Ok(Result<string>.Success("Successfully left the gym."));
+        }
     }
 }

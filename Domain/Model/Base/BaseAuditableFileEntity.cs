@@ -8,7 +8,7 @@ namespace Domain.Model.Base
     public abstract class BaseAuditableFileEntity : BaseFileEntity , IAuditableEntity
     {
 
-        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
         public int CreatedById { get; set; }
 
 
