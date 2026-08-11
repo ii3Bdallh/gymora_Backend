@@ -16,7 +16,8 @@ All entities in `Domain/Model/` must inherit from the base classes located in [D
 - **`BaseAuditableEntity`**: Extends `BaseEntity` with audit logs: `CreatedOn` and `CreatedById`.
 - **`BaseGymEntity`**: Has `int GymId` and navigation property to `Gym`.
 - **`BaseGymAuditableEntity`**: Extends `BaseGymEntity` with `CreatedOn`, `CreatedById`, and audit properties.
-- **`BaseFileEntity`** / **`BaseAuditableFileEntity`**: Used for entities containing stored file paths on Bunny Storage.
+- **`BaseFileEntity`** / **`BaseAuditableFileEntity`**: Used for platform-wide entities containing stored file paths on Bunny Storage.
+- **`BaseGymFileEntity`** / **`BaseGymAuditableFileEntity`**: Used for gym-owned entities containing stored file paths (implements `IBaseFileEntity` and `IBaseGymEntity`).
 
 ### Search and Filter Attributes
 Decorate entity properties in the domain model to enable automatic search and filtering:
@@ -42,6 +43,10 @@ Every entity `EntityName` has corresponding DTO records in `Application/DTO/Mode
   - **`EntityNameCDTO` (Create DTO)**: Inherits from `BaseGymCDTO` (or `BaseGymAuditableCDTO`).
   - **`EntityNameUDTO` (Update DTO)**: Inherits from `BaseGymUDTO` (or `BaseGymAuditableUDTO`).
   - **`EntityNameRDTO` (Response DTO)**: Inherits from `BaseGymRDTO` (or `BaseGymAuditableRDTO`).
+- If the entity inherits from `BaseGymFileEntity` or `BaseGymAuditableFileEntity`:
+  - **`EntityNameCDTO` (Create DTO)**: Inherits from `BaseGymFCDTO` (or `BaseGymAuditableFCDTO`).
+  - **`EntityNameUDTO` (Update DTO)**: Inherits from `BaseGymFUDTO` (or `BaseGymAuditableFUDTO`).
+  - **`EntityNameRDTO` (Response DTO)**: Inherits from `BaseGymFRDTO` (or `BaseGymAuditableFRDTO`).
 
 *Rule*: Never return raw Domain Model entities from endpoints or in DTOs. Map them to their corresponding `RDTO`s.
 
@@ -74,6 +79,7 @@ When configuring EF Core mappings inside `Infrastructure/Configurations/`, use t
 - Interfaces go in `Application/Interface/Service/`.
 - Implementations go in `Application/Service/` (inheriting from `BaseService` or `BaseReadService`).
 - If the entity is gym-owned, inherit from `BaseGymService` or `BaseAuditableGymService` to automatically validate gym boundaries.
+- If the entity is gym-owned and contains file uploads, inherit from `BaseGymFileService` or `BaseGymAuditableFileService` to automatically integrate file uploads (via `IStorageService`) and check gym access rights.
 - Override lifecycle hooks (e.g., `BeforeAddAsync`, `AfterMapAddAsync`) rather than overriding entire CRUD operations.
 
 ---
