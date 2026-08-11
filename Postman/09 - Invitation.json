@@ -1,0 +1,178 @@
+{
+    "info": {
+        "_postman_id": "c1d2e3f4-a5b6-7890-abcd-ef1234567890",
+        "name": "09 - Invitation",
+        "description": "Endpoints to manage invitations (inviting members/staff, accepting, rejecting, and cancelling invitations).",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Create Invitation",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
+                            "    pm.environment.set(\"invitationId\", jsonData.data.id);",
+                            "    pm.environment.set(\"invitationToken\", jsonData.data.invitationToken);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Creates a new invitation for a user by email. Triggers an email invitation and saves the invitation token.\n\n- Requires gym membership with role `Owner` or `Manager`.\n- Generates a unique token valid for 7 days.\n\n### Request Body\n\n- `email` (string, required): Recipient's email address.\n- `gymRole` (Enum int, required): Target role: `1` = Manager, `2` = Coach, `3` = Receptionist, `4` = Cleaner, `5` = Other, `10` = Member.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"gymId\": {{gymId}},\n  \"email\": \"invitee@example.com\",\n  \"gymRole\": 10\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Invitation/Create",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Invitation",
+                        "Create"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Accept Invitation",
+            "request": {
+                "description": "Accepts an invitation using the unique token. Auto-creates `GymPerson` and appropriate profile, and sends push + database notifications.\n\n- Requires `[Authorize]` (any logged-in user).\n- Transitioning user becomes a Member/Staff in the gym.",
+                "method": "POST",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Invitation/accept/{{invitationToken}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Invitation",
+                        "accept",
+                        "{{invitationToken}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Reject Invitation",
+            "request": {
+                "description": "Rejects an invitation using the unique token. Updates invitation status and notifies the creator.\n\n- Requires `[Authorize]` (any logged-in user).",
+                "method": "POST",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Invitation/reject/{{invitationToken}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Invitation",
+                        "reject",
+                        "{{invitationToken}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Cancel Invitation",
+            "request": {
+                "description": "Cancels a pending invitation by ID.\n\n- Requires gym membership with role `Owner` or `Manager`.",
+                "method": "POST",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Invitation/cancel/{{invitationId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Invitation",
+                        "cancel",
+                        "{{invitationId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Invitation By Id",
+            "request": {
+                "description": "Fetches a single invitation by ID.\n\n- Requires gym membership with role `Owner` or `Manager`.",
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Invitation/{{invitationId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Invitation",
+                        "{{invitationId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Paged Invitations",
+            "request": {
+                "description": "Fetches a paginated list of invitations for the gym.\n\n- Requires gym membership with role `Owner` or `Manager`.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Invitation",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Invitation"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{token}}",
+                "type": "string"
+            }
+        ]
+    }
+}

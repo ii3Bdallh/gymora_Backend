@@ -103,6 +103,11 @@ namespace Infrastructure.Repo
             return await DbSet.Where(x => x.GymId == gymId && x.UserId == userId).FirstOrDefaultAsync(ct);
         }
 
+        public async Task<GymPerson?> GetGymPersonByEmailAsync(int gymId, string email, CancellationToken ct = default)
+        {
+            return await DbSet.Where(x => x.GymId == gymId && x.Email == email).FirstOrDefaultAsync(ct);
+        }
+
         public async Task<int> GetActiveMembersCountAsync(int gymId, CancellationToken ct = default)
         {
             var now = DateTime.UtcNow;

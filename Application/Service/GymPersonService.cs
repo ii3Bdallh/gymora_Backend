@@ -51,19 +51,7 @@ namespace Application.Service
         {
             int ownerUserId = await _gymRepo.GetOwnerIdAsync(CurrentGymId ?? 0);
 
-            //if (dto.PersonType == PersonType.Staff || dto.PersonType == PersonType.StaffMember)
-            //{
-            //    bool canCreateNewStaff = await _currentPlanService.HasAvailableCoachSlotAsync(ownerUserId, cancellationToken);
-            //    if (!canCreateNewStaff)
-            //        throw new InvalidOperationException("You have exceeded the maximum number of staffs allowed for your current subscription plan.");
-            //}
 
-            //if (dto.PersonType == PersonType.Member || dto.PersonType == PersonType.StaffMember)
-            //{
-            //    bool canCreateNewMember = await _currentPlanService.HasAvailableMemberSlotAsync(ownerUserId, cancellationToken);
-            //    if (!canCreateNewMember)
-            //        throw new InvalidOperationException("You have exceeded the maximum number of members allowed for your current subscription plan.");
-            //}
             CurrentPlanResult canCreateNew = await _currentPlanService.GetCurrentPlanAsync(ownerUserId, cancellationToken);
             if (canCreateNew.IsOverMemberLimit)
                 throw new InvalidOperationException("You Have Reached Your Member Limit");
@@ -207,12 +195,17 @@ namespace Application.Service
             await base.PublishEntityChangedAsync(staffId, ct);
 
             // Publish SalaryPaidEvent
-            await _publishEndpoint.Publish(new SalaryPaidEvent(
-                person.Id,
-                person.StaffProfile.Salary.Value,
-                now,
-                person.GymId
-            ), ct);
+            await _publishEndpoint.Publish(new SalaryPaidEvent
+            {
+                GymPersonId  = person.Id,
+                GymId        = person.GymId,
+                StaffUserId  = person.UserId ?? 0,
+                Amount       = person.StaffProfile.Salary.Value,
+                PaidAt       = now,
+                PeriodFrom   = person.StaffProfile.SalaryValidFrom ?? now,
+                PeriodTo     = person.StaffProfile.SalaryValidUntil ?? now.AddMonths(1),
+                PaidByUserId = CurrentUserId
+            }, ct);
             await _unitOfWork.SaveChangesAsync(ct);
         }
 

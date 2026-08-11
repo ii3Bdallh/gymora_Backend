@@ -13,6 +13,7 @@ namespace Application.Interface.Repo
 
         public Task<GymPerson?> GetGymOwnerAsync(int gymId, CancellationToken ct = default);
         public Task<GymPerson?> GetGymPersonAsync(int gymId, int userId , CancellationToken ct = default);
+        public Task<GymPerson?> GetGymPersonByEmailAsync(int gymId, string email, CancellationToken ct = default);
 
         Task<int> CountPeopleTypeByOwnerAsync(int ownerUserId, PersonType personType, CancellationToken ct = default);
         Task<int> GetActiveMembersCountAsync(int gymId, CancellationToken ct = default);

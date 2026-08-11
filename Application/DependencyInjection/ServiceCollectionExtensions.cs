@@ -40,6 +40,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICoachAssignmentService, CoachAssignmentService>();
         services.AddScoped<IAttendanceService, AttendanceService>();
         services.AddScoped<IMembershipPlanService, MembershipPlanService>();
+        services.AddScoped<IInvitationService, InvitationService>();
 
         return services;
     }

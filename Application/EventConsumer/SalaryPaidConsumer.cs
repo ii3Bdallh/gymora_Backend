@@ -17,8 +17,8 @@ namespace Application.EventConsumer
         public Task Consume(ConsumeContext<SalaryPaidEvent> context)
         {
             var msg = context.Message;
-            _logger.LogInformation("Salary Paid Event Consumed: StaffId = {StaffId}, Amount = {Amount}, PaidAt = {PaidAt}, GymId = {GymId}",
-                msg.StaffId, msg.Amount, msg.PaidAt, msg.GymId);
+            _logger.LogInformation("Salary Paid Event Consumed: GymPersonId = {GymPersonId}, Amount = {Amount}, PaidAt = {PaidAt}, GymId = {GymId}",
+                msg.GymPersonId, msg.Amount, msg.PaidAt, msg.GymId);
             return Task.CompletedTask;
         }
     }

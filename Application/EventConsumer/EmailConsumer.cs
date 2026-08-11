@@ -7,7 +7,7 @@ namespace Application.EventConsumer;
 public class EmailConsumer :
    IConsumer<PaymentCreatedEvent>
    , IConsumer<PaymentRejectedEvent>
-//    ,IConsumer<PasswordResetEvent>
+//    , IConsumer<InvitationCreatedEvent>
 {
     private readonly IEmailService _emailService;
 
@@ -33,21 +33,16 @@ public class EmailConsumer :
         $"Your payment request {context.Message.PaymentRequestId} has been rejected.");
     }
 
-        //    public async Task Consume(ConsumeContext<UserRegisteredEvent> context)
-        //    {
-        //        var message = context.Message;
+    // public async Task Consume(ConsumeContext<InvitationCreatedEvent> context)
+    // {
+    //     var message = context.Message;
 
-        //        await _emailService.SendWelcomeEmailAsync(
-        //            message.Email,
-        //            message.FullName);
-        //    }
-
-        //    public async Task Consume(ConsumeContext<PasswordResetEvent> context)
-        //    {
-        //        var message = context.Message;
-
-        //        await _emailService.SendPasswordResetEmailAsync(
-        //            message.Email,
-        //            message.ResetLink);
-        //    }
-    }
+    //     await _emailService.SendEmailAsync(
+    //         message.Email,
+    //         "You're Invited to Join a Gym on Gymora! 🎉",
+    //         $"Hello!\n\n" +
+    //         $"You have been invited to join the gym as a {message.GymRole}.\n\n" +
+    //         $"Open the Gymora app and check your invitations to accept or decline.\n\n" +
+    //         $"— Gymora Team");
+    // }
+}

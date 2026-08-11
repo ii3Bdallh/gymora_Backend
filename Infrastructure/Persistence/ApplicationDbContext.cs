@@ -27,6 +27,7 @@ public sealed class ApplicationDbContext
     public DbSet<CoachAssignment> CoachAssignment { get; set; }
     public DbSet<Attendance> Attendances { get; set; }
     public DbSet<MembershipPlan> MembershipPlans { get; set; }
+    public DbSet<Invitation> Invitation { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 

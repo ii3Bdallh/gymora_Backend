@@ -36,6 +36,7 @@ public static class RepositoryCollectionExtensions
         services.AddScoped<ICoachAssignmentRepo, CoachAssignmentRepo>();
         services.AddScoped<IAttendanceRepo, AttendanceRepo>();
         services.AddScoped<IMembershipPlanRepo, MembershipPlanRepo>();
+        services.AddScoped<IInvitationRepo, InvitationRepo>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 

@@ -36,6 +36,26 @@ namespace Application.DTO
             CreateMap<GymMemberProfile, GymMemberProfileCDTO>().ReverseMap();
             CreateMap<GymMemberProfile, GymMemberProfileUDTO>().ReverseMap();
 
+            CreateMap<Invitation, InvitationRDTO>()
+                .IncludeBase<BaseGymEntity, BaseGymRDTO>()
+                .ReverseMap();
+
+            // Flatten Membership and Salary nested DTOs into Invitation entity
+            CreateMap<InvitationCDTO, Invitation>()
+                .IncludeBase<BaseGymCDTO, BaseGymEntity>()
+                .ForMember(dest => dest.MembershipPlanId,  opt => opt.MapFrom(src => src.Membership != null ? src.Membership.MembershipPlanId : null))
+                .ForMember(dest => dest.PlanName,          opt => opt.MapFrom(src => src.Membership != null ? src.Membership.PlanName : null))
+                .ForMember(dest => dest.DurationDays,      opt => opt.MapFrom(src => src.Membership != null ? (int?)src.Membership.DurationDays : null))
+                .ForMember(dest => dest.PricePaid,         opt => opt.MapFrom(src => src.Membership != null ? (decimal?)src.Membership.PricePaid : null))
+                .ForMember(dest => dest.DiscountAmount,    opt => opt.MapFrom(src => src.Membership != null ? (decimal?)src.Membership.DiscountAmount : null))
+                .ForMember(dest => dest.Salary,            opt => opt.MapFrom(src => src.Salary != null ? (decimal?)src.Salary.Salary : null))
+                .ForMember(dest => dest.SalaryValidFrom,   opt => opt.MapFrom(src => src.Salary != null ? (DateTime?)src.Salary.SalaryValidFrom : null))
+                .ForMember(dest => dest.SalaryValidUntil,  opt => opt.MapFrom(src => src.Salary != null ? (DateTime?)src.Salary.SalaryValidUntil : null));
+
+            CreateMap<Invitation, InvitationUDTO>()
+                .IncludeBase<BaseGymEntity, BaseGymUDTO>()
+                .ReverseMap();
+
 
             
 

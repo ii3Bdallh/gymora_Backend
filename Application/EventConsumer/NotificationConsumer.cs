@@ -12,6 +12,7 @@ public class NotificationConsumer :
    , IConsumer<SubscriptionActivatedEvent>
    , IConsumer<PaymentRejectedEvent>
    , IConsumer<TestNotificationEvent>
+   , IConsumer<InvitationCreatedEvent>
 
 
 {
@@ -80,5 +81,20 @@ public class NotificationConsumer :
             });
     }
 
-}
+    // ── Invitation: notify the invitee that they received an invitation
+    public async Task Consume(ConsumeContext<InvitationCreatedEvent> context)
+    {
+        var message = context.Message;
 
+        await _notificationService.SendNotificationAsync(
+            message.InvitedByUserId,          // notify the person who sent invite (confirmation)
+            new NotificationDTO
+            {
+                Title = "Invitation Sent",
+                Body = $"Invitation sent to user with ID {message.UserId} as {message.GymRole}."
+            });
+    }
+
+    
+
+}
