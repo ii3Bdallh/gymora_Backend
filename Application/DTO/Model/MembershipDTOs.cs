@@ -23,10 +23,7 @@ namespace Application.DTO.Model
         [Range(0.0, double.MaxValue, ErrorMessage = "Price must be non-negative")]
         public decimal Price { get; init; }
 
-        [Range(0, int.MaxValue, ErrorMessage = "FreezeDaysLimit must be non-negative")]
-        public int FreezeDaysLimit { get; init; }
 
-        public int? AttendanceLimit { get; init; }
     }
 
     public record MembershipPlanUDTO : BaseGymAuditableUDTO
@@ -44,10 +41,7 @@ namespace Application.DTO.Model
         [Range(0.0, double.MaxValue, ErrorMessage = "Price must be non-negative")]
         public decimal Price { get; init; }
 
-        [Range(0, int.MaxValue, ErrorMessage = "FreezeDaysLimit must be non-negative")]
-        public int FreezeDaysLimit { get; init; }
 
-        public int? AttendanceLimit { get; init; }
     }
 
     public record MembershipPlanRDTO : BaseGymAuditableRDTO

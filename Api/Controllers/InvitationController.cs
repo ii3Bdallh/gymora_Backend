@@ -62,7 +62,7 @@ namespace Api.Controllers
             }
 
             logger.LogInformation("Creating a new invitation: {@dto}", dto);
-            var createdInvitation = await service.AddAsync(dto);
+            var createdInvitation = await service.CreateInvitationAsync(dto);
             return Ok(Result<InvitationRDTO>.Success(createdInvitation));
         }
 

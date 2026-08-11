@@ -42,13 +42,7 @@ namespace Application.Service.Base
 
         // Read Operations: متاحة للكل داخل الجيم
 
-        public override async Task<RDTO> AddAsync(CDTO dto, CancellationToken cancellationToken = default)
-        {
-            _logger.LogInformation("Adding auditable {EntityType} by user {UserId}", typeof(T).Name, CurrentUserId);
-            dto.CreatedById = CurrentUserId;
 
-            return await base.AddAsync(dto, cancellationToken);
-        }
 
         protected override Task AfterMapReadAsync(T entity, RDTO dto, CancellationToken cancellationToken)
         {
@@ -60,49 +54,41 @@ namespace Application.Service.Base
             }
             return base.AfterMapReadAsync(entity, dto, cancellationToken);
         }
-        protected override Task BeforeUpdateAsync(
-            T entity,
-            UDTO dto,
-            CancellationToken cancellationToken)
+
+        protected override Task BeforeAddAsync(CDTO dto, CancellationToken cancellationToken)
         {
-            if (!CanAccess(entity.CreatedById))
-            {
-                _logger.LogWarning(
-                    "Unauthorized attempt to update {EntityType} with ID {Id} by user {UserId}",
-                    typeof(T).Name,
-                    entity.Id,
-                    CurrentUserId);
+            base.BeforeAddAsync(dto, cancellationToken);
 
-                throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
-            }
-
-            dto.CreatedById = entity.CreatedById;
-
-            return Task.CompletedTask;
-        }
-
-        protected override Task BeforeDeleteAsync(
-            T entity,
-            CancellationToken cancellationToken)
-        {
-            if (!CanAccess(entity.CreatedById))
-            {
-                throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
-            }
-
-            return Task.CompletedTask;
-        }
-
-        protected override Task BeforeAddAsync(
-    CDTO dto,
-    CancellationToken cancellationToken)
-        {
             dto.CreatedById = CurrentUserId;
 
             return Task.CompletedTask;
         }
 
-        protected virtual bool CanAccess(int userId)
+
+
+        protected override Task BeforeUpdateAsync(T entity, UDTO dto, CancellationToken cancellationToken)
+        {
+            base.BeforeUpdateAsync(entity, dto, cancellationToken);
+            if (!CanAccess(entity.CreatedById))
+            {
+                throw new ForbiddenException("You are not authorized to perform this action.");
+            }
+            dto.CreatedById = CurrentUserId;
+            return Task.CompletedTask;
+        }
+
+        protected override Task BeforeDeleteAsync(T entity, CancellationToken cancellationToken)
+        {
+            base.BeforeDeleteAsync(entity, cancellationToken);
+            if (!CanAccess(entity.CreatedById))
+            {
+                throw new ForbiddenException("You are not authorized to perform this action.");
+            }
+            return Task.CompletedTask;
+        }
+
+
+        private bool CanAccess(int userId)
         {
             return HasFullAccess || userId == CurrentUserId;
         }

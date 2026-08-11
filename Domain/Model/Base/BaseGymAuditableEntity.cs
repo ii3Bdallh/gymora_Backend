@@ -15,7 +15,7 @@ namespace Domain.Model.Base
         public int CreatedByPersonId { get; set; }
 
         public GymPerson CreatedByPerson { get; set; } = default!;
-        public DateTime CreatedOn { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
 
     }
 }

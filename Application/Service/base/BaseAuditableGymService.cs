@@ -34,17 +34,12 @@ namespace Application.Service.Base
         {
         }
 
-        protected override bool CanAccess(int createdByPersonId)
+        private bool CanAccess(int createdByPersonId)
         {
             return HasFullAccess || CurrentUser.IsGymOwner || CurrentUser.IsGymManager || createdByPersonId == (CurrentUser.CurrentPersonId ?? 0);
         }
 
-        public override async Task<RDTO> AddAsync(CDTO dto, CancellationToken cancellationToken = default)
-        {
-            dto.CreatedByPersonId = _currentUser.CurrentPersonId ?? throw new InvalidOperationException("Forbiden: You cannot add record");
 
-            return await base.AddAsync(dto, cancellationToken);
-        }
 
         protected override Task AfterMapReadAsync(T entity, RDTO dto, CancellationToken cancellationToken)
         {
@@ -57,46 +52,37 @@ namespace Application.Service.Base
             return base.AfterMapReadAsync(entity, dto, cancellationToken);
         }
 
-        protected override Task BeforeUpdateAsync(
-            T entity,
-            UDTO dto,
-            CancellationToken cancellationToken)
+        protected override Task BeforeAddAsync(CDTO dto, CancellationToken cancellationToken)
         {
+            base.BeforeAddAsync(dto, cancellationToken);
+
+            dto.CreatedByPersonId = CurrentPersonId ?? throw new ForbiddenException("You are not authorized to perform this action.");
+
+            return Task.CompletedTask;
+        }
+
+
+
+        protected override Task BeforeUpdateAsync(T entity, UDTO dto, CancellationToken cancellationToken)
+        {
+            base.BeforeUpdateAsync(entity, dto, cancellationToken);
             if (!CanAccess(entity.CreatedByPersonId))
             {
-                _logger.LogWarning(
-                    "Unauthorized attempt to update {EntityType} with ID {Id} by user {UserId}",
-                    typeof(T).Name,
-                    entity.Id,
-                    _currentUser.CurrentPersonId);
-
-                throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
+                throw new ForbiddenException("You are not authorized to perform this action.");
             }
-
-            dto.CreatedByPersonId = entity.CreatedByPersonId;
-
+            dto.CreatedByPersonId = CurrentUserId;
             return Task.CompletedTask;
         }
 
-        protected override Task BeforeDeleteAsync(
-            T entity,
-            CancellationToken cancellationToken)
+        protected override Task BeforeDeleteAsync(T entity, CancellationToken cancellationToken)
         {
+            base.BeforeDeleteAsync(entity, cancellationToken);
             if (!CanAccess(entity.CreatedByPersonId))
             {
-                throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
+                throw new ForbiddenException("You are not authorized to perform this action.");
             }
-
             return Task.CompletedTask;
         }
 
-        protected override Task BeforeAddAsync(
-            CDTO dto,
-            CancellationToken cancellationToken)
-        {
-            dto.CreatedByPersonId = _currentUser.CurrentPersonId ?? throw new InvalidOperationException("CurrentPersonId is null. Cannot add entity without a valid person ID.");
-
-            return Task.CompletedTask;
-        }
     }
 }

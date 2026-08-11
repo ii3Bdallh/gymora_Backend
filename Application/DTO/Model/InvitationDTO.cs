@@ -14,20 +14,14 @@ namespace Application.DTO.Model
     /// </summary>
     public record InvitationMembershipDTO
     {
-        /// <summary>Optional: link to an existing MembershipPlan</summary>
+        /// <summary>Required: link to an existing MembershipPlan</summary>
+        [Required(ErrorMessage = "MembershipPlanId is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Invalid MembershipPlanId.")]
         public int? MembershipPlanId { get; init; }
 
-        [Required]
-        [MaxLength(100)]
-        public string PlanName { get; init; } = "Basic";
-
-        [Range(1, 3650, ErrorMessage = "Duration must be between 1 and 3650 days.")]
-        public int DurationDays { get; init; } = 30;
-
-        [Range(0, double.MaxValue)]
-        public decimal PricePaid { get; init; }
-
         public decimal DiscountAmount { get; init; }
+
+        
     }
 
     /// <summary>
@@ -66,6 +60,8 @@ namespace Application.DTO.Model
         /// created automatically once the invited person accepts.
         /// </summary>
         public InvitationSalaryDTO? Salary { get; init; }
+
+
     }
 
     public record InvitationUDTO : BaseGymAuditableUDTO
@@ -85,8 +81,9 @@ namespace Application.DTO.Model
         public int? MembershipPlanId { get; init; }
         public string? PlanName { get; init; }
         public int? DurationDays { get; init; }
-        public decimal? PricePaid { get; init; }
+        public decimal? Amount { get; init; }
         public decimal? DiscountAmount { get; init; }
+        public decimal? FinalAmount { get; init; }
 
         // Salary snapshot (for Staff invitations)
         public decimal? Salary { get; init; }

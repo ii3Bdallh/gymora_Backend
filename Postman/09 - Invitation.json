@@ -19,7 +19,6 @@
                             "var jsonData = pm.response.json();",
                             "if (jsonData && jsonData.data && jsonData.data.id) {",
                             "    pm.environment.set(\"invitationId\", jsonData.data.id);",
-                            "    pm.environment.set(\"invitationToken\", jsonData.data.invitationToken);",
                             "}"
                         ],
                         "type": "text/javascript"
@@ -27,7 +26,7 @@
                 }
             ],
             "request": {
-                "description": "Creates a new invitation for a user by email. Triggers an email invitation and saves the invitation token.\n\n- Requires gym membership with role `Owner` or `Manager`.\n- Generates a unique token valid for 7 days.\n\n### Request Body\n\n- `email` (string, required): Recipient's email address.\n- `gymRole` (Enum int, required): Target role: `1` = Manager, `2` = Coach, `3` = Receptionist, `4` = Cleaner, `5` = Other, `10` = Member.",
+                "description": "Creates a new invitation for a user by UserId.\n\n- Requires gym membership with role `Owner` or `Manager`.\n\n### Request Body\n\n- `userId` (int, required): Recipient's User ID.\n- `gymRole` (Enum int, required): Target role: `1` = Manager, `2` = Coach, `3` = Receptionist, `4` = Cleaner, `5` = Other, `10` = Member.",
                 "method": "POST",
                 "header": [
                     {
@@ -37,7 +36,7 @@
                 ],
                 "body": {
                     "mode": "raw",
-                    "raw": "{\n  \"gymId\": {{gymId}},\n  \"email\": \"invitee@example.com\",\n  \"gymRole\": 10\n}"
+                    "raw": "{\n  \"gymId\": {{gymId}},\n  \"userId\": 5,\n  \"gymRole\": 10,\n  \"membership\": {\n    \"membershipPlanId\": 1,\n    \"discountAmount\": 10.0\n  }\n}"
                 },
                 "url": {
                     "raw": "{{baseUrl}}/api/Invitation/Create",
@@ -56,11 +55,11 @@
         {
             "name": "Accept Invitation",
             "request": {
-                "description": "Accepts an invitation using the unique token. Auto-creates `GymPerson` and appropriate profile, and sends push + database notifications.\n\n- Requires `[Authorize]` (any logged-in user).\n- Transitioning user becomes a Member/Staff in the gym.",
+                "description": "Accepts an invitation using the invitation ID. Auto-creates `GymPerson` and appropriate profile, and sends push + database notifications.\n\n- Requires `[Authorize]` (any logged-in user).\n- Transitioning user becomes a Member/Staff in the gym.",
                 "method": "POST",
                 "header": [],
                 "url": {
-                    "raw": "{{baseUrl}}/api/Invitation/accept/{{invitationToken}}",
+                    "raw": "{{baseUrl}}/api/Invitation/accept/{{invitationId}}",
                     "host": [
                         "{{baseUrl}}"
                     ],
@@ -68,7 +67,7 @@
                         "api",
                         "Invitation",
                         "accept",
-                        "{{invitationToken}}"
+                        "{{invitationId}}"
                     ]
                 }
             },
@@ -77,11 +76,11 @@
         {
             "name": "Reject Invitation",
             "request": {
-                "description": "Rejects an invitation using the unique token. Updates invitation status and notifies the creator.\n\n- Requires `[Authorize]` (any logged-in user).",
+                "description": "Rejects an invitation using the invitation ID. Updates invitation status and notifies the creator.\n\n- Requires `[Authorize]` (any logged-in user).",
                 "method": "POST",
                 "header": [],
                 "url": {
-                    "raw": "{{baseUrl}}/api/Invitation/reject/{{invitationToken}}",
+                    "raw": "{{baseUrl}}/api/Invitation/reject/{{invitationId}}",
                     "host": [
                         "{{baseUrl}}"
                     ],
@@ -89,7 +88,7 @@
                         "api",
                         "Invitation",
                         "reject",
-                        "{{invitationToken}}"
+                        "{{invitationId}}"
                     ]
                 }
             },
@@ -159,6 +158,35 @@
                     "path": [
                         "api",
                         "Invitation"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get My Invitations",
+            "request": {
+                "description": "Fetches a paginated list of personal invitations sent to the currently logged-in user.\n\n- Requires `[Authorize]` (any logged-in user).",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Invitation/my-invitations",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Invitation",
+                        "my-invitations"
                     ]
                 }
             },

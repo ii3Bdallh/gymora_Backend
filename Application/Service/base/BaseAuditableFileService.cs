@@ -49,36 +49,40 @@ namespace Application.Service.Base
             }
             return base.AfterMapReadAsync(entity, dto, cancellationToken);
         }
-        protected override async Task BeforeAddAsync(
-    CDTO dto,
-    CancellationToken cancellationToken)
+        protected override Task BeforeAddAsync(CDTO dto, CancellationToken cancellationToken)
         {
+            base.BeforeAddAsync(dto, cancellationToken);
 
             dto.CreatedById = CurrentUserId;
+
+            return Task.CompletedTask;
         }
 
-        protected override async Task BeforeUpdateAsync(
-    T entity,
-    UDTO dto,
-    CancellationToken cancellationToken)
+
+
+        protected override Task BeforeUpdateAsync(T entity, UDTO dto, CancellationToken cancellationToken)
         {
-
+            base.BeforeUpdateAsync(entity, dto, cancellationToken);
             if (!CanAccess(entity.CreatedById))
-                throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
-
-            dto.CreatedById = entity.CreatedById;
+            {
+                throw new ForbiddenException("You are not authorized to perform this action.");
+            }
+            dto.CreatedById = CurrentUserId;
+            return Task.CompletedTask;
         }
 
-        protected override async Task BeforeDeleteAsync(
-            T entity,
-            CancellationToken cancellationToken)
+        protected override Task BeforeDeleteAsync(T entity, CancellationToken cancellationToken)
         {
-
+            base.BeforeDeleteAsync(entity, cancellationToken);
             if (!CanAccess(entity.CreatedById))
-                throw new NotFoundException($"{typeof(T).Name} with ID {entity.Id} was not found.");
+            {
+                throw new ForbiddenException("You are not authorized to perform this action.");
+            }
+            return Task.CompletedTask;
         }
 
-        protected virtual bool CanAccess(int createdById)
+
+        private bool CanAccess(int createdById)
         {
             return HasFullAccess || createdById == CurrentUserId;
         }

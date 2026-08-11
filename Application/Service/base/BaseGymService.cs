@@ -34,24 +34,27 @@ namespace Application.Service.Base
 
         protected override Task BeforeAddAsync(CDTO dto, CancellationToken cancellationToken)
         {
-            if (!CanAccess(dto.GymId))
-            {
-                throw new ForbiddenException("You are not authorized to perform this action.");
-            }
+            base.BeforeAddAsync(dto, cancellationToken);
+
+            dto.GymId = CurrentGymId ?? throw new ForbiddenException("You are not authorized to perform this action.");
+
             return Task.CompletedTask;
         }
 
         protected override Task BeforeUpdateAsync(T entity, UDTO dto, CancellationToken cancellationToken)
         {
+            base.BeforeUpdateAsync(entity, dto, cancellationToken);
             if (!CanAccess(entity.GymId))
             {
                 throw new ForbiddenException("You are not authorized to perform this action.");
             }
+            dto.GymId = CurrentGymId ?? throw new ForbiddenException("You are not authorized to perform this action.");
             return Task.CompletedTask;
         }
 
         protected override Task BeforeDeleteAsync(T entity, CancellationToken cancellationToken)
         {
+            base.BeforeDeleteAsync(entity, cancellationToken);
             if (!CanAccess(entity.GymId))
             {
                 throw new ForbiddenException("You are not authorized to perform this action.");
@@ -59,7 +62,7 @@ namespace Application.Service.Base
             return Task.CompletedTask;
         }
 
-        protected virtual bool CanAccess(int gymId)
+        private bool CanAccess(int gymId)
         {
             return HasFullAccess || gymId == CurrentGymId;
         }

@@ -33,9 +33,11 @@ namespace Domain.Model
 
         public int? DurationDays { get; set; }
 
-        public decimal? PricePaid { get; set; }
+        public decimal? Amount { get; set; }
 
         public decimal? DiscountAmount { get; set; }
+
+        public decimal? FinalAmount { get; set; }
 
         // ── Salary snapshot (stored when inviting Staff) ─────────────
         // Used to create GymStaffProfile automatically on accept

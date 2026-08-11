@@ -11,6 +11,7 @@ using AutoMapper;
 using Domain.Enum;
 using Domain.Events;
 using Domain.Model;
+using Domain.Model.Auth;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -24,17 +25,16 @@ namespace Application.Service
     {
         private readonly IInvitationRepo _invitationRepo;
         private readonly IGymPersonRepo _gymPersonRepo;
-
-        private readonly IGymRepo _gymRepo;
-
-        private readonly ICurrentPlanService _currentPlanService;
-
         private readonly IUserRepo _userRepo;
+        private readonly IMembershipPlanRepo _membershipPlanRepo;
+        private readonly IGymRepo _gymRepo;
+        private readonly ICurrentPlanService _currentPlanService;
 
         public InvitationService(
             IInvitationRepo repo,
             IGymPersonRepo gymPersonRepo,
             IUserRepo userRepo,
+            IMembershipPlanRepo membershipPlanRepo,
             IUnitOfWork unitOfWork,
             IMapper mapper,
             ICacheService cacheService,
@@ -48,53 +48,69 @@ namespace Application.Service
         {
             _invitationRepo = repo;
             _gymPersonRepo = gymPersonRepo;
+            _userRepo = userRepo;
+            _membershipPlanRepo = membershipPlanRepo;
             _gymRepo = gymRepo;
             _currentPlanService = currentPlanService;
-            _userRepo = userRepo;
         }
 
         #region Send Invite
-        protected override async Task BeforeAddAsync(InvitationCDTO dto, CancellationToken cancellationToken)
+
+        protected override async Task AfterMapAddAsync(Invitation entity, InvitationCDTO dto, CancellationToken cancellationToken)
         {
-            await base.BeforeAddAsync(dto, cancellationToken);
+            entity.Status = InvitationStatus.Pending;
+            entity.CreatedOn = DateTime.UtcNow;
+            entity.CreatedByPersonId = CurrentPersonId ?? throw new InvalidOperationException("Current person context is missing.");
+
+            if (dto.GymRole == GymRole.Member && dto.Membership != null)
+            {
+                var plan = await _membershipPlanRepo.GetByIdAsync(dto.Membership.MembershipPlanId!.Value, false, cancellationToken);
+                if (plan != null)
+                {
+                    entity.PlanName = plan.Name;
+                    entity.DurationDays = plan.DurationDays;
+                    entity.Amount = plan.Price;
+                    entity.DiscountAmount = dto.Membership.DiscountAmount;
+                    entity.FinalAmount = plan.Price - dto.Membership.DiscountAmount;
+                }
+            }
+
+            await base.AfterMapAddAsync(entity, dto, cancellationToken);
+        }
+
+        public async Task<InvitationRDTO> CreateInvitationAsync(InvitationCDTO dto, CancellationToken ct = default)
+        {
+            // 0. Verify that the user exists on the platform
+            var user = await _userRepo.GetByIdAsync(dto.UserId, false, ct);
+            if (user == null)
+                throw new NotFoundException($"User with ID {dto.UserId} was not found.");
 
             int ownerUserId = await _gymRepo.GetOwnerIdAsync(CurrentGymId ?? 0);
 
-
-            CurrentPlanResult canCreateNew = await _currentPlanService.GetCurrentPlanAsync(ownerUserId, cancellationToken);
-            if (canCreateNew.IsOverMemberLimit)
-                throw new InvalidOperationException("You Have Reached Your Member Limit");
-
-            if (canCreateNew.IsOverCoachLimit)
-                throw new InvalidOperationException("You Have Reached Your Coach Limit");
-
-            if (canCreateNew.IsOverGymLimit)
-                throw new InvalidOperationException("You Have Reached Your Gym Limit");
-
+            CurrentPlanResult planResult = await _currentPlanService.GetCurrentPlanAsync(ownerUserId, ct);
+            ValidateGymPlanLimits(planResult, dto.GymRole);
 
             // 1. Check if the person is already a member of this gym
-            var existingPerson = await _gymPersonRepo.GetGymPersonAsync(dto.GymId, dto.UserId, cancellationToken);
+            var existingPerson = await _gymPersonRepo.GetGymPersonAsync(dto.GymId, dto.UserId, ct);
             if (existingPerson != null)
                 throw new InvalidOperationException("This person is already registered in this gym.");
 
             // 2. Check if a pending invitation already exists for this user
-            var existingPending = await _invitationRepo.HasPendingInvitationAsync(dto.GymId, dto.UserId, cancellationToken);
+            var existingPending = await _invitationRepo.HasPendingInvitationAsync(dto.GymId, dto.UserId, ct);
             if (existingPending)
                 throw new InvalidOperationException("An active invitation has already been sent to this user.");
-        }
 
-        protected override Task AfterMapAddAsync(Invitation entity, InvitationCDTO dto, CancellationToken cancellationToken)
-        {
-            // Set auditing and default status — no token needed
-            entity.Status = InvitationStatus.Pending;
-            entity.CreatedOn = DateTime.UtcNow;
-            entity.CreatedByPersonId = CurrentPersonId ?? throw new InvalidOperationException("Current person context is missing.");
-            return base.AfterMapAddAsync(entity, dto, cancellationToken);
-        }
+            // 3. Validate membership plan details if inviting a Member
+            if (dto.GymRole == GymRole.Member)
+            {
+                var plan = await _membershipPlanRepo.GetByIdAsync(dto.Membership!.MembershipPlanId!.Value, false, ct);
+                if (plan == null)
+                    throw new NotFoundException($"Membership plan with ID {dto.Membership.MembershipPlanId.Value} was not found.");
 
+                if (plan.GymId != CurrentGymId)
+                    throw new InvalidOperationException("The specified membership plan does not belong to this gym.");
+            }
 
-        public async Task<InvitationRDTO> CreateInvitationAsync(InvitationCDTO dto, CancellationToken ct = default)
-        {
             InvitationRDTO invitationRDTO = await base.AddAsync(dto, ct);
 
             await _publishEndpoint.Publish(new InvitationCreatedEvent
@@ -116,39 +132,16 @@ namespace Application.Service
         // ─────────────────────────────────────────────────────────────
         public async Task<InvitationRDTO> AcceptInvitationAsync(int invitationId, CancellationToken ct = default)
         {
-            int ownerUserId = await _gymRepo.GetOwnerIdAsync(CurrentGymId ?? 0);
-
-
-            CurrentPlanResult canCreateNew = await _currentPlanService.GetCurrentPlanAsync(ownerUserId, ct);
-
-            if (canCreateNew.IsOverMemberLimit)
-                throw new InvalidOperationException("You Have Reached Your Member Limit");
-
-            if (canCreateNew.IsOverCoachLimit)
-                throw new InvalidOperationException("You Have Reached Your Coach Limit");
-
-            if (canCreateNew.IsOverGymLimit)
-                throw new InvalidOperationException("You Have Reached Your Gym Limit");
-
-            var invitation = await _invitationRepo.GetByIdIgnoringSecurityAsync(invitationId, true, ct,
-                include: q => q.Include(x => x.CreatedByPerson));
-            if (invitation == null)
-                throw new NotFoundException("Invitation was not found.");
-
-            if (invitation.Status != InvitationStatus.Pending)
-                throw new InvalidOperationException($"This invitation cannot be accepted because its status is {invitation.Status}.");
-
-            var acceptingUser = await _userRepo.GetByIdAsync(CurrentUserId, false, ct);
-            if (acceptingUser == null)
-                throw new NotFoundException("User was not found.");
-
-            if (invitation.UserId != CurrentUserId)
-                throw new ForbiddenException("This invitation was not sent to you.");
+            var (invitation, acceptingUser) = await GetAndValidateInvitationForRecipientAsync(invitationId, "accepted", ct);
 
             // Make sure the user is not already in the gym
             var existingPerson = await _gymPersonRepo.GetGymPersonAsync(invitation.GymId, CurrentUserId, ct);
             if (existingPerson != null)
                 throw new InvalidOperationException("You are already registered in this gym.");
+
+            int ownerUserId = await _gymRepo.GetOwnerIdAsync(invitation.GymId);
+            CurrentPlanResult planResult = await _currentPlanService.GetCurrentPlanAsync(ownerUserId, ct);
+            ValidateGymPlanLimits(planResult, invitation.GymRole);
 
             // Update invitation
             invitation.Status = InvitationStatus.Accepted;
@@ -175,14 +168,14 @@ namespace Application.Service
                 // Use membership snapshot from the invitation
                 var startDate = DateTime.UtcNow;
                 var durationDays = invitation.DurationDays ?? 30;
-                var finalAmount = (invitation.PricePaid ?? 0) - (invitation.DiscountAmount ?? 0);
+                var finalAmount = invitation.FinalAmount ?? ((invitation.Amount ?? 0) - (invitation.DiscountAmount ?? 0));
 
                 gymPerson.MemberProfile = new GymMemberProfile
                 {
                     MembershipPlanId = invitation.MembershipPlanId,
                     PlanName = invitation.PlanName ?? "Basic",
                     DurationDays = durationDays,
-                    PricePaid = invitation.PricePaid ?? 0,
+                    PricePaid = invitation.Amount ?? 0,
                     DiscountAmount = invitation.DiscountAmount ?? 0,
                     FinalAmount = finalAmount,
                     MembershipStartDate = startDate,
@@ -233,7 +226,6 @@ namespace Application.Service
                     PeriodTo = invitation.SalaryValidUntil ?? DateTime.UtcNow.AddMonths(1),
                     PaidByUserId = invitation.CreatedByPerson?.UserId ?? 0
                 }, ct);
-
             }
 
             return _mapper.Map<InvitationRDTO>(invitation);
@@ -244,27 +236,13 @@ namespace Application.Service
         // ─────────────────────────────────────────────────────────────
         public async Task<InvitationRDTO> RejectInvitationAsync(int invitationId, CancellationToken ct = default)
         {
-            var invitation = await _invitationRepo.GetByIdIgnoringSecurityAsync(invitationId, true, ct,
-                include: q => q.Include(x => x.CreatedByPerson));
-            if (invitation == null)
-                throw new NotFoundException("Invitation was not found.");
-
-            if (invitation.Status != InvitationStatus.Pending)
-                throw new InvalidOperationException($"This invitation cannot be rejected because its status is {invitation.Status}.");
-
-            var acceptingUser = await _userRepo.GetByIdAsync(CurrentUserId, false, ct);
-            if (acceptingUser == null)
-                throw new NotFoundException("User was not found.");
-
-            if (invitation.UserId != CurrentUserId)
-                throw new ForbiddenException("This invitation was not sent to you.");
+            var (invitation, _) = await GetAndValidateInvitationForRecipientAsync(invitationId, "rejected", ct);
 
             invitation.Status = InvitationStatus.Rejected;
             invitation.RejectedAt = DateTime.UtcNow;
 
             await _invitationRepo.UpdateAsync(invitation, ct);
             await _unitOfWork.SaveChangesAsync(ct);
-
 
             return _mapper.Map<InvitationRDTO>(invitation);
         }
@@ -278,7 +256,7 @@ namespace Application.Service
             if (invitation == null)
                 throw new NotFoundException($"Invitation with ID {invitationId} was not found.");
 
-            if (!CanAccess(invitation.GymId))
+            if (invitation.GymId != CurrentGymId)
                 throw new ForbiddenException("You are not authorized to cancel invitations for this gym.");
 
             if (invitation.Status != InvitationStatus.Pending)
@@ -292,7 +270,37 @@ namespace Application.Service
             return _mapper.Map<InvitationRDTO>(invitation);
         }
 
+        // ─────────────────────────────────────────────────────────────
+        // Helper Methods
+        // ─────────────────────────────────────────────────────────────
+        private void ValidateGymPlanLimits(CurrentPlanResult plan, GymRole role)
+        {
+            if (role == GymRole.Member && plan.IsOverMemberLimit)
+                throw new InvalidOperationException("You Have Reached Your Member Limit");
 
+            if (role == GymRole.Coach && plan.IsOverCoachLimit)
+                throw new InvalidOperationException("You Have Reached Your Coach Limit");
+        }
 
+        private async Task<(Invitation invitation, ApplicationUser acceptingUser)> GetAndValidateInvitationForRecipientAsync(
+            int invitationId, string action, CancellationToken ct)
+        {
+            var invitation = await _invitationRepo.GetByIdIgnoringSecurityAsync(invitationId, true, ct,
+                include: q => q.Include(x => x.CreatedByPerson));
+            if (invitation == null)
+                throw new NotFoundException("Invitation was not found.");
+
+            if (invitation.Status != InvitationStatus.Pending)
+                throw new InvalidOperationException($"This invitation cannot be {action} because its status is {invitation.Status}.");
+
+            var acceptingUser = await _userRepo.GetByIdAsync(CurrentUserId, false, ct);
+            if (acceptingUser == null)
+                throw new NotFoundException("User was not found.");
+
+            if (invitation.UserId != CurrentUserId)
+                throw new ForbiddenException("This invitation was not sent to you.");
+
+            return (invitation, acceptingUser);
+        }
     }
 }

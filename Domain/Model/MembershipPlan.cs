@@ -1,10 +1,11 @@
 using Domain.Attributes;
+using Domain.Interface;
 using Domain.Model.Base;
 using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Model
 {
-    public class MembershipPlan : BaseAuditableGymEntity
+    public class MembershipPlan : BaseAuditableGymEntity, ICacheableEntity
     {
         [Required]
         [MaxLength(100)]
@@ -21,13 +22,7 @@ namespace Domain.Model
         [Filterable(FilterType.Between)]
         public decimal Price { get; set; }
 
-        [Filterable(FilterType.Exact)]
-        public int FreezeDaysLimit { get; set; }
 
-        public int? AttendanceLimit { get; set; }
-
-        [Filterable(FilterType.Exact)]
-        public bool IsActive { get; set; } = true;
 
         [Timestamp]
         public byte[] RowVersion { get; set; } = null!;
