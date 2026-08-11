@@ -57,6 +57,24 @@ namespace Application.DTO
                 .IncludeBase<BaseGymEntity, BaseGymUDTO>()
                 .ReverseMap();
 
+            CreateMap<RevenueCDTO, Revenue>()
+                .IncludeBase<BaseGymCDTO, BaseGymEntity>();
+            CreateMap<RevenueUDTO, Revenue>()
+                .IncludeBase<BaseGymUDTO, BaseGymEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<Revenue, RevenueRDTO>()
+                .IncludeBase<BaseGymEntity, BaseGymRDTO>()
+                .ForMember(dest => dest.GymMemberName, opt => opt.MapFrom(src => src.GymMember != null ? src.GymMember.Name : string.Empty));
+
+            CreateMap<ExpenseCDTO, Expense>()
+                .IncludeBase<BaseGymCDTO, BaseGymEntity>();
+            CreateMap<ExpenseUDTO, Expense>()
+                .IncludeBase<BaseGymUDTO, BaseGymEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<Expense, ExpenseRDTO>()
+                .IncludeBase<BaseGymEntity, BaseGymRDTO>()
+                .ForMember(dest => dest.GymStaffName, opt => opt.MapFrom(src => src.GymStaff != null ? src.GymStaff.Name : string.Empty));
+
 
             
 

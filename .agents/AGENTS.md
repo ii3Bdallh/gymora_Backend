@@ -25,7 +25,8 @@ All domain models must reside in `Domain/Model/` and inherit from one of the bas
    - Has `int GymId`.
 4. **`BaseGymAuditableEntity`**: Inherits `BaseGymEntity` and implements `IAuditableEntity`.
    - Has `DateTime CreatedOn`, `int CreatedById`, `DateTime? ModifiedOn`, and `int GymId`.
-5. **`BaseFileEntity`** / **`BaseAuditableFileEntity`**: For entities that store file paths or uploads.
+5. **`BaseFileEntity`** / **`BaseAuditableFileEntity`**: For platform-wide entities that store file paths or uploads.
+6. **`BaseGymFileEntity`** / **`BaseGymAuditableFileEntity`**: For gym-owned entities that store file paths or uploads (implements `IBaseFileEntity` and `IBaseGymEntity`).
 
 ### Search and Filter Attributes
 When defining properties in domain models, use:

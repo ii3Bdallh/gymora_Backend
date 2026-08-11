@@ -41,6 +41,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAttendanceService, AttendanceService>();
         services.AddScoped<IMembershipPlanService, MembershipPlanService>();
         services.AddScoped<IInvitationService, InvitationService>();
+        services.AddScoped<IRevenueService, RevenueService>();
+        services.AddScoped<IExpenseService, ExpenseService>();
+        services.AddScoped<IFinancialReportService, FinancialReportService>();
 
         return services;
     }

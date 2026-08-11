@@ -28,6 +28,8 @@ public sealed class ApplicationDbContext
     public DbSet<Attendance> Attendances { get; set; }
     public DbSet<MembershipPlan> MembershipPlans { get; set; }
     public DbSet<Invitation> Invitation { get; set; }
+    public DbSet<Revenue> Revenues { get; set; }
+    public DbSet<Expense> Expenses { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 

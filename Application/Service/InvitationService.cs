@@ -198,7 +198,8 @@ namespace Application.Service
                     FinalAmount = finalAmount,
                     MembershipStartDate = startDate,
                     MembershipEndDate = gymPerson.MemberProfile.MembershipEndDate!.Value,
-                    CreatedByUserId = invitation.CreatedByPerson?.UserId ?? 0
+                    CreatedByUserId = invitation.CreatedByPerson?.UserId ?? 0,
+                    CreatedByPersonId = invitation.CreatedByPersonId
                 }, ct);
             }
             else if (personType == PersonType.Staff)

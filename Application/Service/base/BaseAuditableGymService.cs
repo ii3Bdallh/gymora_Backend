@@ -55,7 +55,10 @@ namespace Application.Service.Base
         protected override Task BeforeAddAsync(CDTO dto, CancellationToken cancellationToken)
         {
             base.BeforeAddAsync(dto, cancellationToken);
-
+            if (dto.CreatedByPersonId != 0 && !CanAccess(dto.CreatedByPersonId))
+            {
+                throw new ForbiddenException("You are not authorized to perform this action.");
+            }
             dto.CreatedByPersonId = CurrentPersonId ?? throw new ForbiddenException("You are not authorized to perform this action.");
 
             return Task.CompletedTask;

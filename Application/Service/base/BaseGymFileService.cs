@@ -5,28 +5,28 @@ using Application.Interface.Repo;
 using Application.Interface.Service.Shared;
 using Application.Model;
 using AutoMapper;
-using Domain.Events;
 using Domain.Model.Base;
-using Domain.Interface;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Application.Service
+namespace Application.Service.Base
 {
     /// <summary>
-    /// Base service for entities containing files (non-auditable version)
+    /// Base service for gym-owned entities containing files (non-auditable version)
     /// </summary>
-    public abstract class BaseFileService<T, RDTO, CDTO, UDTO>
-        : BaseService<T, RDTO, CDTO, UDTO>
-        where T : class, IBaseFileEntity
-        where RDTO : BaseFRDTO
-        where CDTO : BaseFCDTO
-        where UDTO : BaseFUDTO
+    public abstract class BaseGymFileService<T, RDTO, CDTO, UDTO>
+        : BaseGymService<T, RDTO, CDTO, UDTO>
+        where T : BaseGymFileEntity
+        where RDTO : BaseGymFRDTO
+        where CDTO : BaseGymFCDTO
+        where UDTO : BaseGymFUDTO
     {
         protected readonly IStorageService _storageService;
 
-        protected BaseFileService(
+        protected BaseGymFileService(
             IBaseRepo<T> repo,
             IUnitOfWork unitOfWork,
             IMapper mapper,
@@ -41,10 +41,10 @@ namespace Application.Service
         }
 
         protected virtual async Task UploadFileAndSaveFileInfoAsync(
-    T entity,
-    IFormFile file,
-    bool isPublic,
-    CancellationToken ct)
+            T entity,
+            IFormFile file,
+            bool isPublic,
+            CancellationToken ct)
         {
             entity.StoredFilePath = await _storageService.UploadFileToStorageAsync(
                 file,
@@ -59,15 +59,12 @@ namespace Application.Service
                 : null;
         }
 
-
-
-
         #region Read
 
         protected override Task AfterMapReadAsync(
-        T entity,
-        RDTO dto,
-        CancellationToken cancellationToken)
+            T entity,
+            RDTO dto,
+            CancellationToken cancellationToken)
         {
             if (!string.IsNullOrWhiteSpace(entity.StoredFilePath))
             {
@@ -81,41 +78,32 @@ namespace Application.Service
 
         #endregion
 
-
-
         #region Add
 
         protected override async Task AfterMapAddAsync(
-    T entity,
-    CDTO dto,
-    CancellationToken cancellationToken)
+            T entity,
+            CDTO dto,
+            CancellationToken cancellationToken)
         {
             if (dto.File is not null)
             {
                 await UploadFileAndSaveFileInfoAsync(entity, dto.File, dto.IsPublic, cancellationToken);
-                // await ReplaceFileAsync(entity, dto, cancellationToken);
             }
-
         }
-
 
         #endregion
 
         #region Update
 
         protected override async Task AfterMapUpdateAsync(
-    T entity,
-    UDTO dto,
-    CancellationToken cancellationToken)
+            T entity,
+            UDTO dto,
+            CancellationToken cancellationToken)
         {
-
-
-
             if (dto.File is not null)
             {
                 string? oldStoredFilePath = entity.StoredFilePath;
                 await UploadFileAndSaveFileInfoAsync(entity, dto.File, entity.IsPublic, cancellationToken);
-                // await ReplaceFileAsync(entity, dto, cancellationToken);
 
                 if (!string.IsNullOrWhiteSpace(oldStoredFilePath))
                 {
@@ -124,15 +112,14 @@ namespace Application.Service
                 }
             }
         }
+
         #endregion
 
         #region Delete
 
-
-
         protected override async Task AfterDeleteAsync(
-    T entity,
-    CancellationToken cancellationToken)
+            T entity,
+            CancellationToken cancellationToken)
         {
             if (!string.IsNullOrWhiteSpace(entity.StoredFilePath))
             {
@@ -140,8 +127,8 @@ namespace Application.Service
                     entity.StoredFilePath,
                     cancellationToken);
             }
-
         }
+
         #endregion
     }
 }

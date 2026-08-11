@@ -1,3 +1,5 @@
+using System;
+
 namespace Domain.Events;
 
 /// <summary>
@@ -17,4 +19,5 @@ public record MembershipCreatedEvent
     public DateTime MembershipStartDate { get; init; }
     public DateTime MembershipEndDate { get; init; }
     public int CreatedByUserId { get; init; }
+    public int CreatedByPersonId { get; init; }
 }

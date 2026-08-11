@@ -36,6 +36,11 @@ namespace Application.Service.Base
         {
             base.BeforeAddAsync(dto, cancellationToken);
 
+            if (dto.GymId != 0 && !CanAccess(dto.GymId))
+            {
+                throw new ForbiddenException("You are not authorized to perform this action.");
+            }
+
             dto.GymId = CurrentGymId ?? throw new ForbiddenException("You are not authorized to perform this action.");
 
             return Task.CompletedTask;

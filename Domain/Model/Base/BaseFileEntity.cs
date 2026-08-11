@@ -1,3 +1,4 @@
+using Domain.Interface;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Model.Base
@@ -5,7 +6,7 @@ namespace Domain.Model.Base
     /// <summary>
     /// Base class for entities that contain files (non-auditable)
     /// </summary>
-    public abstract class BaseFileEntity : BaseEntity
+    public abstract class BaseFileEntity : BaseEntity, IBaseFileEntity
     {
         /// <summary>
         /// The final accessible URL (only populated for Public files)

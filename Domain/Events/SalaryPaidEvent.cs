@@ -16,4 +16,5 @@ public record SalaryPaidEvent
     public DateTime PeriodFrom { get; init; }
     public DateTime PeriodTo { get; init; }
     public int PaidByUserId { get; init; }
+    public int PaidByPersonId { get; init; }
 }

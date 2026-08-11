@@ -204,7 +204,8 @@ namespace Application.Service
                 PaidAt       = now,
                 PeriodFrom   = person.StaffProfile.SalaryValidFrom ?? now,
                 PeriodTo     = person.StaffProfile.SalaryValidUntil ?? now.AddMonths(1),
-                PaidByUserId = CurrentUserId
+                PaidByUserId = CurrentUserId,
+                PaidByPersonId = CurrentPersonId ?? 0
             }, ct);
             await _unitOfWork.SaveChangesAsync(ct);
         }
