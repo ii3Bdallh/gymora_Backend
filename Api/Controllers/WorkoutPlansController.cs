@@ -37,7 +37,7 @@ namespace Api.Controllers
         }
 
         [HttpPost("Create")]
-        [GymAuthorize(GymRoleString.Owner, GymRoleString.Manager, GymRoleString.Coach)]
+        [GymAuthorize(GymRoleString.Owner)]
         public async Task<ActionResult<Result<WorkoutPlanRDTO>>> Create([FromBody] WorkoutPlanCDTO dto, CancellationToken ct)
         {
             logger.LogInformation("Creating workout plan: {@Dto}", dto);

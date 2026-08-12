@@ -15,7 +15,7 @@ namespace Application.DTO.Model
 
         [Required(ErrorMessage = "Sessions are required")]
         [MinLength(1, ErrorMessage = "Workout plan must have at least one session")]
-        public ICollection<WorkoutPlanSessionCDTO> Sessions { get; set; } = new List<WorkoutPlanSessionCDTO>();
+        public ICollection<SessionCDTO> Sessions { get; set; } = new List<SessionCDTO>();
     }
 
     public record WorkoutPlanUDTO : BaseAuditableFUDTO
@@ -34,6 +34,6 @@ namespace Application.DTO.Model
         public string? Description { get; set; }
         public bool IsApproved { get; set; }
         public bool IsDeleted { get; set; }
-        public ICollection<WorkoutPlanSessionRDTO> Sessions { get; set; } = new List<WorkoutPlanSessionRDTO>();
+        public ICollection<SessionRDTO> Sessions { get; set; } = new List<SessionRDTO>();
     }
 }

@@ -1,4 +1,4 @@
-﻿﻿﻿using Domain.Model;
+﻿﻿﻿﻿using Domain.Model;
 using Domain.Model.Auth;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +38,7 @@ public sealed class ApplicationDbContext
 
 
     public DbSet<UserDevice> UserDevices { get; set; }
+    public DbSet<Exercise> Exercises { get; set; }
     public DbSet<Session> Sessions { get; set; }
     public DbSet<WorkoutPlan> WorkoutPlans { get; set; }
     public DbSet<BodyMeasurement> BodyMeasurements { get; set; }

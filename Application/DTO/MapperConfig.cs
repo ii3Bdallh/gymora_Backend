@@ -1,4 +1,4 @@
-﻿﻿﻿using Application.DTO.Base;
+﻿﻿﻿﻿using Application.DTO.Base;
 using Application.DTO.Model;
 using AutoMapper;
 using Domain.Model;
@@ -300,6 +300,14 @@ namespace Application.DTO
             CreateMap<MembershipPlan, MembershipPlanUDTO>()
                 .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableUDTO>()
                 .ReverseMap();
+
+            CreateMap<ExerciseCDTO, Exercise>()
+                .IncludeBase<BaseAuditableFCDTO, BaseAuditableFileEntity>();
+            CreateMap<ExerciseUDTO, Exercise>()
+                .IncludeBase<BaseAuditableFUDTO, BaseAuditableFileEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<Exercise, ExerciseRDTO>()
+                .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>();
 
             CreateMap<SessionCDTO, Session>()
                 .IncludeBase<BaseAuditableCDTO, BaseAuditableEntity>();

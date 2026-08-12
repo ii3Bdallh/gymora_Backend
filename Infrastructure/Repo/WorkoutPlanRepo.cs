@@ -22,8 +22,7 @@ namespace Infrastructure.Repo
         protected override Func<IQueryable<WorkoutPlan>, IQueryable<WorkoutPlan>>? Includes()
         {
             return query => query.Include(x => x.Sessions)
-                                 .ThenInclude(s => s.Session)
-                                 .ThenInclude(ws => ws.Exercises);
+                                 .ThenInclude(s => s.Exercises);
         }
 
         protected override IQueryable<WorkoutPlan> ApplyExtraFilters(IQueryable<WorkoutPlan> query)

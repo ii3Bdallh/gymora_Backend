@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.DTO.Exceptions;
@@ -18,17 +20,15 @@ namespace Application.Service
 {
     public class SessionService : BaseService<Session, SessionRDTO, SessionCDTO, SessionUDTO>, ISessionService
     {
-        private readonly ISessionExerciseRepo _sessionExerciseRepo;
-        private readonly IExerciseRepo _exerciseRepo;
         private readonly IUserWorkoutBlockRepo _blockRepo;
         private readonly ICurrentPlanService _currentPlanService;
+        private readonly IWorkoutPlanRepo _workoutPlanRepo;
 
         public SessionService(
             ISessionRepo repo,
-            ISessionExerciseRepo sessionExerciseRepo,
-            IExerciseRepo exerciseRepo,
             IUserWorkoutBlockRepo blockRepo,
             ICurrentPlanService currentPlanService,
+            IWorkoutPlanRepo workoutPlanRepo,
             IUnitOfWork unitOfWork,
             IMapper mapper,
             ICacheService cacheService,
@@ -37,15 +37,25 @@ namespace Application.Service
             ILogger<SessionService> logger)
             : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser, logger)
         {
-            _sessionExerciseRepo = sessionExerciseRepo;
-            _exerciseRepo = exerciseRepo;
             _blockRepo = blockRepo;
             _currentPlanService = currentPlanService;
+            _workoutPlanRepo = workoutPlanRepo;
+        }
+
+        private async Task VerifyWorkoutPlanOwnershipAsync(int planId, CancellationToken cancellationToken)
+        {
+            var plan = await _workoutPlanRepo.GetByIdAsync(planId, false, cancellationToken);
+            if (plan == null)
+                throw new NotFoundException($"Workout plan with ID {planId} was not found.");
+
+            if (plan.CreatedById != CurrentUserId && !CurrentUser.IsSuperAdmin)
+                throw new ForbiddenException("You do not have access to modify sessions in this workout plan.");
         }
 
         protected override async Task BeforeAddAsync(SessionCDTO dto, CancellationToken cancellationToken)
         {
             await base.BeforeAddAsync(dto, cancellationToken);
+            await VerifyWorkoutPlanOwnershipAsync(dto.WorkoutPlanId, cancellationToken);
 
             if (!CurrentUser.IsSuperAdmin)
             {
@@ -73,65 +83,27 @@ namespace Application.Service
             }
         }
 
+        protected override async Task BeforeUpdateAsync(Session entity, SessionUDTO dto, CancellationToken cancellationToken)
+        {
+            await base.BeforeUpdateAsync(entity, dto, cancellationToken);
+            await VerifyWorkoutPlanOwnershipAsync(entity.WorkoutPlanId, cancellationToken);
+            await VerifyWorkoutPlanOwnershipAsync(dto.WorkoutPlanId, cancellationToken);
+        }
+
+        protected override async Task BeforeDeleteAsync(Session entity, CancellationToken cancellationToken)
+        {
+            await base.BeforeDeleteAsync(entity, cancellationToken);
+            await VerifyWorkoutPlanOwnershipAsync(entity.WorkoutPlanId, cancellationToken);
+        }
+
         protected override async Task AfterMapAddAsync(Session entity, SessionCDTO dto, CancellationToken cancellationToken)
         {
             await base.AfterMapAddAsync(entity, dto, cancellationToken);
             entity.IsApproved = CurrentUser.IsSuperAdmin;
         }
 
-
-
-
-        public async Task<SessionExerciseRDTO> AddExerciseToSessionAsync(int sessionId, SessionExerciseCDTO dto, CancellationToken ct)
-        {
-            var session = await _repo.GetByIdAsync(sessionId, false, ct);
-            if (session == null)
-                throw new NotFoundException($"Session with ID {sessionId} was not found.");
-
-            // Enforce that only creator or SuperAdmin can add exercises to this session
-            if (session.CreatedById != CurrentUserId && !CurrentUser.IsSuperAdmin)
-                throw new ForbiddenException("You do not have access to modify this session.");
-
-            var ex = _mapper.Map<SessionExercise>(dto);
-            ex.SessionId = sessionId;
-
-            if (ex.ExerciseId.HasValue && string.IsNullOrEmpty(ex.ExerciseName))
-            {
-                var exercise = await _exerciseRepo.GetByIdAsync(ex.ExerciseId.Value, false, ct);
-                if (exercise != null)
-                {
-                    ex.ExerciseName = exercise.Name;
-                }
-            }
-
-            ex = await _sessionExerciseRepo.AddAsync(ex, ct);
-            await _unitOfWork.SaveChangesAsync(ct);
-
-            return _mapper.Map<SessionExerciseRDTO>(ex);
-        }
-
-        public async Task RemoveExerciseFromSessionAsync(int sessionId, int exerciseId, CancellationToken ct)
-        {
-            var session = await _repo.GetByIdAsync(sessionId, false, ct);
-            if (session == null)
-                throw new NotFoundException($"Session with ID {sessionId} was not found.");
-
-            // Enforce access control
-            if (session.CreatedById != CurrentUserId && !CurrentUser.IsSuperAdmin)
-                throw new ForbiddenException("You do not have access to modify this session.");
-
-            var ex = await _sessionExerciseRepo.GetByIdAsync(exerciseId, false, ct);
-            if (ex == null || ex.SessionId != sessionId)
-                throw new NotFoundException($"Exercise with ID {exerciseId} was not found under session {sessionId}.");
-
-            await _sessionExerciseRepo.DeleteAsync(ex, ct);
-            await _unitOfWork.SaveChangesAsync(ct);
-        }
-
         public async Task ApproveAsync(int id, CancellationToken cancellationToken)
         {
-
-
             var entity = await _repo.GetByIdAsync(id, true, cancellationToken);
             if (entity == null)
             {
@@ -140,6 +112,42 @@ namespace Application.Service
 
             entity.IsApproved = true;
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task<IEnumerable<SessionRDTO>> AddRangeAsync(IEnumerable<SessionCDTO> dtos, CancellationToken cancellationToken)
+        {
+            // 1. Verify workout plan ownership once per unique planId
+            var uniquePlanIds = dtos.Select(d => d.WorkoutPlanId).Distinct().ToList();
+            foreach (var planId in uniquePlanIds)
+            {
+                await VerifyWorkoutPlanOwnershipAsync(planId, cancellationToken);
+            }
+
+            // 2. Check blocking status once for the current user
+            if (!CurrentUser.IsSuperAdmin)
+            {
+                bool isBlocked = await _blockRepo.DbSet.AnyAsync(
+                    x => x.BlockedUserId == CurrentUserId && x.BlockedUntil > DateTime.UtcNow,
+                    cancellationToken);
+
+                if (isBlocked)
+                {
+                    throw new ForbiddenException("You are blocked by SuperAdmin from creating workout sessions.");
+                }
+            }
+
+            var addedEntities = new List<Session>();
+            foreach (var dto in dtos)
+            {
+                var entity = _mapper.Map<Session>(dto);
+                entity.IsApproved = CurrentUser.IsSuperAdmin;
+
+                var added = await _repo.AddAsync(entity, cancellationToken);
+                addedEntities.Add(added);
+            }
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            return _mapper.Map<IEnumerable<SessionRDTO>>(addedEntities);
         }
     }
 }

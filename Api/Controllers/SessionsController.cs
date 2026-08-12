@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Api.Filters;
@@ -45,6 +46,15 @@ namespace Api.Controllers
             return StatusCode(StatusCodes.Status201Created, Result<SessionRDTO>.Success(result));
         }
 
+        [HttpPost("Batch")]
+        [GymAuthorize(GymRoleString.Owner)]
+        public async Task<ActionResult<Result<IEnumerable<SessionRDTO>>>> BatchCreate([FromBody] IEnumerable<SessionCDTO> dtos, CancellationToken ct)
+        {
+            logger.LogInformation("Batch creating workout sessions");
+            var result = await service.AddRangeAsync(dtos, ct);
+            return StatusCode(StatusCodes.Status201Created, Result<IEnumerable<SessionRDTO>>.Success(result));
+        }
+
         [HttpPut("{id}")]
         [Authorize(Roles = AppRole.SuperAdmin)]
         public async Task<ActionResult<Result<SessionRDTO>>> Update(int id, [FromBody] SessionUDTO dto, CancellationToken ct)
@@ -61,24 +71,6 @@ namespace Api.Controllers
             logger.LogInformation("Deleting workout session with Id: {Id}", id);
             var result = await service.DeleteAsync(id, ct);
             return Ok(Result<SessionRDTO>.Success(result));
-        }
-
-        [HttpPost("{sessionId}/Exercises")]
-        [GymAuthorize(GymRoleString.Owner)]
-        public async Task<ActionResult<Result<SessionExerciseRDTO>>> AddExerciseToSession(int sessionId, [FromBody] SessionExerciseCDTO dto, CancellationToken ct)
-        {
-            logger.LogInformation("Adding exercise to session with Id: {SessionId}", sessionId);
-            var result = await service.AddExerciseToSessionAsync(sessionId, dto, ct);
-            return StatusCode(StatusCodes.Status201Created, Result<SessionExerciseRDTO>.Success(result));
-        }
-
-        [HttpDelete("{sessionId}/Exercises/{exerciseId}")]
-        [GymAuthorize(GymRoleString.Owner)]
-        public async Task<ActionResult<Result<string>>> RemoveExerciseFromSession(int sessionId, int exerciseId, CancellationToken ct)
-        {
-            logger.LogInformation("Removing exercise {ExerciseId} from session with Id: {SessionId}", exerciseId, sessionId);
-            await service.RemoveExerciseFromSessionAsync(sessionId, exerciseId, ct);
-            return Ok(Result<string>.Success("Exercise removed successfully from session."));
         }
 
         [HttpPost("{id}/Approve")]

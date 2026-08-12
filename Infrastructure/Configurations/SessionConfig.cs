@@ -19,6 +19,11 @@ namespace Infrastructure.Config
                 .WithOne(e => e.Session)
                 .HasForeignKey(e => e.SessionId)
                 .OnDelete(DeleteBehavior.Cascade);
+            // Link to WorkoutPlan (One-to-Many)
+            builder.HasOne(x => x.WorkoutPlan)
+                .WithMany(p => p.Sessions)
+                .HasForeignKey(x => x.WorkoutPlanId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

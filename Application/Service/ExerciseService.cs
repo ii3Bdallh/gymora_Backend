@@ -16,32 +16,32 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Service
 {
-    public class WorkoutPlanService : BaseAuditableFileService<WorkoutPlan, WorkoutPlanRDTO, WorkoutPlanCDTO, WorkoutPlanUDTO>, IWorkoutPlanService
+    public class ExerciseService : BaseAuditableFileService<Exercise, ExerciseRDTO, ExerciseCDTO, ExerciseUDTO>, IExerciseService
     {
+        private readonly ISessionExerciseRepo _sessionExerciseRepo;
         private readonly IUserWorkoutBlockRepo _blockRepo;
         private readonly ICurrentPlanService _currentPlanService;
-        private readonly IMemberWorkoutPlanRepo _memberWorkoutPlanRepo;
 
-        public WorkoutPlanService(
-            IWorkoutPlanRepo repo,
+        public ExerciseService(
+            IExerciseRepo repo,
+            ISessionExerciseRepo sessionExerciseRepo,
             IUserWorkoutBlockRepo blockRepo,
             ICurrentPlanService currentPlanService,
-            IMemberWorkoutPlanRepo memberWorkoutPlanRepo,
             IUnitOfWork unitOfWork,
             IMapper mapper,
             ICacheService cacheService,
             IPublishEndpoint publishEndpoint,
             CurrentUser currentUser,
             IStorageService storageService,
-            ILogger<WorkoutPlanService> logger)
+            ILogger<ExerciseService> logger)
             : base(repo, unitOfWork, mapper, cacheService, publishEndpoint, currentUser, storageService, logger)
         {
+            _sessionExerciseRepo = sessionExerciseRepo;
             _blockRepo = blockRepo;
             _currentPlanService = currentPlanService;
-            _memberWorkoutPlanRepo = memberWorkoutPlanRepo;
         }
 
-        protected override async Task BeforeAddAsync(WorkoutPlanCDTO dto, CancellationToken cancellationToken)
+        protected override async Task BeforeAddAsync(ExerciseCDTO dto, CancellationToken cancellationToken)
         {
             await base.BeforeAddAsync(dto, cancellationToken);
 
@@ -54,54 +54,66 @@ namespace Application.Service
 
                 if (isBlocked)
                 {
-                    throw new ForbiddenException("You are blocked by Admin from creating workout plans.");
+                    throw new ForbiddenException("You are blocked by SuperAdmin from creating workout items.");
                 }
 
                 // Check active subscription
                 if (!CurrentUser.IsGymOwner)
                 {
-                    throw new ForbiddenException("Only gym owners with an active subscription can create workout plans.");
+                    throw new ForbiddenException("Only gym owners with an active subscription can create workout items.");
                 }
 
                 var planResult = await _currentPlanService.GetCurrentPlanAsync(CurrentUserId, cancellationToken);
                 if (planResult.IsFree || planResult.SubscriptionStatus != Domain.Enum.OwnerSubscriptionStatus.Active)
                 {
-                    throw new ForbiddenException("Only gym owners with an active, non-free subscription can create workout plans.");
+                    throw new ForbiddenException("Only gym owners with an active, non-free subscription can create workout items.");
                 }
             }
         }
 
-        protected override async Task AfterMapAddAsync(WorkoutPlan entity, WorkoutPlanCDTO dto, CancellationToken cancellationToken)
+        protected override async Task AfterMapAddAsync(Exercise entity, ExerciseCDTO dto, CancellationToken cancellationToken)
         {
             await base.AfterMapAddAsync(entity, dto, cancellationToken);
             entity.IsApproved = CurrentUser.IsSuperAdmin;
         }
 
 
-        protected override async Task BeforeDeleteAsync(WorkoutPlan entity, CancellationToken cancellationToken)
+
+        public override async Task<ExerciseRDTO> DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
+            var entity = await LoadForUpdateAsync(id, cancellationToken);
 
-            await base.BeforeDeleteAsync(entity, cancellationToken);
+            // if (!CurrentUser.IsSuperAdmin)
+            // {
+            //     throw new ForbiddenException("Only SuperAdmins are allowed to delete exercises.");
+            // }
 
-            bool hasActiveAssignments = await _memberWorkoutPlanRepo.DbSet.AnyAsync(
-                   x => x.WorkoutPlanId == entity.Id && x.Status == Domain.Enum.MemberWorkoutPlanStatus.Active,
-                   cancellationToken);
+            // Check if exercise is used in sessions
+            bool isUsed = await _sessionExerciseRepo.DbSet.AnyAsync(
+                e => e.ExerciseId == id,
+                cancellationToken);
 
-            if (hasActiveAssignments)
+            if (isUsed)
             {
-                throw new InvalidOperationException("Cannot delete workout plan because it is currently assigned to active members.");
+                throw new InvalidOperationException("Cannot delete this exercise because it is currently used in workout sessions.");
             }
 
-
+            await _repo.DeleteAsync(entity, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            return _mapper.Map<ExerciseRDTO>(entity);
         }
 
         public async Task ApproveAsync(int id, CancellationToken cancellationToken)
         {
+            if (!CurrentUser.IsSuperAdmin)
+            {
+                throw new ForbiddenException("Only SuperAdmins are allowed to approve exercises.");
+            }
 
             var entity = await _repo.GetByIdAsync(id, true, cancellationToken);
             if (entity == null)
             {
-                throw new NotFoundException($"Workout plan with ID {id} was not found.");
+                throw new NotFoundException($"Exercise with ID {id} was not found.");
             }
 
             entity.IsApproved = true;

@@ -15,7 +15,11 @@ namespace Domain.Model
 
         public bool IsApproved { get; set; } = false;
 
+        public int WorkoutPlanId { get; set; }
+        public WorkoutPlan WorkoutPlan { get; set; } = null!;
+
+        public int DayNumber { get; set; }
+
         public ICollection<SessionExercise> Exercises { get; set; } = new List<SessionExercise>();
-        public ICollection<WorkoutPlanSession> PlanSessions { get; set; } = new List<WorkoutPlanSession>();
     }
 }

@@ -19,8 +19,7 @@ namespace Domain.Model
         public string? Description { get; set; }
 
         public bool IsApproved { get; set; } = false;
-        public bool IsDeleted { get; set; } = false;
 
-        public ICollection<WorkoutPlanSession> Sessions { get; set; } = new List<WorkoutPlanSession>();
+        public ICollection<Session> Sessions { get; set; } = new List<Session>();
     }
 }
