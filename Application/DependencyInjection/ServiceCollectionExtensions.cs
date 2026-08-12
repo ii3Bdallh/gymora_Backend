@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 using Application.Interface.Service;
 using Application.Interface.Service.Shared;
 using Application.Model;
@@ -44,6 +44,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRevenueService, RevenueService>();
         services.AddScoped<IExpenseService, ExpenseService>();
         services.AddScoped<IFinancialReportService, FinancialReportService>();
+        services.AddScoped<IWorkoutPlanService, WorkoutPlanService>();
         services.AddScoped<IBodyMeasurementService, BodyMeasurementService>();
 
         return services;
