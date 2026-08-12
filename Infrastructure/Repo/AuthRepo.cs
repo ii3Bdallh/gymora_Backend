@@ -87,7 +87,7 @@ namespace Infrastructure.Repo
                 throw new BadRequestException(errors);
             }
 
-            await _userManager.AddToRoleAsync(user, RoleConstants.User);
+            await _userManager.AddToRoleAsync(user, AppRole.User);
 
 
             await _publishEndpoint.Publish(new UserRegisterdEvent(user.Id, user.Email), cancellationToken);
@@ -200,7 +200,7 @@ namespace Infrastructure.Repo
                     throw new BadRequestException(errors);
                 }
 
-                await _userManager.AddToRoleAsync(user, RoleConstants.User);
+                await _userManager.AddToRoleAsync(user, AppRole.User);
 
 
 

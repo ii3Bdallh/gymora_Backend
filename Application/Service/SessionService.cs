@@ -83,12 +83,7 @@ namespace Application.Service
             }
         }
 
-        protected override async Task BeforeUpdateAsync(Session entity, SessionUDTO dto, CancellationToken cancellationToken)
-        {
-            await base.BeforeUpdateAsync(entity, dto, cancellationToken);
-            await VerifyWorkoutPlanOwnershipAsync(entity.WorkoutPlanId, cancellationToken);
-            await VerifyWorkoutPlanOwnershipAsync(dto.WorkoutPlanId, cancellationToken);
-        }
+
 
         protected override async Task BeforeDeleteAsync(Session entity, CancellationToken cancellationToken)
         {

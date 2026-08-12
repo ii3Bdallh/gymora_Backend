@@ -1,4 +1,4 @@
-﻿﻿﻿﻿
+
 using Application.Interface.Service;
 using Application.Interface.Service.Shared;
 using Application.Model;
@@ -44,10 +44,15 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRevenueService, RevenueService>();
         services.AddScoped<IExpenseService, ExpenseService>();
         services.AddScoped<IFinancialReportService, FinancialReportService>();
+
+        // Workout Feature Services
         services.AddScoped<IExerciseService, ExerciseService>();
-        services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IWorkoutPlanService, WorkoutPlanService>();
+        services.AddScoped<ISessionService, SessionService>();
+        services.AddScoped<ISessionExerciseService, SessionExerciseService>();
+        services.AddScoped<IMemberWorkoutPlanService, MemberWorkoutPlanService>();
         services.AddScoped<IBodyMeasurementService, BodyMeasurementService>();
+        services.AddScoped<IUserWorkoutBlockService, UserWorkoutBlockService>();
 
         return services;
     }

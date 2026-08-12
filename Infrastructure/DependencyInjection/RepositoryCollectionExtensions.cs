@@ -1,4 +1,4 @@
-﻿﻿﻿﻿using Application.Interface;
+using Application.Interface;
 using Application.Interface.Repo;
 using Application.Interface.Repo.Shared;
 using Domain.Model;
@@ -40,10 +40,16 @@ public static class RepositoryCollectionExtensions
         services.AddScoped<IRevenueRepo, RevenueRepo>();
         services.AddScoped<IExpenseRepo, ExpenseRepo>();
         services.AddScoped<IFinancialReportRepo, FinancialReportRepo>();
+
+        // Workout Feature Repositories
         services.AddScoped<IExerciseRepo, ExerciseRepo>();
-        services.AddScoped<ISessionRepo, SessionRepo>();
         services.AddScoped<IWorkoutPlanRepo, WorkoutPlanRepo>();
+        services.AddScoped<ISessionRepo, SessionRepo>();
+        services.AddScoped<ISessionExerciseRepo, SessionExerciseRepo>();
+        services.AddScoped<IUserWorkoutBlockRepo, UserWorkoutBlockRepo>();
+        services.AddScoped<IMemberWorkoutPlanRepo, MemberWorkoutPlanRepo>();
         services.AddScoped<IBodyMeasurementRepo, BodyMeasurementRepo>();
+
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 

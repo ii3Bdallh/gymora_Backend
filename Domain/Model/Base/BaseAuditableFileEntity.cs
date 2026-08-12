@@ -1,3 +1,4 @@
+using Domain.Attributes;
 using Domain.Interface;
 
 namespace Domain.Model.Base
@@ -9,6 +10,8 @@ namespace Domain.Model.Base
     {
 
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
+    [Filterable(FilterType.Exact)]
+
         public int CreatedById { get; set; }
 
 

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿using Application.DTO.Base;
+using Application.DTO.Base;
 using Application.DTO.Model;
 using AutoMapper;
 using Domain.Model;
@@ -15,7 +15,7 @@ namespace Application.DTO
 
 
             // Script will Add After Here MapperConfig
-            
+
             CreateMap<GymPerson, GymPersonRDTO>()
                 .IncludeBase<BaseEntity, BaseRDTO>()
                 .ReverseMap();
@@ -43,15 +43,15 @@ namespace Application.DTO
             // Flatten Membership and Salary nested DTOs into Invitation entity
             CreateMap<InvitationCDTO, Invitation>()
                 .IncludeBase<BaseGymCDTO, BaseGymEntity>()
-                .ForMember(dest => dest.MembershipPlanId,  opt => opt.MapFrom(src => src.Membership != null ? src.Membership.MembershipPlanId : null))
-                .ForMember(dest => dest.PlanName,          opt => opt.Ignore())
-                .ForMember(dest => dest.DurationDays,      opt => opt.Ignore())
-                .ForMember(dest => dest.Amount,            opt => opt.Ignore())
-                .ForMember(dest => dest.DiscountAmount,    opt => opt.MapFrom(src => src.Membership != null ? (decimal?)src.Membership.DiscountAmount : null))
-                .ForMember(dest => dest.FinalAmount,       opt => opt.Ignore())
-                .ForMember(dest => dest.Salary,            opt => opt.MapFrom(src => src.Salary != null ? (decimal?)src.Salary.Salary : null))
-                .ForMember(dest => dest.SalaryValidFrom,   opt => opt.MapFrom(src => src.Salary != null ? (DateTime?)src.Salary.SalaryValidFrom : null))
-                .ForMember(dest => dest.SalaryValidUntil,  opt => opt.MapFrom(src => src.Salary != null ? (DateTime?)src.Salary.SalaryValidUntil : null));
+                .ForMember(dest => dest.MembershipPlanId, opt => opt.MapFrom(src => src.Membership != null ? src.Membership.MembershipPlanId : null))
+                .ForMember(dest => dest.PlanName, opt => opt.Ignore())
+                .ForMember(dest => dest.DurationDays, opt => opt.Ignore())
+                .ForMember(dest => dest.Amount, opt => opt.Ignore())
+                .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.Membership != null ? (decimal?)src.Membership.DiscountAmount : null))
+                .ForMember(dest => dest.FinalAmount, opt => opt.Ignore())
+                .ForMember(dest => dest.Salary, opt => opt.MapFrom(src => src.Salary != null ? (decimal?)src.Salary.Salary : null))
+                .ForMember(dest => dest.SalaryValidFrom, opt => opt.MapFrom(src => src.Salary != null ? (DateTime?)src.Salary.SalaryValidFrom : null))
+                .ForMember(dest => dest.SalaryValidUntil, opt => opt.MapFrom(src => src.Salary != null ? (DateTime?)src.Salary.SalaryValidUntil : null));
 
             CreateMap<Invitation, InvitationUDTO>()
                 .IncludeBase<BaseGymEntity, BaseGymUDTO>()
@@ -76,7 +76,7 @@ namespace Application.DTO
                 .ForMember(dest => dest.GymStaffName, opt => opt.MapFrom(src => src.GymStaff != null ? src.GymStaff.Name : string.Empty));
 
 
-            
+
 
 
 
@@ -97,7 +97,7 @@ namespace Application.DTO
                 .ReverseMap();
 
 
-            
+
             CreateMap<CouponRedemption, CouponRedemptionRDTO>()
                 .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>()
                 .ReverseMap();
@@ -110,8 +110,8 @@ namespace Application.DTO
                 .IncludeBase<BaseAuditableEntity, BaseAuditableUDTO>()
                 .ReverseMap();
 
-                
-            
+
+
             CreateMap<OwnerSubscription, OwnerSubscriptionRDTO>()
                 .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>()
                 .ReverseMap();
@@ -124,8 +124,8 @@ namespace Application.DTO
                 .IncludeBase<BaseAuditableEntity, BaseAuditableUDTO>()
                 .ReverseMap();
 
-                
-            
+
+
             CreateMap<Coupon, CouponRDTO>()
                 .IncludeBase<BaseEntity, BaseRDTO>()
                 .ReverseMap();
@@ -301,12 +301,21 @@ namespace Application.DTO
                 .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableUDTO>()
                 .ReverseMap();
 
+            // Workout Feature Mappings
             CreateMap<ExerciseCDTO, Exercise>()
                 .IncludeBase<BaseAuditableFCDTO, BaseAuditableFileEntity>();
             CreateMap<ExerciseUDTO, Exercise>()
                 .IncludeBase<BaseAuditableFUDTO, BaseAuditableFileEntity>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<Exercise, ExerciseRDTO>()
+                .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>();
+
+            CreateMap<WorkoutPlanCDTO, WorkoutPlan>()
+                .IncludeBase<BaseAuditableFCDTO, BaseAuditableFileEntity>();
+            CreateMap<WorkoutPlanUDTO, WorkoutPlan>()
+                .IncludeBase<BaseAuditableFUDTO, BaseAuditableFileEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<WorkoutPlan, WorkoutPlanRDTO>()
                 .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>();
 
             CreateMap<SessionCDTO, Session>()
@@ -317,13 +326,23 @@ namespace Application.DTO
             CreateMap<Session, SessionRDTO>()
                 .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>();
 
-            CreateMap<WorkoutPlanCDTO, WorkoutPlan>()
-                .IncludeBase<BaseAuditableFCDTO, BaseAuditableFileEntity>();
-            CreateMap<WorkoutPlanUDTO, WorkoutPlan>()
-                .IncludeBase<BaseAuditableFUDTO, BaseAuditableFileEntity>()
+            CreateMap<SessionExerciseCDTO, SessionExercise>()
+                .IncludeBase<BaseCDTO, BaseEntity>();
+            CreateMap<SessionExerciseUDTO, SessionExercise>()
+                .IncludeBase<BaseUDTO, BaseEntity>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<WorkoutPlan, WorkoutPlanRDTO>()
-                .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>();
+            CreateMap<SessionExercise, SessionExerciseRDTO>()
+                .IncludeBase<BaseEntity, BaseRDTO>();
+
+            CreateMap<MemberWorkoutPlanCDTO, MemberWorkoutPlan>()
+                .IncludeBase<BaseGymAuditableCDTO, BaseAuditableGymEntity>();
+            CreateMap<MemberWorkoutPlanUDTO, MemberWorkoutPlan>()
+                .IncludeBase<BaseGymAuditableUDTO, BaseAuditableGymEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<MemberWorkoutPlan, MemberWorkoutPlanRDTO>()
+                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableRDTO>()
+                .ForMember(dest => dest.WorkoutPlanName, opt => opt.MapFrom(src => src.WorkoutPlan.PlanName))
+                .ForMember(dest => dest.MemberName, opt => opt.MapFrom(src => src.Member.Name));
 
             CreateMap<BodyMeasurementCDTO, BodyMeasurement>()
                 .IncludeBase<BaseAuditableCDTO, BaseAuditableEntity>();
@@ -333,14 +352,42 @@ namespace Application.DTO
             CreateMap<BodyMeasurement, BodyMeasurementRDTO>()
                 .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>();
 
+            CreateMap<UserWorkoutBlockCDTO, UserWorkoutBlock>()
+                .ForMember(dest => dest.BlockedUntil, opt => opt.MapFrom(src => 
+                    src.DurationDays == -1 || src.DurationDays == 9999 
+                        ? DateTime.MaxValue 
+                        : DateTime.UtcNow.AddDays(src.DurationDays)));
+            CreateMap<UserWorkoutBlockUDTO, UserWorkoutBlock>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<UserWorkoutBlock, UserWorkoutBlockRDTO>()
+                .ForMember(dest => dest.BlockedUserName, opt => opt.MapFrom(src => src.BlockedUser != null ? src.BlockedUser.PersonName : string.Empty));
 
+            // WorkoutPlan Mappings
+            CreateMap<WorkoutPlanCDTO, WorkoutPlan>()
+                .IncludeBase<BaseAuditableFCDTO, BaseAuditableFileEntity>();
+            CreateMap<WorkoutPlanUDTO, WorkoutPlan>()
+                .IncludeBase<BaseAuditableFUDTO, BaseAuditableFileEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<WorkoutPlan, WorkoutPlanRDTO>()
+                .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>();
 
+            // Session Mappings
+            CreateMap<SessionCDTO, Session>()
+                .IncludeBase<BaseAuditableCDTO, BaseAuditableEntity>();
+            CreateMap<SessionUDTO, Session>()
+                .IncludeBase<BaseAuditableUDTO, BaseAuditableEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<Session, SessionRDTO>()
+                .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>();
 
-
-
-
-
-
+            // SessionExercise Mappings
+            CreateMap<SessionExerciseCDTO, SessionExercise>()
+                .IncludeBase<BaseCDTO, BaseEntity>();
+            CreateMap<SessionExerciseUDTO, SessionExercise>()
+                .IncludeBase<BaseUDTO, BaseEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<SessionExercise, SessionExerciseRDTO>()
+                .IncludeBase<BaseEntity, BaseRDTO>();
         }
     }
 }

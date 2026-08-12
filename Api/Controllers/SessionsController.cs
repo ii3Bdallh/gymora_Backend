@@ -55,14 +55,14 @@ namespace Api.Controllers
             return StatusCode(StatusCodes.Status201Created, Result<IEnumerable<SessionRDTO>>.Success(result));
         }
 
-        [HttpPut("{id}")]
-        [Authorize(Roles = AppRole.SuperAdmin)]
-        public async Task<ActionResult<Result<SessionRDTO>>> Update(int id, [FromBody] SessionUDTO dto, CancellationToken ct)
-        {
-            logger.LogInformation("Updating workout session with Id: {Id}", id);
-            var result = await service.UpdateAsync(id, dto, ct);
-            return Ok(Result<SessionRDTO>.Success(result));
-        }
+        // [HttpPut("{id}")]
+        // [Authorize(Roles = AppRole.SuperAdmin)]
+        // public async Task<ActionResult<Result<SessionRDTO>>> Update(int id, [FromBody] SessionUDTO dto, CancellationToken ct)
+        // {
+        //     logger.LogInformation("Updating workout session with Id: {Id}", id);
+        //     var result = await service.UpdateAsync(id, dto, ct);
+        //     return Ok(Result<SessionRDTO>.Success(result));
+        // }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = AppRole.SuperAdmin)]

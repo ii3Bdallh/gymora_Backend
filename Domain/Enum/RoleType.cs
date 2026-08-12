@@ -20,8 +20,7 @@ namespace Domain.Enum
 
     public static class AppRole
     {
-        public const string SuperAdmin = "SuperAdmin";
-        public const string User = "User";
+        public const string SuperAdmin = "SuperAdmin";        public const string User = "User";
     }
 
 }

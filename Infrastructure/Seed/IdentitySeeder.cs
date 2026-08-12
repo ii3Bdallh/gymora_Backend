@@ -30,14 +30,14 @@ public sealed class IdentitySeeder
     public async Task InitializeAsync()
     {
         // 1. Seed Roles
-        if (!await _roleManager.RoleExistsAsync(RoleConstants.SuperAdmin))
+        if (!await _roleManager.RoleExistsAsync(AppRole.SuperAdmin))
         {
-            await _roleManager.CreateAsync(new ApplicationRole { Name = RoleConstants.SuperAdmin });
+            await _roleManager.CreateAsync(new ApplicationRole { Name = AppRole.SuperAdmin });
         }
 
-        if (!await _roleManager.RoleExistsAsync(RoleConstants.User))
+        if (!await _roleManager.RoleExistsAsync(AppRole.User))
         {
-            await _roleManager.CreateAsync(new ApplicationRole { Name = RoleConstants.User });
+            await _roleManager.CreateAsync(new ApplicationRole { Name = AppRole.User });
         }
 
         // 2. Seed Users
@@ -57,13 +57,13 @@ public sealed class IdentitySeeder
                 EmailConfirmed = true,
                 IsActive = true,
                 CreatedOn = DateTime.UtcNow,
-                
+
             };
             var result = await _userManager.CreateAsync(superAdmin, password);
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(superAdmin, RoleConstants.SuperAdmin);
-                await _userManager.AddToRoleAsync(superAdmin, RoleConstants.User);
+                await _userManager.AddToRoleAsync(superAdmin, AppRole.SuperAdmin);
+                await _userManager.AddToRoleAsync(superAdmin, AppRole.User);
             }
         }
 
@@ -82,7 +82,7 @@ public sealed class IdentitySeeder
             var result = await _userManager.CreateAsync(user1, password);
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user1, RoleConstants.User);
+                await _userManager.AddToRoleAsync(user1, AppRole.User);
             }
         }
 
@@ -101,7 +101,7 @@ public sealed class IdentitySeeder
             var result = await _userManager.CreateAsync(user2, password);
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user2, RoleConstants.User);
+                await _userManager.AddToRoleAsync(user2, AppRole.User);
             }
         }
 

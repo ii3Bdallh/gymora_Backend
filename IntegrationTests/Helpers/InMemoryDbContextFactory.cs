@@ -1,5 +1,6 @@
 using Application.Cache;
 using Application.Model;
+using Domain.Enum;
 using Infrastructure.Cache;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +39,7 @@ public static class InMemoryDbContextFactory
         return new CurrentUser
         {
             UserId = userId,
-            PlatformRole = "SuperAdmin",
+            PlatformRole = AppRole.SuperAdmin,
             IsAuthenticated = true
         };
     }

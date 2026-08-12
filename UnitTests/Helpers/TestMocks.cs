@@ -55,7 +55,7 @@ public static class Mocks
         return new CurrentUser
         {
             UserId = userId,
-            PlatformRole = "SuperAdmin",
+            PlatformRole = AppRole.SuperAdmin,
             IsAuthenticated = true
         };
     }

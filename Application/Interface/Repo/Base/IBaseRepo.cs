@@ -12,6 +12,7 @@ namespace Application.Interface.Repo
 
     public interface IBaseRepo<T> where T : class, IBaseEntity
     {
+        Microsoft.EntityFrameworkCore.DbSet<T> DbSet { get; }
 
         // جلب كل العناصر (للقوائم الصغيرة)
         Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default, Func<IQueryable<T>, IQueryable<T>>? include = null);
