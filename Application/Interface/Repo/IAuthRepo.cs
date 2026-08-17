@@ -32,7 +32,7 @@ namespace Application.Interface.Repo.Shared
         public Task<string> GeneratePasswordResetOtpAsync(ApplicationUser user, CancellationToken cancellationToken);
 
 
-        public Task VerifyPasswordResetOtpAsync(string email, string otp, CancellationToken cancellationToken);
+        public Task<string> VerifyPasswordResetOtpAsync(string email, string otp, CancellationToken cancellationToken);
 
 
         #endregion
@@ -40,7 +40,7 @@ namespace Application.Interface.Repo.Shared
         Task ChangePasswordAsync(int userId, string currentPassword, string newPassword, CancellationToken cancellationToken);
 
 
-        Task ResetPasswordAsync(int userId, string newPassword, CancellationToken cancellationToken);
+        Task ResetPasswordAsync(int userId, string token, string newPassword, CancellationToken cancellationToken);
 
 
         Task<AuthResponseDto> SwitchGym(SwitchGymRequest switchGymRequest, CancellationToken ct);

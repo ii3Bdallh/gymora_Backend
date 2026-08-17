@@ -10,8 +10,8 @@ namespace Gymora.Contracts.Authentication
 
     public class RegisterRequestDto
     {
-        [Required(ErrorMessage = "User name is required.")]
-        [MaxLength(100, ErrorMessage = "User name cannot exceed 100 characters.")]
+        [Required(ErrorMessage = "Person name is required.")]
+        [MaxLength(100, ErrorMessage = "Person name cannot exceed 100 characters.")]
         public string PersonName { get; set; } = null!;
 
         [Required]
@@ -20,7 +20,7 @@ namespace Gymora.Contracts.Authentication
 
         [Phone]
         [RegularExpression(@"^\+?[0-9]*$", ErrorMessage = "Phone number must contain only digits and an optional plus sign.")]
-        public string? PhoneNumber { get; set; } = null!;
+        public string? PhoneNumber { get; set; }
 
         [Required]
         [MinLength(8)]

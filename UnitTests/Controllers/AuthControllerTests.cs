@@ -1,6 +1,7 @@
 using Api.Controllers;
 using Application.DTO;
 using Application.DTO.Auth;
+using Application.DTO.Model;
 using Application.DTO.Exceptions;
 using Application.Interface.Repo;
 using Application.Interface.Service;
@@ -20,14 +21,12 @@ namespace UnitTests.Controllers
     public class AuthControllerTests
     {
         private readonly Mock<IAuthService> _authService;
-        private readonly Mock<IGymService> _gymService;
         private readonly AuthController _sut;
 
         public AuthControllerTests()
         {
             _authService = new Mock<IAuthService>();
-            _gymService = new Mock<IGymService>();
-            _sut = new AuthController(_authService.Object, _gymService.Object)
+            _sut = new AuthController(_authService.Object)
             {
                 ControllerContext = new ControllerContext
                 {
@@ -243,6 +242,45 @@ namespace UnitTests.Controllers
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
             var response = okResult.Value.Should().BeAssignableTo<Result<string>>().Subject;
             response.IsSuccess.Should().BeTrue();
+        }
+
+        #endregion
+
+        #region SwitchGym
+
+        [Fact]
+        public async Task SwitchGym_ShouldReturnOk_WhenDataIsValid()
+        {
+            var dto = new SwitchGymRequest { GymId = 1, AccessToken = "valid_access", RefreshToken = "valid_refresh" };
+            var authResponse = new AuthResponseDto
+            {
+                AccessToken = "new_access",
+                RefreshToken = "new_refresh",
+                User = new UserInfoDto { UserId = "1", Email = "test@test.com", FullName = "Test" },
+                CurrentGym = new CurrentGymDto { GymId = "1", Role = "Owner" }
+            };
+
+            _authService.Setup(a => a.SwitchGym(dto, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(authResponse);
+
+            var result = await _sut.SwitchGym(dto, CancellationToken.None);
+
+            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+            var response = okResult.Value.Should().BeAssignableTo<Result<AuthResponseDto>>().Subject;
+            response.IsSuccess.Should().BeTrue();
+            response.Data!.AccessToken.Should().Be("new_access");
+        }
+
+        [Fact]
+        public async Task SwitchGym_ShouldReturnUnprocessableEntity_WhenModelStateIsInvalid()
+        {
+            _sut.ModelState.AddModelError("GymId", "GymId is required");
+
+            var result = await _sut.SwitchGym(new SwitchGymRequest(), CancellationToken.None);
+
+            var unprocessableResult = result.Should().BeOfType<UnprocessableEntityObjectResult>().Subject;
+            var response = unprocessableResult.Value.Should().BeAssignableTo<Result<AuthResponseDto>>().Subject;
+            response.IsSuccess.Should().BeFalse();
         }
 
         #endregion

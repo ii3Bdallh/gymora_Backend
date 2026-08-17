@@ -93,10 +93,14 @@ namespace Application.DTO.Model
 
     public sealed class SwitchGymRequest
     {
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "GymId must be greater than 0.")]
         public int GymId { get; set; }
 
+        [Required(ErrorMessage = "RefreshToken is required.")]
         public string RefreshToken { get; set; } = null!;
 
+        [Required(ErrorMessage = "AccessToken is required.")]
         public string AccessToken { get; set; } = null!;
     }
 

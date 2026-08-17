@@ -21,20 +21,17 @@ namespace Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly IGymService _gymService;
 
-
-
-        public AuthController(IAuthService authService, IGymService gymService)
+        public AuthController(IAuthService authService)
         {
             _authService = authService;
-            _gymService = gymService;
         }
 
 
 
         [Authorize]
         [HttpPost("switch")]
+        [EnableRateLimiting("Ip_10Limit_1Min")]
         public async Task<IActionResult> SwitchGym([FromBody] SwitchGymRequest request, CancellationToken ct)
         {
             if (!ModelState.IsValid)
@@ -54,6 +51,7 @@ namespace Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
+        [EnableRateLimiting("Ip_3Limit_5Min")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto registerReqDto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
@@ -80,6 +78,7 @@ namespace Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("refresh-token")]
+        [EnableRateLimiting("Ip_10Limit_1Min")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenReqDto dto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
@@ -94,14 +93,16 @@ namespace Api.Controllers
         public async Task<IActionResult> Logout([FromBody] LogoutRequest dto, CancellationToken cancellationToken)
         {
             var userIdClaim = User.FindFirst("UserId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!string.IsNullOrEmpty(userIdClaim))
-                dto.UserId = int.Parse(userIdClaim);
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized(Result<string>.Failure("UNAUTHORIZED", "User is not authenticated."));
+
+            dto.UserId = int.Parse(userIdClaim);
 
             await _authService.LogoutAsync(dto.UserId, dto.RefreshToken, dto.LogoutFromAllDevices, cancellationToken);
 
             var message = dto.LogoutFromAllDevices
-                ? "Successfully logged out from all devices"
-                : "Successfully logged out";
+                 ? "Successfully logged out from all devices"
+                 : "Successfully logged out";
 
             return Ok(Result<string>.Success(message));
         }
@@ -182,6 +183,7 @@ namespace Api.Controllers
 
         [Authorize]
         [HttpPost("change-password")]
+        [EnableRateLimiting("Ip_3Limit_5Min")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest dto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
@@ -193,6 +195,7 @@ namespace Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("google")]
+        [EnableRateLimiting("Ip_5Limit_1Min")]
         public async Task<IActionResult> LoginGoogle([FromBody] GoogleLoginRequestDto dto)
         {
             if (!ModelState.IsValid)

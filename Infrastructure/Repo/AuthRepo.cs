@@ -256,6 +256,7 @@ namespace Infrastructure.Repo
         {
             return await ProcessTokenRotationAsync(
                 refreshToken,
+                accessToken,
                 targetGymContext: null,
                 ct);
         }
@@ -282,16 +283,20 @@ namespace Infrastructure.Repo
             };
 
             // 4. تنفيذ تجديد التوكن وتطبيق السياق الجديد
-            return await ProcessTokenRotationAsync(switchGymRequest.RefreshToken, newGymContext, ct);
+            return await ProcessTokenRotationAsync(switchGymRequest.RefreshToken, switchGymRequest.AccessToken, newGymContext, ct);
         }
 
         private async Task<AuthResponseDto> ProcessTokenRotationAsync(
-    string refreshToken,
-    MyGymDto? targetGymContext,
-    CancellationToken ct)
+            string refreshToken,
+            string accessToken,
+            MyGymDto? targetGymContext,
+            CancellationToken ct)
         {
+            string? userIdStr = _jwtProvider.GetUserIdByToken(accessToken, validateLifetime: false);
+            if (userIdStr == null)
+                throw new UnauthorizedException("Invalid access token.");
 
-
+            int userId = int.Parse(userIdStr);
 
             var tokenHash = _jwtProvider.HashToken(refreshToken);
             RefreshToken? existingRefreshToken = await _context.RefreshTokens
@@ -303,6 +308,9 @@ namespace Infrastructure.Repo
 
             if (existingRefreshToken == null)
                 throw new UnauthorizedException("Invalid refresh token.");
+
+            if (existingRefreshToken.UserId != userId)
+                throw new UnauthorizedException("Access token and refresh token user mismatch.");
 
             if (!existingRefreshToken.IsValid)
                 throw new UnauthorizedException("Refresh token expired or revoked.");
@@ -321,6 +329,23 @@ namespace Infrastructure.Repo
             int currentGymId = targetGymContext?.GymId ?? existingRefreshToken.CurrentGymId;
             int currentGymPeopleId = targetGymContext?.GymPeopleId ?? existingRefreshToken.CurrentGymPeopleId ?? 0;
             string? gymRole = targetGymContext?.GymRole ?? existingRefreshToken.GymRole;
+
+            if (targetGymContext == null && existingRefreshToken.CurrentGymId > 0)
+            {
+                MyGymDto? gymAccess = await _gymAccessRepo.GetGymAccessAsync(userId, existingRefreshToken.CurrentGymId, ct);
+                if (gymAccess == null)
+                {
+                    currentGymId = 0;
+                    currentGymPeopleId = 0;
+                    gymRole = null;
+                }
+                else
+                {
+                    currentGymId = gymAccess.GymId;
+                    currentGymPeopleId = gymAccess.GymPeopleId;
+                    gymRole = gymAccess.GymRole;
+                }
+            }
 
             // Create new Refresh Token
             var (newPlainRefreshToken, newHash) = _jwtProvider.GenerateRefreshToken();
@@ -430,7 +455,7 @@ namespace Infrastructure.Repo
         }
 
 
-        public async Task VerifyPasswordResetOtpAsync(string email, string otp, CancellationToken cancellationToken)
+        public async Task<string> VerifyPasswordResetOtpAsync(string email, string otp, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null) throw new NotFoundException("User not found.");
@@ -458,6 +483,9 @@ namespace Infrastructure.Repo
             user.PasswordResetOtpExpiry = null;
             user.PasswordResetOtpAttempts = 0;
             await _userManager.UpdateAsync(user);
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            return token;
         }
 
 
@@ -485,15 +513,19 @@ namespace Infrastructure.Repo
 
 
 
-        public async Task ResetPasswordAsync(int userId, string newPassword, CancellationToken cancellationToken)
+        public async Task ResetPasswordAsync(int userId, string token, string newPassword, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null)
             {
                 throw new NotFoundException("User not found");
             }
-            user.PasswordHash = _userManager.PasswordHasher.HashPassword(user, newPassword);
-            await _userManager.UpdateAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+            if (!result.Succeeded)
+            {
+                string errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new BadRequestException(errors);
+            }
         }
 
         #endregion

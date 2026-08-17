@@ -96,6 +96,18 @@ For the given controller, identify and trace all connected files across the laye
   1. Define it inheriting from a base exception under `Application/DTO/Errors/Exceptions`.
   2. Map it to the appropriate HTTP status code inside `Api/Middlewares/ExceptionHandlingMiddleware.cs`.
 
+### 2.8. Security, Rate Limiting & Auth Flow Review
+* **Rate Limiting**:
+  * Ensure rate limiting policies (e.g., `[EnableRateLimiting("Ip_5Limit_1Min")]`) are applied to all public endpoints (login, registration) and sensitive flows (OTP verification/resending, password resets, and changes).
+* **Claims Validation & Body Spoofing**:
+  * For authenticated endpoints, never fetch the user ID (`UserId`) from the request body if it can be spoofed by a malicious user. Strictly extract it from the authenticated context (`User` claims or `CurrentUser` helper).
+* **Token Rotation (Security Context Matching)**:
+  * Validate user ID ownership match between the access token and the refresh token during token rotation or switch-gym flows to prevent token substitution attacks.
+* **Gym Context Membership Persistence**:
+  * During token rotation (or SwitchGym), check that the user still has access to the target gym (e.g., via `_gymAccessRepo.GetGymAccessAsync`). If they are kicked out or deactivated, clear the gym context (reset claims/gym fields to 0 or null) to revoke their access claims dynamically.
+* **Password Policy Consistency**:
+  * Ensure password validation complexity regex (requiring uppercase, lowercase, digit, and special character) is applied consistently across registration, password resets, and change password requests.
+
 ---
 
 ## 3. Review Process & Final Report

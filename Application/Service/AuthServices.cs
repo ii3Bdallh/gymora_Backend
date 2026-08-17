@@ -100,11 +100,11 @@ namespace Application.Service
 
         public async Task<VerifyOtpResponseDto> VerifyPasswordOtpAsync(VerifyOtpRequestDto verifyOtpRequest, CancellationToken cancellationToken)
         {
-            await _authRepo.VerifyPasswordResetOtpAsync(verifyOtpRequest.Email, verifyOtpRequest.Code, cancellationToken);
+            var resetToken = await _authRepo.VerifyPasswordResetOtpAsync(verifyOtpRequest.Email, verifyOtpRequest.Code, cancellationToken);
 
             return new VerifyOtpResponseDto
             {
-                ResetToken = "VALID_OTP_VERIFIED", // Used by the client to proceed to reset password.
+                ResetToken = resetToken,
                 Message = "OTP verified successfully. You can now reset your password."
             };
         }
@@ -151,7 +151,7 @@ namespace Application.Service
                 throw new BadRequestException("The password reset token is invalid, expired, or already used.");
             }
 
-            await _authRepo.ResetPasswordAsync(user.Id, resetPasswordRequest.NewPassword, cancellationToken);
+            await _authRepo.ResetPasswordAsync(user.Id, resetPasswordRequest.ResetToken, resetPasswordRequest.NewPassword, cancellationToken);
 
             await _publishEndpoint.Publish(new PasswordResetCompletedEvent(user.Id, user.Email!), cancellationToken);
 

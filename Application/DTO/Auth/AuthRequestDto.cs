@@ -29,6 +29,8 @@ namespace Application.DTO.Auth
 
         [Required(ErrorMessage = "New password is required")]
         [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$",
+            ErrorMessage = "Password must be at least 8 characters with uppercase, lowercase, digit, and special character.")]
         public string NewPassword { get; set; } = null!;
     }
 }
