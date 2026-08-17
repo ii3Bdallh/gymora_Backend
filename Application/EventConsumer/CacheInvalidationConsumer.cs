@@ -27,6 +27,13 @@ public class CacheInvalidationConsumer : IConsumer<EntityChangedEvent>
             e.UserId);
 
         await _cacheService.RemoveAsync(key);
+
+        string pagePrefix = CacheKeyGenerator.PagesPrefix(
+            e.EntityName,
+            e.GymId,
+            e.UserId);
+
+        await _cacheService.RemoveByPrefixAsync(pagePrefix);
     }
 
 }

@@ -198,18 +198,29 @@ namespace Application.Service
             bool trackChanges = false,
             CancellationToken cancellationToken = default)
         {
-            var page = await _repo.GetPageAsync(
+            var key = CacheKeyGenerator.ForPage<T>(
                 searchReq,
-                trackChanges,
-                cancellationToken);
+                CurrentGymId,
+                CacheUserScope);
 
-            return new PaginatedRes<RDTO>
-            {
-                PageNumber = page.PageNumber,
-                PageSize = page.PageSize,
-                TotalCount = page.TotalCount,
-                Items = _mapper.Map<List<RDTO>>(page.Items)
-            };
+            return await GetOrCreateCacheAsync(
+                key,
+                async () =>
+                {
+                    var page = await _repo.GetPageAsync(
+                        searchReq,
+                        trackChanges,
+                        cancellationToken);
+
+                    return new PaginatedRes<RDTO>
+                    {
+                        PageNumber = page.PageNumber,
+                        PageSize = page.PageSize,
+                        TotalCount = page.TotalCount,
+                        Items = _mapper.Map<List<RDTO>>(page.Items)
+                    };
+                },
+                IsCacheEnabled);
         }
 
        

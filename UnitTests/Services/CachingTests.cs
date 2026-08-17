@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.Cache;
+using Application.DTO.Pagintion;
 using Application.EventConsumer;
 using Application.Interface.Service.Shared;
 using Domain.Events;
@@ -155,5 +156,93 @@ public class CachingTests
         afterRemoval.Should().BeNull();
     }
 
+    [Fact]
+    public async Task CacheService_ShouldRemoveByPrefixCorrectly()
+    {
+        // Arrange
+        using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+        var options = new CacheOptions
+        {
+            DefaultAbsoluteExpirationMinutes = 10,
+            DefaultSlidingExpirationMinutes = 5
+        };
+        var optionsMock = new Mock<IOptions<CacheOptions>>();
+        optionsMock.Setup(o => o.Value).Returns(options);
+        var loggerMock = new Mock<ILogger<CacheService>>();
 
+        var cacheService = new CacheService(memoryCache, optionsMock.Object, loggerMock.Object);
+        
+        await cacheService.SetAsync("gymora:gym:1:sub:page:1", "page1");
+        await cacheService.SetAsync("gymora:gym:1:sub:page:2", "page2");
+        await cacheService.SetAsync("gymora:gym:1:sub:id:5", "id5");
+
+        // Act
+        await cacheService.RemoveByPrefixAsync("gymora:gym:1:sub:page:");
+
+        // Assert
+        (await cacheService.GetAsync<string>("gymora:gym:1:sub:page:1")).Should().BeNull();
+        (await cacheService.GetAsync<string>("gymora:gym:1:sub:page:2")).Should().BeNull();
+        (await cacheService.GetAsync<string>("gymora:gym:1:sub:id:5")).Should().Be("id5");
+    }
+
+    [Fact]
+    public void ForPage_ShouldGenerateDifferentKeys_ForDifferentQueryRequests()
+    {
+        // Arrange
+        var req1 = new PaginatedSearchReq { PageNumber = 1, PageSize = 10, SearchTerm = "test" };
+        var req2 = new PaginatedSearchReq { PageNumber = 2, PageSize = 10, SearchTerm = "test" };
+        var req3 = new PaginatedSearchReq { PageNumber = 1, PageSize = 10, SearchTerm = "test", OrderBy = "Name" };
+
+        // Act
+        var key1 = CacheKeyGenerator.ForPage<MockGymEntity>(req1, gymId: 1);
+        var key2 = CacheKeyGenerator.ForPage<MockGymEntity>(req2, gymId: 1);
+        var key3 = CacheKeyGenerator.ForPage<MockGymEntity>(req3, gymId: 1);
+
+        // Assert
+        key1.Should().NotBe(key2);
+        key1.Should().NotBe(key3);
+        key1.Should().StartWith("gymora:gym:1:mockgymentity:page:");
+    }
+
+    [Fact]
+    public async Task CacheInvalidationConsumer_ShouldCallRemoveAndRemoveByPrefix_WhenEntityChangedEventReceived()
+    {
+        // Arrange
+        var cacheServiceMock = new Mock<ICacheService>();
+        var loggerMock = new Mock<ILogger<CacheInvalidationConsumer>>();
+        var consumer = new CacheInvalidationConsumer(cacheServiceMock.Object, loggerMock.Object);
+
+        var contextMock = new Mock<ConsumeContext<EntityChangedEvent>>();
+        contextMock.Setup(c => c.Message).Returns(new EntityChangedEvent("subscription_plan", 5, 10, 20));
+
+        // Act
+        await consumer.Consume(contextMock.Object);
+
+        // Assert
+        var expectedIdKey = "gymora:global:subscription_plan:id:5";
+        var expectedPagesPrefix = "gymora:global:subscription_plan:page:";
+
+        cacheServiceMock.Verify(c => c.RemoveAsync(expectedIdKey), Times.Once);
+        cacheServiceMock.Verify(c => c.RemoveByPrefixAsync(expectedPagesPrefix), Times.Once);
+    }
+
+    private class DerivedTestSearchReq : PaginatedSearchReq
+    {
+        public int CoachId { get; set; }
+    }
+
+    [Fact]
+    public void ForPage_ShouldGenerateDifferentKeys_ForDerivedQueryRequestsWithDifferentSubclassProperties()
+    {
+        // Arrange
+        var req1 = new DerivedTestSearchReq { PageNumber = 1, PageSize = 10, CoachId = 5 };
+        var req2 = new DerivedTestSearchReq { PageNumber = 1, PageSize = 10, CoachId = 10 };
+
+        // Act
+        var key1 = CacheKeyGenerator.ForPage<MockGymEntity>(req1, gymId: 1);
+        var key2 = CacheKeyGenerator.ForPage<MockGymEntity>(req2, gymId: 1);
+
+        // Assert
+        key1.Should().NotBe(key2);
+    }
 }

@@ -179,12 +179,19 @@ namespace Application.Service
     int entityId,
     CancellationToken cancellationToken = default)
         {
+            var finalGymId = typeof(IBaseGymEntity).IsAssignableFrom(typeof(T)) ? CurrentGymId : null;
+            var finalUserId = typeof(IOnlyMeCanSee).IsAssignableFrom(typeof(T))
+                ? (int?)CurrentUserId
+                : typeof(IOnlyMeCanSeeAtGym).IsAssignableFrom(typeof(T))
+                    ? (int?)CurrentPersonId
+                    : null;
+
             return _publishEndpoint.Publish(
                 new EntityChangedEvent(
                     CacheEntityNames.ForType<T>(),
                     entityId,
-                    CurrentGymId,
-                    CurrentUserId),
+                    finalGymId,
+                    finalUserId),
                 cancellationToken);
         }
     }

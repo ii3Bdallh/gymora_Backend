@@ -26,9 +26,8 @@ public static class CacheEntityNames
     public const string PaymentRequest = "paymentrequest";
 
 
-    public static string ForType<T>()
+    public static string ForType(Type type)
     {
-        var type = typeof(T);
         if (type == typeof(SubscriptionPlan)) return SubscriptionPlan;
         if (type == typeof(PlanPrice)) return PlanPrice;
         if (type == typeof(Notification)) return Notification;
@@ -50,5 +49,10 @@ public static class CacheEntityNames
         if (type == typeof(PaymentRequest)) return PaymentRequest;
 
         return type.Name.ToLower();
+    }
+
+    public static string ForType<T>()
+    {
+        return ForType(typeof(T));
     }
 }
