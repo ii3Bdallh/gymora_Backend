@@ -1,4 +1,4 @@
-﻿{
+{
     "info":  {
                  "_postman_id":  "a91c392d-727d-4d53-a035-623f880bbef8",
                  "name":  "06 - Owner Subscription",
@@ -24,9 +24,19 @@
                                                       "type":  "text/javascript"
                                                   }
                                    }
-                               ],
-                     "request":  {
-                                     "description":  "### Endpoint Overview\n\nFetches a paginated list of gym owner subscriptions with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `PlanId` | `int` | Exact | Subscribed Plan ID |\n| `PlanPriceId` | `int` | Exact | Plan Price Tier ID |\n| `PaymentRequestId`| `int` | Exact | Approved payment request ID |\n| `AmountPaid` | `decimal` | Between | Cost paid for subscription |\n| `CurrencyCode` | `string` | Exact | ISO currency code (e.g. EGP, USD) |\n| `StartDate` | `DateTime` | Between | ISO start date |\n| `EndDate` | `DateTime` | Between | ISO end date |\n| `GraceEndDate` | `DateTime` | Between | ISO grace period end date |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Subscriber ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"CurrencyCode\": [\"USD\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"AmountPaid\": { \"min\": \"500\", \"max\": \"2000\" } }`",
+],
+        "auth":  {
+                      "type":  "bearer",
+                      "bearer":  [
+                                     {
+                                         "key":  "token",
+                                         "value":  "{{user1_token}}",
+                                         "type":  "string"
+                                     }
+                                 ]
+                  },
+        "request":  {
+                                      "description":  "### Endpoint Overview\n\nFetches a paginated list of gym owner subscriptions with dynamic sorting and filtering. SuperAdmin only.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `PlanId` | `int` | Exact | Subscribed Plan ID |\n| `PlanPriceId` | `int` | Exact | Plan Price Tier ID |\n| `PaymentRequestId`| `int` | Exact | Approved payment request ID |\n| `AmountPaid` | `decimal` | Between | Cost paid for subscription |\n| `CurrencyCode` | `string` | Exact | ISO currency code (e.g. EGP, USD) |\n| `StartDate` | `DateTime` | Between | ISO start date |\n| `EndDate` | `DateTime` | Between | ISO end date |\n| `Status` | `Enum (int)` | Exact | `1` = Active, `3` = Expired, `4` = Suspended |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Subscriber ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"CurrencyCode\": [\"USD\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"AmountPaid\": { \"min\": \"500\", \"max\": \"2000\" } }`",
                                      "method":  "POST",
                                      "header":  [
                                                     {
@@ -100,14 +110,14 @@
                                   ]
                  }
              ],
-    "auth":  {
-                  "type":  "bearer",
-                  "bearer":  [
-                                 {
-                                     "key":  "token",
-                                     "value":  "{{token}}",
-                                     "type":  "string"
-                                 }
-                             ]
-              }
+"auth":  {
+                   "type":  "bearer",
+                   "bearer":  [
+                                  {
+                                      "key":  "token",
+                                      "value":  "{{user1_token}}",
+                                      "type":  "string"
+                                  }
+                              ]
+               }
 }

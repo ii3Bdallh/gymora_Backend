@@ -182,14 +182,14 @@
                                   ]
                  }
              ],
-    "auth":  {
-                 "type":  "bearer",
-                 "bearer":  [
-                                {
-                                    "key":  "token",
-                                    "value":  "{{token}}",
-                                    "type":  "string"
-                                }
-                            ]
-             }
+"auth":  {
+                  "type":  "bearer",
+                  "bearer":  [
+                                 {
+                                     "key":  "token",
+                                     "value":  "{{user1_token}}",
+                                     "type":  "string"
+                                 }
+                             ]
+              }
 }

@@ -1,4 +1,4 @@
-﻿{
+{
     "info": {
         "_postman_id": "2d1b3805-9f9e-4a52-84fc-ac86f72642c9",
         "name": "02 - Subscription Plan",
@@ -108,7 +108,7 @@
                 ],
                 "body": {
                     "mode": "raw",
-                    "raw": "{\n  \"name\": \"Gold Plan\",\n  \"isFree\": false,\n  \"description\": \"Unlimited gyms and premium features.\",\n  \"maxOwnedGyms\": 5,\n  \"maxCoachesGym\": 20,\n  \"maxMembersGym\": 500,\n  \"featuresJson\": \"[\\\"App Access\\\", \\\"Analytics Dashboard\\\"]\",\n  \"prices\": [\n    {\n      \"countryCode\": \"EG\",\n      \"currencyCode\": \"EGP\",\n      \"durationMonths\": 12,\n      \"amount\": 1200.00\n    }\n  ]\n}"
+                    "raw": "{\n  \"name\": \"Gold Plan\",\n  \"isFree\": false,\n  \"description\": \"Unlimited gyms and premium features.\",\n  \"maxOwnedGyms\": 5,\n  \"maxCoaches\": 20,\n  \"maxMembers\": 500,\n  \"featuresJson\": \"[\\\"App Access\\\", \\\"Analytics Dashboard\\\"]\",\n  \"prices\": [\n    {\n      \"planId\": {{subscriptionPlanId}},\n      \"countryCode\": \"EG\",\n      \"currencyCode\": \"EGP\",\n      \"durationMonths\": 12,\n      \"amount\": 1200.00\n    }\n  ]\n}"
                 },
                 "url": {
                     "raw": "{{baseUrl}}/api/SubscriptionPlan/Create",
@@ -136,7 +136,7 @@
                 ],
                 "body": {
                     "mode": "raw",
-                    "raw": "{\n  \"name\": \"Gold Plan Premium\",\n  \"isFree\": false,\n  \"description\": \"Updated features package.\",\n  \"maxOwnedGyms\": 10,\n  \"maxCoachesGym\": 30,\n  \"maxMembersGym\": 1000,\n  \"featuresJson\": \"[\\\"App Access\\\", \\\"Analytics Dashboard\\\", \\\"API Integration\\\"]\",\n  \"isActive\": true\n}"
+                    "raw": "{\n  \"name\": \"Gold Plan Premium\",\n  \"isFree\": false,\n  \"description\": \"Updated features package.\",\n  \"maxOwnedGyms\": 10,\n  \"maxCoaches\": 30,\n  \"maxMembers\": 1000,\n  \"featuresJson\": \"[\\\"App Access\\\", \\\"Analytics Dashboard\\\", \\\"API Integration\\\"]\",\n  \"isActive\": true\n}"
                 },
                 "url": {
                     "raw": "{{baseUrl}}/api/SubscriptionPlan/{{subscriptionPlanId}}",
@@ -274,7 +274,7 @@
         "bearer": [
             {
                 "key": "token",
-                "value": "{{superAdmin_token}}",
+                "value": "{{user1_token}}",
                 "type": "string"
             }
         ]

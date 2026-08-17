@@ -141,25 +141,44 @@ Generate:
 
 Detect:
 
-`Application/DTO/Pagintion/PaginatedSearchReq`
+- `Application/DTO/Pagintion/PaginatedSearchReq`
+- `Application/DTO/Pagintion/Filters/FilterRequest`
 
-Generate a clean pagination request body WITHOUT pre-filling the `filters` object with hardcoded attributes.
+When generating a pagination request body, do NOT leave the fields empty. Populate them with realistic sample filters and search terms based on the corresponding Domain Model's attributes:
 
-Example Request Body:
+1. Scan the corresponding Domain Model for properties decorated with `[Searchable]` and `[Filterable]`.
+2. **Search Term Mapping:** If the Domain Model has `[Searchable]` properties (e.g., `Code`, `Name`), populate the `searchTerm` property in the request body with a realistic search term.
+3. **Filter Mapping:** Map `[Filterable]` properties:
+   - Properties decorated with `[Filterable(FilterType.Exact)]` must be populated inside the `filters.exactFilters` dictionary with the property name as the key and a list containing a realistic value (e.g., enum integer/string values, exact IDs).
+   - Properties decorated with `[Filterable(FilterType.Between)]` must be populated inside the `filters.betweenFilters` dictionary with the property name as the key and an object with realistic `min` and `max` values (e.g., number ranges or ISO date strings).
 
-````json
+Example Request Body (e.g., for `Coupon` which has `Code`, `Name` searchable, `DiscountType` exact filterable, and `DiscountValue`, `ValidFrom`, `ValidTo` between filterable):
+
+```json
 {
   "pageNumber": 1,
   "pageSize": 10,
+  "searchTerm": "SUMMER50",
   "orderBy": "Id",
   "orderDirection": "asc",
+  "isActive": true,
   "filters": {
-    "betweenFilters": {},
-    "exactFilters": {}
+    "betweenFilters": {
+      "DiscountValue": {
+        "min": "10.0",
+        "max": "50.0"
+      },
+      "ValidFrom": {
+        "min": "2026-08-12T19:04:05Z",
+        "max": "2026-09-12T19:04:05Z"
+      }
+    },
+    "exactFilters": {
+      "DiscountType": ["1"]
+    }
   }
 }
 ```
-Note: Do NOT write populated filter properties directly into the request body. All available filterable attributes and domain model properties MUST be fully documented inside the Endpoint Description instead.
 
 ---
 
@@ -178,60 +197,16 @@ Never inspect unrelated entities.
 
 ---
 
-## Search
+## Search & Filtering Detection
 
-Detect:
+Detect the following attributes on properties in the corresponding Domain Model:
 
-```csharp
-[Searchable]
-````
-
-Generate realistic search examples.
-
----
-
-## Filtering
-
-Detect:
-
-```csharp
-[Filterable]
-```
-
-Support:
-
-- Exact
-- Between
-
-Generate filters automatically.
-
-Example:
-
-```json
-{
-  "pageNumber": 1,
-  "pageSize": 10,
-  "orderBy": "Id",
-  "orderDirection": "asc",
-  "filters": {
-    "betweenFilters": {
-      "MaxOwnedGyms": {
-        "min": "1",
-        "max": "10"
-      }
-    },
-    "exactFilters": {
-      "Status": ["1", "2"]
-    }
-  }
-}
-```
-
-Enums should use enum values.
-
-Numeric fields should use realistic ranges.
-
-Dates should use ISO format.
+1. `[Searchable]`:
+   - Means the property is included in full-text search. Use this to determine a realistic value for the `searchTerm` property in `PaginatedSearchReq`.
+2. `[Filterable(FilterType.Exact)]`:
+   - Maps to `filters.exactFilters` in `FilterRequest`. Populate with the property name as the key and a list of valid values. Enums must map to their numeric or string representation.
+3. `[Filterable(FilterType.Between)]`:
+   - Maps to `filters.betweenFilters` in `FilterRequest`. Populate with the property name as the key and an object containing `min` and `max` bounds (realistic values matching the property type, e.g., numeric ranges or ISO dates).
 
 ---
 

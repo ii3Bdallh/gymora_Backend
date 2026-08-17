@@ -1,4 +1,4 @@
-﻿{
+{
     "info":  {
                  "_postman_id":  "5de17f38-df80-4e84-83ba-6148d1ad4e1c",
                  "name":  "07 - Gym",
@@ -282,32 +282,32 @@
                                   ]
                  },
                  {
-                     "name":  "Switch Gym",
-                     "request":  {
-                                     "description":  "Switches the current active gym workspace for the authenticated user and returns fresh tokens.\n\n### Request Fields\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID to switch to |\n| `accessToken` | `string` | Yes | Current access token |\n| `refreshToken` | `string` | Yes | Current refresh token |\n\nNote: This endpoint lives on the Auth controller.",
-                                     "method":  "POST",
-                                     "header":  [
-                                                    {
-                                                        "key":  "Content-Type",
-                                                        "value":  "application/json"
-                                                    }
-                                                ],
-                                     "body":  {
-                                                  "mode":  "raw",
-                                                  "raw":  "{\n  \"gymId\": {{gymId}},\n  \"accessToken\": \"{{token}}\",\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-                                              },
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/Auth/switch",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "Auth",
-                                                              "switch"
-                                                          ]
-                                             }
-                                 },
+"name":  "Switch Gym (User1)",
+                      "request":  {
+                                      "description":  "Switches the current active gym workspace for User1 and returns fresh tokens (stored in `user1_token` / `user1_refreshToken`).\n\n### Request Fields (`SwitchGymRequest`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID to switch to |\n| `accessToken` | `string` | Yes | Current User1 access token |\n| `refreshToken` | `string` | Yes | Current User1 refresh token |\n\nNote: This endpoint lives on the Auth controller.",
+                                      "method":  "POST",
+                                      "header":  [
+                                                     {
+                                                         "key":  "Content-Type",
+                                                         "value":  "application/json"
+                                                     }
+                                                 ],
+                                      "body":  {
+                                                   "mode":  "raw",
+                                                   "raw":  "{\n  \"gymId\": {{gymId}},\n  \"accessToken\": \"{{user1_token}}\",\n  \"refreshToken\": \"{{user1_refreshToken}}\"\n}"
+                                               },
+                                      "url":  {
+                                                  "raw":  "{{baseUrl}}/api/Auth/switch",
+                                                  "host":  [
+                                                               "{{baseUrl}}"
+                                                           ],
+                                                  "path":  [
+                                                               "api",
+                                                               "Auth",
+                                                               "switch"
+                                                           ]
+                                              }
+                                  },
                      "response":  [
 
                                   ]
@@ -420,14 +420,14 @@
                                   ]
                  }
              ],
-    "auth":  {
-                  "type":  "bearer",
-                  "bearer":  [
-                                 {
-                                     "key":  "token",
-                                     "value":  "{{token}}",
-                                     "type":  "string"
-                                 }
-                             ]
-              }
+"auth":  {
+                   "type":  "bearer",
+                   "bearer":  [
+                                  {
+                                      "key":  "token",
+                                      "value":  "{{user1_token}}",
+                                      "type":  "string"
+                                  }
+                              ]
+               }
 }

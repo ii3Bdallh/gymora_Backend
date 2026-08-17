@@ -107,7 +107,7 @@
                                                 ],
                                      "body":  {
                                                   "mode":  "raw",
-                                                  "raw":  "{\n  \"name\": \"Monthly Premium\",\n  \"description\": \"Unlimited gym access for one month\",\n  \"durationDays\": 30,\n  \"price\": 499.00,\n  \"freezeDaysLimit\": 3,\n  \"attendanceLimit\": null\n}"
+"raw": "{\n  \"name\": \"Monthly Premium\",\n  \"description\": \"Unlimited gym access for one month\",\n  \"durationDays\": 30,\n  \"price\": 499.00\n}"
                                               },
                                      "url":  {
                                                  "raw":  "{{baseUrl}}/api/MembershipPlans/Create",
@@ -138,7 +138,7 @@
                                                 ],
                                      "body":  {
                                                   "mode":  "raw",
-                                                  "raw":  "{\n  \"name\": \"Monthly Premium Plus\",\n  \"description\": \"Unlimited gym access with freezes\",\n  \"durationDays\": 30,\n  \"price\": 599.00,\n  \"freezeDaysLimit\": 5,\n  \"attendanceLimit\": null\n}"
+"raw": "{\n  \"name\": \"Monthly Premium Plus\",\n  \"description\": \"Unlimited gym access with freezes\",\n  \"durationDays\": 30,\n  \"price\": 599.00\n}"
                                               },
                                      "url":  {
                                                  "raw":  "{{baseUrl}}/api/MembershipPlans/{{membershipPlanId}}",
@@ -181,14 +181,14 @@
                                   ]
                  }
              ],
-    "auth":  {
-                 "type":  "bearer",
-                 "bearer":  [
-                                {
-                                    "key":  "token",
-                                    "value":  "{{token}}",
-                                    "type":  "string"
-                                }
-                            ]
-             }
+"auth":  {
+                  "type":  "bearer",
+                  "bearer":  [
+                                 {
+                                     "key":  "token",
+                                     "value":  "{{user1_token}}",
+                                     "type":  "string"
+                                 }
+                             ]
+              }
 }

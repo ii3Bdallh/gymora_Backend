@@ -1,0 +1,180 @@
+{
+    "info": {
+        "_postman_id": "a1b2c3d4-0001-4b8c-9d0e-2f3a4b5c6d8f",
+        "name": "13 - Body Measurements",
+        "description": "Endpoints to manage member body measurements (weight, height, body fat, and circumference tracking).",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Paged Body Measurements",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+                            "    pm.environment.set(\"bodyMeasurementId\", jsonData.data.items[0].id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Fetches a paginated list of body measurements for the current user with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `WeightKg` | `decimal` | Between | Weight in kilograms (0.1–500) |\n| `HeightCm` | `decimal?` | Between | Height in centimeters |\n| `BodyFatPercentage` | `decimal?` | Between | Body fat percentage (0–100) |\n| `ChestCm` | `decimal?` | - | Chest circumference |\n| `WaistCm` | `decimal?` | - | Waist circumference |\n| `ArmsCm` | `decimal?` | - | Arms circumference |\n| `LegsCm` | `decimal?` | - | Legs circumference |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Owner user ID |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values.\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\nRequires `[Authorize]` (any authenticated user).",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/BodyMeasurements",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "BodyMeasurements"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Body Measurement By Id",
+            "request": {
+                "description": "Fetches a single body measurement by ID.\n\nRequires `[Authorize]` (any authenticated user).",
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/BodyMeasurements/{{bodyMeasurementId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "BodyMeasurements",
+                        "{{bodyMeasurementId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Create Body Measurement",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
+                            "    pm.environment.set(\"bodyMeasurementId\", jsonData.data.id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Records a new body measurement for the current member.\n\n### Request Fields (`BodyMeasurementCDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `weightKg` | `decimal` | Yes | Must be 0.1–500 |\n| `heightCm` | `decimal?` | No | Range 0–300 |\n| `bodyFatPercentage` | `decimal?` | No | Range 0–100 |\n| `chestCm` | `decimal?` | No | Range 0–300 |\n| `waistCm` | `decimal?` | No | Range 0–300 |\n| `armsCm` | `decimal?` | No | Range 0–150 |\n| `legsCm` | `decimal?` | No | Range 0–200 |\n| `notes` | `string?` | No | Max 500 characters |\n\nReturns `201 Created` with `Result<BodyMeasurementRDTO>`.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, or `Coach`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"weightKg\": 82.5,\n  \"heightCm\": 180.0,\n  \"bodyFatPercentage\": 18.0,\n  \"chestCm\": 105.0,\n  \"waistCm\": 85.0,\n  \"armsCm\": 38.0,\n  \"legsCm\": 60.0,\n  \"notes\": \"Monthly progress check\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/BodyMeasurements/Create",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "BodyMeasurements",
+                        "Create"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update Body Measurement",
+            "request": {
+                "description": "Updates an existing body measurement by ID.\n\n### Request Fields (`BodyMeasurementUDTO`)\n\nSame fields as Create: `weightKg`, `heightCm`, `bodyFatPercentage`, `chestCm`, `waistCm`, `armsCm`, `legsCm`, `notes`.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, or `Coach`. SuperAdmin bypasses all gym checks.",
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"weightKg\": 81.0,\n  \"heightCm\": 180.0,\n  \"bodyFatPercentage\": 17.5,\n  \"chestCm\": 106.0,\n  \"waistCm\": 84.0,\n  \"armsCm\": 38.5,\n  \"legsCm\": 61.0,\n  \"notes\": \"Updated measurement\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/BodyMeasurements/{{bodyMeasurementId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "BodyMeasurements",
+                        "{{bodyMeasurementId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Body Measurement",
+            "request": {
+                "description": "Deletes a body measurement by ID.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, or `Coach`. SuperAdmin bypasses all gym checks.",
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/BodyMeasurements/{{bodyMeasurementId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "BodyMeasurements",
+                        "{{bodyMeasurementId}}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{user1_token}}",
+                "type": "string"
+            }
+        ]
+    }
+}
