@@ -38,6 +38,10 @@ namespace Application.Interface.Repo
         CancellationToken cancellationToken = default,
         Func<IQueryable<T>, IQueryable<T>>? include = null);
 
+        Task<T?> GetByIdDetailsAsync(
+        int id,
+        CancellationToken cancellationToken = default);
+
         // جلب عنصر واحد بـ ID مع الـ Includes بتوعه
         Task<T?> GetByIdIgnoringSecurityAsync(
         int id,

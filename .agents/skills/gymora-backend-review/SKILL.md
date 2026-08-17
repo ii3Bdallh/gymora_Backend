@@ -75,12 +75,16 @@ For the given controller, identify and trace all connected files across the laye
   * Ensure read/caching queries do not track entities (normally `AsNoTracking` / `trackChanges = false`).
 * **Shared Service Reuse**:
   * Avoid duplicating logic. Specifically, check if the service requires the owner's active subscription or plan-related limits. If so, inject and use the `CurrentPlanService` instead of writing custom subscription checks.
+* **Retrieval Splits**:
+  * Utilize the base split retrieval pathways in the services:
+    1. **`GetByIdAsync`**: Light-weight, minimal fields, no includes. Used for standard retrieval and validations (routes to repository's `GetByIdAsync`).
+    2. **`GetByIdDetailsAsync`**: Detailed read with navigation properties/Includes. Used for details/show API endpoints (routes to repository's `GetByIdDetailsAsync`). This method does not accept `trackChanges` since it is strictly for read-only purposes.
 
 ### 2.5. Repository Review
 * **Retrieval Splits**:
-  * Enforce two distinct retrieval pathways in the repository:
-    1. **`GetById`**: Light-weight, minimal fields, no includes. Used for updates, deletes, existence checks, and simple validations.
-    2. **`GetByIdDetails`**: Detailed read with necessary navigation properties/Includes. Used for show/detail endpoints.
+  * Enforce two distinct retrieval pathways declared in the repository base interfaces and classes:
+    1. **`GetByIdAsync`**: Light-weight, minimal fields, no includes. Declared in `IBaseRepo<T>` and implemented in `BaseRepo<T>`.
+    2. **`GetByIdDetailsAsync`**: Detailed read with necessary navigation properties/Includes. Declared in `IBaseRepo<T>` and implemented in `BaseRepo<T>` to throw `NotImplementedException` by default. Child repositories must override this method to define custom detailed includes if details are needed. This method does not accept a `trackChanges` parameter because it is strictly read-only.
   * Optimize EF Core queries: avoid N+1 queries, eliminate unused `.Include(...)` calls, and avoid materializing queries too early (keep as `IQueryable` before paginating or projecting).
   * Ensure proper tracking rules: `trackChanges` should be `false` for reads and `true` only for updates/deletes when required.
 

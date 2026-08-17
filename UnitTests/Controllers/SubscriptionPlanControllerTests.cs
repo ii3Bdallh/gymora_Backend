@@ -79,7 +79,7 @@ public class SubscriptionPlanControllerTests
             MaxCoaches = 5,
             MaxMembers = 50
         };
-        _service.Setup(s => s.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+        _service.Setup(s => s.GetByIdDetailsAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(plan);
 
         var result = await _sut.GetByIdAsync(1);
@@ -280,7 +280,7 @@ public class SubscriptionPlanControllerTests
     [Fact]
     public async Task GetByIdAsync_ShouldThrowNotFoundException_WhenPlanNotFound()
     {
-        _service.Setup(s => s.GetByIdAsync(999, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+        _service.Setup(s => s.GetByIdDetailsAsync(999, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NotFoundException("SubscriptionPlan with ID 999 was not found."));
 
         var act = async () => await _sut.GetByIdAsync(999);

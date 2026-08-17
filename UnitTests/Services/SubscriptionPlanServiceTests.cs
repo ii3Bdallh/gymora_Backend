@@ -252,4 +252,48 @@ public class SubscriptionPlanServiceTests
     }
 
     #endregion
+
+    #region GetByIdDetailsAsync
+
+    [Fact]
+    public async Task GetByIdDetailsAsync_ShouldCallGetByIdDetailsAsync_AndReturnDto()
+    {
+        var plan = TestData.CreateSubscriptionPlan();
+        var rDto = new SubscriptionPlanRDTO { Id = 1, Name = "Basic" };
+
+        _repo.Setup(r => r.GetByIdDetailsAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(plan);
+        _mapper.Setup(m => m.Map<SubscriptionPlanRDTO>(plan))
+            .Returns(rDto);
+
+        var result = await _sut.GetByIdDetailsAsync(1);
+
+        result.Should().NotBeNull();
+        result.Name.Should().Be("Basic");
+        _repo.Verify(r => r.GetByIdDetailsAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    #endregion
+
+    #region GetByIdAsync
+
+    [Fact]
+    public async Task GetByIdAsync_ShouldCallGetByIdAsync_AndReturnDto()
+    {
+        var plan = TestData.CreateSubscriptionPlan();
+        var rDto = new SubscriptionPlanRDTO { Id = 1, Name = "Basic" };
+
+        _repo.Setup(r => r.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>(), null))
+            .ReturnsAsync(plan);
+        _mapper.Setup(m => m.Map<SubscriptionPlanRDTO>(plan))
+            .Returns(rDto);
+
+        var result = await _sut.GetByIdAsync(1);
+
+        result.Should().NotBeNull();
+        result.Name.Should().Be("Basic");
+        _repo.Verify(r => r.GetByIdAsync(1, false, It.IsAny<CancellationToken>(), null), Times.Once);
+    }
+
+    #endregion
 }

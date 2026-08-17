@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.DTO.Base;
@@ -10,12 +11,21 @@ namespace Application.DTO.Model
 
     public record SubscriptionPlanCDTO : BaseCDTO
     {
+        [Required(ErrorMessage = "Name is required.")]
+        [MaxLength(100, ErrorMessage = "Name cannot exceed 100 characters.")]
         public string Name { get; set; } = null!;
         public bool IsFree { get; set; }
 
+        [MaxLength(500, ErrorMessage = "Description cannot exceed 500 characters.")]
         public string? Description { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "MaxOwnedGyms must be non-negative.")]
         public int MaxOwnedGyms { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "MaxCoaches must be non-negative.")]
         public int MaxCoaches { get; set; } // MaxCoaches
+
+        [Range(0, int.MaxValue, ErrorMessage = "MaxMembers must be non-negative.")]
         public int MaxMembers { get; set; } // MaxMembers
         public string? FeaturesJson { get; set; }
 
@@ -40,13 +50,21 @@ namespace Application.DTO.Model
 
     public record SubscriptionPlanUDTO : BaseUDTO
     {
+        [MaxLength(100, ErrorMessage = "Name cannot exceed 100 characters.")]
         public string Name { get; set; } = null!;
 
         public bool IsFree { get; set; }
 
+        [MaxLength(500, ErrorMessage = "Description cannot exceed 500 characters.")]
         public string? Description { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "MaxOwnedGyms must be non-negative.")]
         public int MaxOwnedGyms { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "MaxCoaches must be non-negative.")]
         public int MaxCoaches { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "MaxMembers must be non-negative.")]
         public int MaxMembers { get; set; }
         public string? FeaturesJson { get; set; }
         public bool IsActive { get; set; }

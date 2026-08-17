@@ -157,6 +157,7 @@ namespace Application.DTO
             CreateMap<SubscriptionPlan, SubscriptionPlanUDTO>()
                 .ReverseMap()
                 .ForMember(dest => dest.Prices, opt => opt.Ignore())
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null))
                 ;
             CreateMap<SubscriptionPlan, SubscriptionPlanRDTO>()
                 .ReverseMap();
@@ -164,7 +165,9 @@ namespace Application.DTO
             CreateMap<PlanPrice, PlanPriceCDTO>()
                 .ReverseMap();
             CreateMap<PlanPrice, PlanPriceUDTO>()
-                .ReverseMap();
+                .ReverseMap()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null))
+                ;
             CreateMap<PlanPrice, PlanPriceRDTO>()
                 .ReverseMap();
 

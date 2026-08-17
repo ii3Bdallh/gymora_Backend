@@ -42,6 +42,11 @@ namespace Infrastructure.Repo.Entity
             return await base.GetByIdAsync(id, trackChanges, cancellationToken, include);
         }
 
+        public override async Task<SubscriptionPlan?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return await base.GetByIdAsync(id, false, cancellationToken, Includes());
+        }
+
 
         public Task<PlanPrice> AddPlanPriceAsync(PlanPrice planPrice, CancellationToken cancellationToken = default)
         {

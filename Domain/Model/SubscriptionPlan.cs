@@ -1,5 +1,6 @@
 using Domain.Attributes;
 using Domain.Enum;
+using Domain.Interface;
 using Domain.Model.Base;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace Domain.Model
 {
   // Dont Forget to add [Searchable] , [Filterable] , 
   // Dont Forget to add Config , UDTO , CDTO , RDTO
-  public class SubscriptionPlan : BaseEntity
+  public class SubscriptionPlan : BaseEntity, ICacheableEntity
   {
     [Searchable]
     public string Name { get; set; } = null!;
