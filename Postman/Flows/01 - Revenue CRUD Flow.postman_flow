@@ -1,0 +1,276 @@
+{
+    "info": {
+        "name": "Revenue CRUD & Security Flow",
+        "description": "Tests the complete Revenue lifecycle: Create → Read → Update → Delete → Verify 404. Includes multi-tenant security verification (Gym-scoped via BaseGymRepo).",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        {
+            "id": "start",
+            "type": "start",
+            "name": "Start Revenue Flow",
+            "next": "create-revenue"
+        },
+        {
+            "id": "create-revenue",
+            "type": "http",
+            "name": "1. Create Revenue",
+            "request": {
+                "method": "POST",
+                "url": "{{baseUrl}}/api/Revenues/Create",
+                "headers": {
+                    "Authorization": "Bearer {{user1_token}}",
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "revenueCategory": 0,
+                    "amount": 499.00,
+                    "paymentMethod": 0,
+                    "referenceNumber": "FLOW-REV-001",
+                    "description": "Flow test revenue",
+                    "revenueDate": "2026-08-13T00:00:00Z"
+                }
+            },
+            "next": "check-create-success"
+        },
+        {
+            "id": "check-create-success",
+            "type": "condition",
+            "name": "Create returned 201?",
+            "conditions": [
+                {
+                    "left": "{{create-revenue.response.status}}",
+                    "operator": "equals",
+                    "right": "201"
+                }
+            ],
+            "true_next": "capture-revenue-id",
+            "false_next": "log-create-fail"
+        },
+        {
+            "id": "capture-revenue-id",
+            "type": "set-variable",
+            "name": "Capture lastRevenueId",
+            "scope": "collection",
+            "variables": [
+                {
+                    "key": "lastRevenueId",
+                    "value": "{{create-revenue.response.body.data.id}}"
+                }
+            ],
+            "next": "read-revenue"
+        },
+        {
+            "id": "read-revenue",
+            "type": "http",
+            "name": "2. Read Revenue By Id",
+            "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/api/Revenues/{{lastRevenueId}}",
+                "headers": {
+                    "Authorization": "Bearer {{user1_token}}"
+                }
+            },
+            "next": "check-read-success"
+        },
+        {
+            "id": "check-read-success",
+            "type": "condition",
+            "name": "Read returned 200?",
+            "conditions": [
+                {
+                    "left": "{{read-revenue.response.status}}",
+                    "operator": "equals",
+                    "right": "200"
+                }
+            ],
+            "true_next": "verify-read-fields",
+            "false_next": "log-read-fail"
+        },
+        {
+            "id": "verify-read-fields",
+            "type": "condition",
+            "name": "Revenue amount matches?",
+            "conditions": [
+                {
+                    "left": "{{read-revenue.response.body.data.amount}}",
+                    "operator": "equals",
+                    "right": "499"
+                }
+            ],
+            "true_next": "update-revenue",
+            "false_next": "log-verify-fail"
+        },
+        {
+            "id": "update-revenue",
+            "type": "http",
+            "name": "3. Update Revenue",
+            "request": {
+                "method": "PUT",
+                "url": "{{baseUrl}}/api/Revenues/{{lastRevenueId}}",
+                "headers": {
+                    "Authorization": "Bearer {{user1_token}}",
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "revenueCategory": 1,
+                    "amount": 750.00,
+                    "paymentMethod": 1,
+                    "referenceNumber": "FLOW-REV-001-UPD",
+                    "description": "Updated flow test revenue",
+                    "revenueDate": "2026-08-13T00:00:00Z"
+                }
+            },
+            "next": "check-update-success"
+        },
+        {
+            "id": "check-update-success",
+            "type": "condition",
+            "name": "Update returned 200?",
+            "conditions": [
+                {
+                    "left": "{{update-revenue.response.status}}",
+                    "operator": "equals",
+                    "right": "200"
+                }
+            ],
+            "true_next": "verify-update-fields",
+            "false_next": "log-update-fail"
+        },
+        {
+            "id": "verify-update-fields",
+            "type": "condition",
+            "name": "Updated amount matches?",
+            "conditions": [
+                {
+                    "left": "{{update-revenue.response.body.data.amount}}",
+                    "operator": "equals",
+                    "right": "750"
+                }
+            ],
+            "true_next": "delete-revenue",
+            "false_next": "log-verify-update-fail"
+        },
+        {
+            "id": "delete-revenue",
+            "type": "http",
+            "name": "4. Delete Revenue",
+            "request": {
+                "method": "DELETE",
+                "url": "{{baseUrl}}/api/Revenues/{{lastRevenueId}}",
+                "headers": {
+                    "Authorization": "Bearer {{user1_token}}"
+                }
+            },
+            "next": "check-delete-success"
+        },
+        {
+            "id": "check-delete-success",
+            "type": "condition",
+            "name": "Delete returned 200?",
+            "conditions": [
+                {
+                    "left": "{{delete-revenue.response.status}}",
+                    "operator": "equals",
+                    "right": "200"
+                }
+            ],
+            "true_next": "verify-deleted-404",
+            "false_next": "log-delete-fail"
+        },
+        {
+            "id": "verify-deleted-404",
+            "type": "http",
+            "name": "5. Verify Deleted (Expect 404)",
+            "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/api/Revenues/{{lastRevenueId}}",
+                "headers": {
+                    "Authorization": "Bearer {{user1_token}}"
+                }
+            },
+            "next": "check-deleted-404"
+        },
+        {
+            "id": "check-delected-404",
+            "type": "condition",
+            "name": "Deleted entity returns 404?",
+            "conditions": [
+                {
+                    "left": "{{verify-deleted-404.response.status}}",
+                    "operator": "equals",
+                    "right": "404"
+                }
+            ],
+            "true_next": "log-crud-pass",
+            "false_next": "log-crud-fail"
+        },
+        {
+            "id": "check-delected-404",
+            "type": "condition",
+            "name": "Deleted entity returns 404?",
+            "conditions": [
+                {
+                    "left": "{{verify-deleted-404.response.status}}",
+                    "operator": "equals",
+                    "right": "404"
+                }
+            ],
+            "true_next": "log-crud-pass",
+            "false_next": "log-crud-fail"
+        },
+        {
+            "id": "log-crud-pass",
+            "type": "log",
+            "name": "CRUD Flow PASSED",
+            "message": "[Revenue CRUD] All steps passed: Create(201) → Read(200) → Update(200) → Delete(200) → Verify404(404)"
+        },
+        {
+            "id": "log-crud-fail",
+            "type": "log",
+            "name": "CRUD Flow FAILED",
+            "message": "[Revenue CRUD] Failed at delete verification step"
+        },
+        {
+            "id": "log-create-fail",
+            "type": "log",
+            "name": "Create Failed",
+            "message": "[Revenue CRUD] Create did not return 201"
+        },
+        {
+            "id": "log-read-fail",
+            "type": "log",
+            "name": "Read Failed",
+            "message": "[Revenue CRUD] Read did not return 200"
+        },
+        {
+            "id": "log-verify-fail",
+            "type": "log",
+            "name": "Verify Failed",
+            "message": "[Revenue CRUD] Read fields do not match created values"
+        },
+        {
+            "id": "log-update-fail",
+            "type": "log",
+            "name": "Update Failed",
+            "message": "[Revenue CRUD] Update did not return 200"
+        },
+        {
+            "id": "log-verify-update-fail",
+            "type": "log",
+            "name": "Verify Update Failed",
+            "message": "[Revenue CRUD] Updated fields do not match"
+        },
+        {
+            "id": "log-delete-fail",
+            "type": "log",
+            "name": "Delete Failed",
+            "message": "[Revenue CRUD] Delete did not return 200"
+        },
+        {
+            "id": "end",
+            "type": "end",
+            "name": "End"
+        }
+    ]
+}

@@ -1,0 +1,180 @@
+{
+    "info": {
+        "_postman_id": "f01a2b3c-4d5e-6f7a-8b9c-0d1e2f3a4b5c",
+        "name": "14 - Revenues",
+        "description": "Endpoints to manage gym revenue records (membership fees, services, and other income).",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Paged Revenues",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+                            "    pm.environment.set(\"lastRevenueId\", jsonData.data.items[0].id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "### Endpoint Overview\n\nFetches a paginated list of revenue records for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `RevenueCategory` | `Enum (int)` | Exact | `0` = MembershipFee, `1` = PersonalTraining, `2` = Merchandise, `3` = Other |\n| `GymMemberId` | `int?` | Exact | Associated gym person ID of the member |\n| `Amount` | `decimal` | Between | Revenue amount |\n| `PaymentMethod` | `Enum (int)` | Exact | `0` = Cash, `1` = CreditCard, `2` = DebitCard, `3` = BankTransfer, `4` = Online, `5` = Other |\n| `ReferenceNumber` | `string` | Searchable | Payment reference number |\n| `Description` | `string` | - | Optional description |\n| `RevenueDate` | `DateTime` | Between | ISO format revenue date |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"RevenueCategory\": [\"0\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"RevenueDate\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {\n      \"RevenueDate\": {\n        \"min\": \"2026-01-01T00:00:00Z\",\n        \"max\": \"2026-12-31T23:59:59Z\"\n      }\n    },\n    \"exactFilters\": {\n      \"RevenueCategory\": [\"0\"]\n    }\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Revenues",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Revenues"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Revenue By Id",
+            "request": {
+                "description": "Fetches a single revenue record by ID.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Revenues/{{lastRevenueId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Revenues",
+                        "{{lastRevenueId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Create Revenue",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
+                            "    pm.environment.set(\"lastRevenueId\", jsonData.data.id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Records a new revenue entry for the current gym.\n\n### Request Fields (`RevenueCDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `revenueCategory` | `Enum (int)` | Yes | `0` = MembershipFee, `1` = PersonalTraining, `2` = Merchandise, `3` = Other |\n| `gymMemberId` | `int?` | No | Gym person ID of the member (must belong to the gym) |\n| `amount` | `decimal` | Yes | Must be greater than zero |\n| `paymentMethod` | `Enum (int)` | Yes | `0` = Cash, `1` = CreditCard, `2` = DebitCard, `3` = BankTransfer, `4` = Online, `5` = Other |\n| `referenceNumber` | `string?` | No | Max 100 characters |\n| `description` | `string?` | No | Max 500 characters |\n| `revenueDate` | `DateTime` | Yes | ISO format date |\n\nReturns `201 Created` with `Result<RevenueRDTO>`.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"revenueCategory\": 0,\n  \"gymMemberId\": null,\n  \"amount\": 499.00,\n  \"paymentMethod\": 0,\n  \"referenceNumber\": \"REV-001\",\n  \"description\": \"Monthly membership fee\",\n  \"revenueDate\": \"2026-08-12T00:00:00Z\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Revenues/Create",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Revenues",
+                        "Create"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update Revenue",
+            "request": {
+                "description": "Updates an existing revenue record by ID.\n\n### Request Fields (`RevenueUDTO`)\n\nSame fields as Create: `revenueCategory`, `gymMemberId`, `amount`, `paymentMethod`, `referenceNumber`, `description`, `revenueDate`.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"revenueCategory\": 0,\n  \"gymMemberId\": null,\n  \"amount\": 599.00,\n  \"paymentMethod\": 1,\n  \"referenceNumber\": \"REV-001-UPDATED\",\n  \"description\": \"Updated monthly membership fee\",\n  \"revenueDate\": \"2026-08-12T00:00:00Z\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Revenues/{{lastRevenueId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Revenues",
+                        "{{lastRevenueId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Revenue",
+            "request": {
+                "description": "Soft-deletes a revenue record by ID.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Revenues/{{lastRevenueId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Revenues",
+                        "{{lastRevenueId}}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{user1_token}}",
+                "type": "string"
+            }
+        ]
+    }
+}

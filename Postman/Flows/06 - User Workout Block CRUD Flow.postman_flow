@@ -1,0 +1,38 @@
+{
+    "info": {
+        "name": "User Workout Block CRUD & Security Flow",
+        "description": "Tests UserWorkoutBlock lifecycle (SuperAdmin only): Block → Read → Update → Unblock → Delete. Platform-level resource with no gym scoping.",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        { "id": "start", "type": "start", "name": "Start", "next": "block" },
+        {
+            "id": "block", "type": "http", "name": "1. Block User",
+            "request": {
+                "method": "POST", "url": "{{baseUrl}}/api/UserWorkoutBlocks/Block",
+                "headers": { "Authorization": "Bearer {{superAdmin_token}}", "Content-Type": "application/json" },
+                "body": { "blockedUserId": 5, "durationDays": 30, "reason": "Flow test block" }
+            },
+            "next": "check-block"
+        },
+        { "id": "check-block", "type": "condition", "name": "201?", "conditions": [{ "left": "{{block.response.status}}", "operator": "equals", "right": "201" }], "true_next": "capture", "false_next": "fail" },
+        { "id": "capture", "type": "set-variable", "name": "Capture IDs", "scope": "collection", "variables": [{ "key": "lastUserWorkoutBlockId", "value": "{{block.response.body.data.id}}" }, { "key": "lastBlockedUserId", "value": "{{block.response.body.data.blockedUserId}}" }], "next": "read" },
+        { "id": "read", "type": "http", "name": "2. Read Block", "request": { "method": "GET", "url": "{{baseUrl}}/api/UserWorkoutBlocks/{{lastUserWorkoutBlockId}}", "headers": { "Authorization": "Bearer {{superAdmin_token}}" } }, "next": "check-read" },
+        { "id": "check-read", "type": "condition", "name": "200?", "conditions": [{ "left": "{{read.response.status}}", "operator": "equals", "right": "200" }], "true_next": "update", "false_next": "fail" },
+        { "id": "update", "type": "http", "name": "3. Update Block (Extend)", "request": { "method": "PUT", "url": "{{baseUrl}}/api/UserWorkoutBlocks/{{lastUserWorkoutBlockId}}", "headers": { "Authorization": "Bearer {{superAdmin_token}}", "Content-Type": "application/json" }, "body": { "blockedUntil": "2027-01-01T00:00:00Z", "reason": "Extended block" } }, "next": "check-update" },
+        { "id": "check-update", "type": "condition", "name": "200?", "conditions": [{ "left": "{{update.response.status}}", "operator": "equals", "right": "200" }], "true_next": "unblock", "false_next": "fail" },
+        { "id": "unblock", "type": "http", "name": "4. Unblock User", "request": { "method": "POST", "url": "{{baseUrl}}/api/UserWorkoutBlocks/Unblock/{{lastBlockedUserId}}", "headers": { "Authorization": "Bearer {{superAdmin_token}}" } }, "next": "check-unblock" },
+        { "id": "check-unblock", "type": "condition", "name": "200?", "conditions": [{ "left": "{{unblock.response.status}}", "operator": "equals", "right": "200" }], "true_next": "delete", "false_next": "fail" },
+        { "id": "delete", "type": "http", "name": "5. Delete Block Record", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/UserWorkoutBlocks/{{lastUserWorkoutBlockId}}", "headers": { "Authorization": "Bearer {{superAdmin_token}}" } }, "next": "check-delete" },
+        { "id": "check-delete", "type": "condition", "name": "200?", "conditions": [{ "left": "{{delete.response.status}}", "operator": "equals", "right": "200" }], "true_next": "non-sa-test", "false_next": "fail" },
+        {
+            "id": "non-sa-test", "type": "http", "name": "6. Non-SuperAdmin Tries List (Expect 403)",
+            "request": { "method": "POST", "url": "{{baseUrl}}/api/UserWorkoutBlocks", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "pageNumber": 1, "pageSize": 10, "orderBy": "Id", "orderDirection": "asc" } },
+            "next": "check-forbidden"
+        },
+        { "id": "check-forbidden", "type": "condition", "name": "403?", "conditions": [{ "left": "{{non-sa-test.response.status}}", "operator": "equals", "right": "403" }], "true_next": "pass", "false_next": "fail" },
+        { "id": "pass", "type": "log", "name": "PASSED", "message": "[UserWorkoutBlock CRUD] Block→Read→Update→Unblock→Delete→NonSA-403 all passed" },
+        { "id": "fail", "type": "log", "name": "FAILED", "message": "[UserWorkoutBlock CRUD] Flow failed" },
+        { "id": "end", "type": "end", "name": "End" }
+    ]
+}

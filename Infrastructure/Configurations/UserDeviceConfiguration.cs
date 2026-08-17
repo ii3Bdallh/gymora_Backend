@@ -38,5 +38,9 @@ public class UserDeviceConfiguration : IEntityTypeConfiguration<UserDevice>
         builder.Property(x => x.CreatedAt)
             .IsRequired()
             .HasDefaultValueSql("GETUTCDATE()");
+
+        // Indexes
+        builder.HasIndex(x => x.DeviceToken).IsUnique();
+        builder.HasIndex(x => new { x.UserId, x.IsActive });
     }
 }

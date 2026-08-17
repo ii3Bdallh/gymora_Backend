@@ -1,0 +1,201 @@
+{
+    "info": {
+        "_postman_id": "f56a7b8c-9d0e-1f2a-3b4c-5d6e7f8a9b0c",
+        "name": "19 - Member Workout Plans",
+        "description": "Endpoints to assign workout plans to members, track progress, and manage plan status.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Paged Member Workout Plans",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+                            "    pm.environment.set(\"lastMemberWorkoutPlanId\", jsonData.data.items[0].id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "### Endpoint Overview\n\nFetches a paginated list of member workout plan assignments for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `WorkoutPlanId` | `int` | Exact | Assigned workout plan ID |\n| `MemberId` | `int` | Exact | Gym person ID of the member |\n| `Goal` | `string` | Searchable | Fitness goal (max 200 chars) |\n| `StartDate` | `DateTime` | Between | ISO start date |\n| `EndDate` | `DateTime?` | Between | ISO end date (nullable) |\n| `Status` | `Enum (int)` | Exact | `0` = Active, `1` = Completed, `2` = Cancelled, `3` = Paused |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"Status\": [\"0\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"StartDate\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {\n      \"Status\": [\"0\"]\n    }\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/MemberWorkoutPlans",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "MemberWorkoutPlans"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Member Workout Plan By Id",
+            "request": {
+                "description": "Fetches a single member workout plan assignment by ID.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/MemberWorkoutPlans/{{lastMemberWorkoutPlanId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "MemberWorkoutPlans",
+                        "{{lastMemberWorkoutPlanId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Create Member Workout Plan",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
+                            "    pm.environment.set(\"lastMemberWorkoutPlanId\", jsonData.data.id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Assigns a workout plan to a member.\n\n### Request Fields (`MemberWorkoutPlanCDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `workoutPlanId` | `int` | Yes | Workout plan to assign |\n| `memberId` | `int` | Yes | Gym person ID of the member |\n| `goal` | `string?` | No | Max 200 characters |\n| `startDate` | `DateTime` | Yes | ISO start date |\n| `endDate` | `DateTime?` | No | ISO end date |\n\nReturns `201 Created` with `Result<MemberWorkoutPlanRDTO>`.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, or `Coach`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"workoutPlanId\": {{lastWorkoutPlanId}},\n  \"memberId\": {{gymPersonId}},\n  \"goal\": \"Build strength and endurance\",\n  \"startDate\": \"2026-08-12T00:00:00Z\",\n  \"endDate\": \"2026-11-12T00:00:00Z\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/MemberWorkoutPlans/Create",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "MemberWorkoutPlans",
+                        "Create"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update Member Workout Plan",
+            "request": {
+                "description": "Updates a member workout plan assignment by ID.\n\n### Request Fields (`MemberWorkoutPlanUDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `workoutPlanId` | `int` | Yes | Workout plan ID |\n| `memberId` | `int` | Yes | Member gym person ID |\n| `goal` | `string?` | No | Max 200 characters |\n| `startDate` | `DateTime` | Yes | ISO start date |\n| `endDate` | `DateTime?` | No | ISO end date |\n| `status` | `Enum (int)` | Yes | `0` = Active, `1` = Completed, `2` = Cancelled, `3` = Paused |\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, or `Coach`. SuperAdmin bypasses all gym checks.",
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"workoutPlanId\": {{lastWorkoutPlanId}},\n  \"memberId\": {{gymPersonId}},\n  \"goal\": \"Updated goal: lose weight\",\n  \"startDate\": \"2026-08-12T00:00:00Z\",\n  \"endDate\": \"2026-11-12T00:00:00Z\",\n  \"status\": 0\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/MemberWorkoutPlans/{{lastMemberWorkoutPlanId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "MemberWorkoutPlans",
+                        "{{lastMemberWorkoutPlanId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Cancel Member Workout Plan",
+            "request": {
+                "description": "Cancels a member workout plan assignment by ID. Sets status to `Cancelled`.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, or `Coach`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/MemberWorkoutPlans/{{lastMemberWorkoutPlanId}}/Cancel",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "MemberWorkoutPlans",
+                        "{{lastMemberWorkoutPlanId}}",
+                        "Cancel"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Member Workout Plan",
+            "request": {
+                "description": "Soft-deletes a member workout plan assignment by ID.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, or `Coach`. SuperAdmin bypasses all gym checks.",
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/MemberWorkoutPlans/{{lastMemberWorkoutPlanId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "MemberWorkoutPlans",
+                        "{{lastMemberWorkoutPlanId}}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{user1_token}}",
+                "type": "string"
+            }
+        ]
+    }
+}

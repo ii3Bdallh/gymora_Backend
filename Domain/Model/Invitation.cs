@@ -1,6 +1,7 @@
 using Domain.Attributes;
 using Domain.Enum;
 using Domain.Interface;
+using Domain.Model.Auth;
 using Domain.Model.Base;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -12,6 +13,7 @@ namespace Domain.Model
         [Required]
         [Filterable(FilterType.Exact)]
         public int UserId { get; set; }
+        public ApplicationUser? User { get; set; }
 
         [Filterable(FilterType.Exact)]
         public GymRole GymRole { get; set; }

@@ -1,6 +1,7 @@
 using Domain.Attributes;
 using Domain.Enum;
 using Domain.Interface;
+using Domain.Model.Auth;
 using Domain.Model.Base;
 using System;
 using System.Collections.Generic;
@@ -44,6 +45,7 @@ namespace Domain.Model
     public string? RejectionReason { get; set; }
 
     public int? ReviewedBy { get; set; } // FK added - missing in original SQL
+    public ApplicationUser? ReviewedByUser { get; set; }
 
     [Filterable(FilterType.Between)]
     public DateTime? ReviewedAt { get; set; }

@@ -34,9 +34,9 @@ namespace Application.Service.Base
         {
         }
 
-        private bool CanAccess(int createdByPersonId)
+        private bool CanAccess(int? createdByPersonId)
         {
-            return HasFullAccess || CurrentUser.IsGymOwner || CurrentUser.IsGymManager || createdByPersonId == (CurrentUser.CurrentPersonId ?? 0);
+            return HasFullAccess || CurrentUser.IsGymOwner || CurrentUser.IsGymManager || (createdByPersonId.HasValue && createdByPersonId == CurrentUser.CurrentPersonId);
         }
 
 

@@ -1,0 +1,29 @@
+{
+    "info": {
+        "name": "Session Exercise Batch Flow",
+        "description": "Tests SessionExercise batch operations: Batch Create → Batch Delete. No entity-level isolation ( BaseEntity).",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        { "id": "start", "type": "start", "name": "Start", "next": "batch-create" },
+        {
+            "id": "batch-create", "type": "http", "name": "1. Batch Create SessionExercises",
+            "request": {
+                "method": "POST", "url": "{{baseUrl}}/api/SessionExercises/Batch",
+                "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" },
+                "body": [
+                    { "sessionId": "{{lastSessionId}}", "exerciseId": null, "exerciseName": "Flow Bench Press", "sets": 3, "reps": 10, "weightKg": 40.0, "restSeconds": 90, "notes": "Control negative", "orderIndex": 0 },
+                    { "sessionId": "{{lastSessionId}}", "exerciseId": null, "exerciseName": "Flow Incline Press", "sets": 3, "reps": 12, "weightKg": 30.0, "restSeconds": 60, "notes": null, "orderIndex": 1 }
+                ]
+            },
+            "next": "check-create"
+        },
+        { "id": "check-create", "type": "condition", "name": "201?", "conditions": [{ "left": "{{batch-create.response.status}}", "operator": "equals", "right": "201" }], "true_next": "capture", "false_next": "fail" },
+        { "id": "capture", "type": "set-variable", "name": "Capture IDs", "scope": "collection", "variables": [{ "key": "lastSessionExerciseId", "value": "{{batch-create.response.body.data[0].id}}" }], "next": "batch-delete" },
+        { "id": "batch-delete", "type": "http", "name": "2. Batch Delete SessionExercises", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/SessionExercises/Batch", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": ["{{lastSessionExerciseId}}"] }, "next": "check-delete" },
+        { "id": "check-delete", "type": "condition", "name": "200?", "conditions": [{ "left": "{{batch-delete.response.status}}", "operator": "equals", "right": "200" }], "true_next": "pass", "false_next": "fail" },
+        { "id": "pass", "type": "log", "name": "PASSED", "message": "[SessionExercise Batch] Batch Create→Batch Delete passed" },
+        { "id": "fail", "type": "log", "name": "FAILED", "message": "[SessionExercise Batch] Flow failed" },
+        { "id": "end", "type": "end", "name": "End" }
+    ]
+}

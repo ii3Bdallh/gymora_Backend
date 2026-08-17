@@ -1,0 +1,201 @@
+{
+    "info": {
+        "_postman_id": "f34a5b6c-7d8e-9f0a-1b2c-3d4e5f6a7b8c",
+        "name": "17 - Exercises",
+        "description": "Endpoints to manage exercise library (create, approve, and query exercises with muscle group and equipment filters).",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Paged Exercises",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+                            "    pm.environment.set(\"lastExerciseId\", jsonData.data.items[0].id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "### Endpoint Overview\n\nFetches a paginated list of exercises for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `Name` | `string` | Searchable | Exercise name (max 100 chars) |\n| `Description` | `string` | Searchable | Exercise description (max 1000 chars) |\n| `PrimaryMuscle` | `Enum (int)` | Exact | `0` = Chest, `1` = Back, `2` = Shoulders, `3` = Biceps, `4` = Triceps, `5` = Forearms, `6` = Abs, `7` = Quads, `8` = Hamstrings, `9` = Glutes, `10` = Calves, `11` = Traps, `12` = Lats, `13` = FullBody |\n| `SecondaryMuscle` | `Enum (int)?` | Exact | Same values as PrimaryMuscle |\n| `Equipment` | `Enum (int)?` | Exact | `0` = Barbell, `1` = Dumbbell, `2` = Machine, `3` = Cable, `4` = Bodyweight, `5` = Kettlebell, `6` = ResistanceBand, `7` = Other |\n| `DifficultyLevel` | `Enum (int)` | Exact | `0` = Beginner, `1` = Intermediate, `2` = Advanced |\n| `VideoUrl` | `string` | - | Tutorial video URL |\n| `IsApproved` | `bool` | - | Approval status |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"PrimaryMuscle\": [\"0\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {\n      \"PrimaryMuscle\": [\"0\"],\n      \"DifficultyLevel\": [\"0\"]\n    }\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Exercises",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Exercises"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Exercise By Id",
+            "request": {
+                "description": "Fetches a single exercise by ID.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Exercises/{{lastExerciseId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Exercises",
+                        "{{lastExerciseId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Create Exercise",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
+                            "    pm.environment.set(\"lastExerciseId\", jsonData.data.id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Creates a new exercise in the gym's library.\n\n### Request Fields (`ExerciseCDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `name` | `string` | Yes | Max 100 characters |\n| `description` | `string?` | No | Max 1000 characters |\n| `primaryMuscle` | `Enum (int)` | Yes | `0`–`13` (see MuscleGroup enum) |\n| `secondaryMuscle` | `Enum (int)?` | No | Same values as primaryMuscle |\n| `equipment` | `Enum (int)?` | No | `0`–`7` (see ExerciseEquipment enum) |\n| `difficultyLevel` | `Enum (int)` | Yes | `0` = Beginner, `1` = Intermediate, `2` = Advanced |\n| `videoUrl` | `string?` | No | Max 1000 characters |\n\nReturns `201 Created` with `Result<ExerciseRDTO>`.\n\n### Authorization\n\nRequires gym role `Owner`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"name\": \"Barbell Bench Press\",\n  \"description\": \"Compound chest exercise with barbell\",\n  \"primaryMuscle\": 0,\n  \"secondaryMuscle\": 2,\n  \"equipment\": 0,\n  \"difficultyLevel\": 1,\n  \"videoUrl\": null\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Exercises/Create",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Exercises",
+                        "Create"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update Exercise",
+            "request": {
+                "description": "Updates an existing exercise by ID. Only SuperAdmin can update exercises (platform approval flow).\n\n### Request Fields (`ExerciseUDTO`)\n\nSame fields as Create: `name`, `description`, `primaryMuscle`, `secondaryMuscle`, `equipment`, `difficultyLevel`, `videoUrl`.\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"name\": \"Barbell Bench Press (Updated)\",\n  \"description\": \"Updated compound chest exercise\",\n  \"primaryMuscle\": 0,\n  \"secondaryMuscle\": 2,\n  \"equipment\": 0,\n  \"difficultyLevel\": 1,\n  \"videoUrl\": \"https://example.com/bench-press.mp4\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Exercises/{{lastExerciseId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Exercises",
+                        "{{lastExerciseId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Approve Exercise",
+            "request": {
+                "description": "Approves a pending exercise for platform-wide use.\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "POST",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Exercises/{{lastExerciseId}}/Approve",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Exercises",
+                        "{{lastExerciseId}}",
+                        "Approve"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Exercise",
+            "request": {
+                "description": "Soft-deletes an exercise by ID.\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Exercises/{{lastExerciseId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Exercises",
+                        "{{lastExerciseId}}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{user1_token}}",
+                "type": "string"
+            }
+        ]
+    }
+}

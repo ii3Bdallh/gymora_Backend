@@ -15,9 +15,9 @@ namespace Domain.Model.Base
     {
     [Filterable(FilterType.Exact)]
 
-        public int CreatedByPersonId { get; set; }
+        public int? CreatedByPersonId { get; set; }
 
-        public GymPerson CreatedByPerson { get; set; } = default!;
+        public GymPerson? CreatedByPerson { get; set; } 
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
 
     }

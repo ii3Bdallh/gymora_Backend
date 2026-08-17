@@ -25,10 +25,13 @@ namespace Infrastructure.Config
             builder.HasOne(x => x.AssignedBy)
                 .WithMany()
                 .HasForeignKey(x => x.AssignedById)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.HasIndex(x => new { x.MemberId, x.CoachStaffId })
                 .IsUnique();
+
+            builder.HasIndex(x => new { x.GymId, x.CoachStaffId });
+            builder.HasIndex(x => new { x.GymId, x.MemberId });
         }
     }
 }

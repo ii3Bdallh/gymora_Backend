@@ -18,9 +18,13 @@ namespace Infrastructure.Config
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(x => x.RecordedBy)
-                .WithMany()
+                .WithMany(x => x.Attendances)
                 .HasForeignKey(x => x.RecordedById)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Indexes
+            builder.HasIndex(x => new { x.GymId, x.MemberId, x.CheckInTime });
+            builder.HasIndex(x => new { x.GymId, x.CheckInTime });
         }
     }
 }

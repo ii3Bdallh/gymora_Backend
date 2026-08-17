@@ -15,3 +15,4 @@ namespace Domain.Interface
         public int CreatedByPersonId { get; set; }
     }
 }
+

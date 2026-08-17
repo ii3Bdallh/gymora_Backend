@@ -43,5 +43,9 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Domain.Model.N
         builder.Property(x => x.CreatedAt)
             .IsRequired()
             .HasDefaultValueSql("GETUTCDATE()");
+
+        // Indexes
+        builder.HasIndex(x => new { x.UserId, x.IsRead, x.CreatedAt });
+        builder.HasIndex(x => new { x.UserId, x.CreatedAt });
     }
 }

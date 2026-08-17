@@ -30,7 +30,7 @@ namespace Infrastructure.Config
 
 
 
-      builder.HasOne<ApplicationUser>()
+      builder.HasOne(x => x.ReviewedByUser)
              .WithMany()
              .HasForeignKey(x => x.ReviewedBy)
              .OnDelete(DeleteBehavior.Restrict);

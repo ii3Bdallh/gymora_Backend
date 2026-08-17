@@ -1,0 +1,32 @@
+{
+    "info": {
+        "name": "Member Workout Plan CRUD Flow",
+        "description": "Tests MemberWorkoutPlan lifecycle: Coach creates assignment → Read → Update status → Cancel → Delete. Gym-scoped.",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        { "id": "start", "type": "start", "name": "Start", "next": "create" },
+        {
+            "id": "create", "type": "http", "name": "1. Create MemberWorkoutPlan",
+            "request": {
+                "method": "POST", "url": "{{baseUrl}}/api/MemberWorkoutPlans/Create",
+                "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" },
+                "body": { "workoutPlanId": "{{lastWorkoutPlanId}}", "memberId": "{{gymPersonId}}", "goal": "Build strength", "startDate": "2026-08-13T00:00:00Z", "endDate": "2026-11-13T00:00:00Z" }
+            },
+            "next": "check-create"
+        },
+        { "id": "check-create", "type": "condition", "name": "201?", "conditions": [{ "left": "{{create.response.status}}", "operator": "equals", "right": "201" }], "true_next": "capture", "false_next": "fail" },
+        { "id": "capture", "type": "set-variable", "name": "Capture ID", "scope": "collection", "variables": [{ "key": "lastMemberWorkoutPlanId", "value": "{{create.response.body.data.id}}" }], "next": "read" },
+        { "id": "read", "type": "http", "name": "2. Read By Id", "request": { "method": "GET", "url": "{{baseUrl}}/api/MemberWorkoutPlans/{{lastMemberWorkoutPlanId}}", "headers": { "Authorization": "Bearer {{user1_token}}" } }, "next": "check-read" },
+        { "id": "check-read", "type": "condition", "name": "200?", "conditions": [{ "left": "{{read.response.status}}", "operator": "equals", "right": "200" }], "true_next": "update", "false_next": "fail" },
+        { "id": "update", "type": "http", "name": "3. Update (Set Paused)", "request": { "method": "PUT", "url": "{{baseUrl}}/api/MemberWorkoutPlans/{{lastMemberWorkoutPlanId}}", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "workoutPlanId": "{{lastWorkoutPlanId}}", "memberId": "{{gymPersonId}}", "goal": "Updated goal", "startDate": "2026-08-13T00:00:00Z", "endDate": "2026-11-13T00:00:00Z", "status": 3 } }, "next": "check-update" },
+        { "id": "check-update", "type": "condition", "name": "200?", "conditions": [{ "left": "{{update.response.status}}", "operator": "equals", "right": "200" }], "true_next": "cancel", "false_next": "fail" },
+        { "id": "cancel", "type": "http", "name": "4. Cancel Assignment", "request": { "method": "POST", "url": "{{baseUrl}}/api/MemberWorkoutPlans/{{lastMemberWorkoutPlanId}}/Cancel", "headers": { "Authorization": "Bearer {{user1_token}}" } }, "next": "check-cancel" },
+        { "id": "check-cancel", "type": "condition", "name": "200?", "conditions": [{ "left": "{{cancel.response.status}}", "operator": "equals", "right": "200" }], "true_next": "delete", "false_next": "fail" },
+        { "id": "delete", "type": "http", "name": "5. Delete", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/MemberWorkoutPlans/{{lastMemberWorkoutPlanId}}", "headers": { "Authorization": "Bearer {{user1_token}}" } }, "next": "check-delete" },
+        { "id": "check-delete", "type": "condition", "name": "200?", "conditions": [{ "left": "{{delete.response.status}}", "operator": "equals", "right": "200" }], "true_next": "pass", "false_next": "fail" },
+        { "id": "pass", "type": "log", "name": "PASSED", "message": "[MemberWorkoutPlan CRUD] Create→Read→Update→Cancel→Delete all passed" },
+        { "id": "fail", "type": "log", "name": "FAILED", "message": "[MemberWorkoutPlan CRUD] Flow failed" },
+        { "id": "end", "type": "end", "name": "End" }
+    ]
+}

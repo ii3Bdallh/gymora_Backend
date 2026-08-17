@@ -11,7 +11,7 @@ public static class ConfigurationExtensions
     public static void ConfigureAuditing<T>(this EntityTypeBuilder<T> builder)
             where T : BaseAuditableEntity
     {
-        builder.HasOne<ApplicationUser>()
+        builder.HasOne(x => x.CreatedBy)
                .WithMany()
                .HasForeignKey(e => e.CreatedById)
                .OnDelete(DeleteBehavior.Cascade);
@@ -21,7 +21,7 @@ public static class ConfigurationExtensions
     public static void ConfigureFileAuditing<T>(this EntityTypeBuilder<T> builder)
         where T : BaseAuditableFileEntity
     {
-        builder.HasOne<ApplicationUser>()
+        builder.HasOne(x => x.CreatedBy)
                .WithMany()
                .HasForeignKey(e => e.CreatedById)
                .OnDelete(DeleteBehavior.Cascade);
@@ -39,7 +39,7 @@ public static class ConfigurationExtensions
         builder.HasOne(x => x.CreatedByPerson)
                .WithMany()
                .HasForeignKey(e => e.CreatedByPersonId)
-               .OnDelete(DeleteBehavior.Cascade);
+               .OnDelete(DeleteBehavior.SetNull);
 
     }
 

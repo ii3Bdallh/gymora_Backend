@@ -17,6 +17,8 @@ namespace Infrastructure.Config
                 .WithMany()
                 .HasForeignKey(x => x.BlockedUserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(x => new { x.BlockedUserId, x.BlockedUntil });
         }
     }
 }

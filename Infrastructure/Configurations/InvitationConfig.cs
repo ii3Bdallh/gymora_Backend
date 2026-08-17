@@ -12,17 +12,9 @@ namespace Infrastructure.Configurations
         {
             builder.HasKey(x => x.Id);
 
-            builder.HasOne(x => x.Gym)
-                   .WithMany()
-                   .HasForeignKey(x => x.GymId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            builder.ConfigureGymAuditing();
 
-            builder.HasOne(x => x.CreatedByPerson)
-                        .WithMany()
-                        .HasForeignKey(e => e.CreatedByPersonId)
-                        .OnDelete(DeleteBehavior.NoAction);
-
-            builder.HasOne<ApplicationUser>()
+            builder.HasOne(x => x.User)
                    .WithMany()
                    .HasForeignKey(x => x.UserId)
                    .OnDelete(DeleteBehavior.Restrict);
@@ -38,6 +30,9 @@ namespace Infrastructure.Configurations
             builder.HasIndex(x => x.UserId);
             builder.HasIndex(x => x.GymRole);
             builder.HasIndex(x => x.Status);
+
+            builder.HasIndex(x => new { x.GymId, x.Status });
+            builder.HasIndex(x => new { x.UserId, x.Status });
 
 
         }

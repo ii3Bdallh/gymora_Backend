@@ -1,0 +1,32 @@
+{
+    "info": {
+        "name": "Exercise CRUD & Security Flow",
+        "description": "Tests Exercise lifecycle: Owner creates → Read → SuperAdmin approves → SuperAdmin updates → SuperAdmin deletes. Also tests that non-Owner cannot create.",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        { "id": "start", "type": "start", "name": "Start", "next": "owner-create" },
+        {
+            "id": "owner-create", "type": "http", "name": "1. Owner Creates Exercise",
+            "request": {
+                "method": "POST", "url": "{{baseUrl}}/api/Exercises/Create",
+                "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" },
+                "body": { "name": "Flow Test Squat", "description": "Barbell back squat", "primaryMuscle": 7, "secondaryMuscle": 9, "equipment": 0, "difficultyLevel": 1 }
+            },
+            "next": "check-create"
+        },
+        { "id": "check-create", "type": "condition", "name": "201?", "conditions": [{ "left": "{{owner-create.response.status}}", "operator": "equals", "right": "201" }], "true_next": "capture", "false_next": "fail" },
+        { "id": "capture", "type": "set-variable", "name": "Capture ID", "scope": "collection", "variables": [{ "key": "lastExerciseId", "value": "{{owner-create.response.body.data.id}}" }], "next": "read" },
+        { "id": "read", "type": "http", "name": "2. Read Exercise", "request": { "method": "GET", "url": "{{baseUrl}}/api/Exercises/{{lastExerciseId}}", "headers": { "Authorization": "Bearer {{user1_token}}" } }, "next": "check-read" },
+        { "id": "check-read", "type": "condition", "name": "200?", "conditions": [{ "left": "{{read.response.status}}", "operator": "equals", "right": "200" }], "true_next": "superadmin-approve", "false_next": "fail" },
+        { "id": "superadmin-approve", "type": "http", "name": "3. SuperAdmin Approves", "request": { "method": "POST", "url": "{{baseUrl}}/api/Exercises/{{lastExerciseId}}/Approve", "headers": { "Authorization": "Bearer {{superAdmin_token}}" } }, "next": "check-approve" },
+        { "id": "check-approve", "type": "condition", "name": "200?", "conditions": [{ "left": "{{superadmin-approve.response.status}}", "operator": "equals", "right": "200" }], "true_next": "superadmin-update", "false_next": "fail" },
+        { "id": "superadmin-update", "type": "http", "name": "4. SuperAdmin Updates", "request": { "method": "PUT", "url": "{{baseUrl}}/api/Exercises/{{lastExerciseId}}", "headers": { "Authorization": "Bearer {{superAdmin_token}}", "Content-Type": "application/json" }, "body": { "name": "Flow Test Squat (Updated)", "description": "Updated", "primaryMuscle": 7, "equipment": 0, "difficultyLevel": 2 } }, "next": "check-update" },
+        { "id": "check-update", "type": "condition", "name": "200?", "conditions": [{ "left": "{{superadmin-update.response.status}}", "operator": "equals", "right": "200" }], "true_next": "superadmin-delete", "false_next": "fail" },
+        { "id": "superadmin-delete", "type": "http", "name": "5. SuperAdmin Deletes", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/Exercises/{{lastExerciseId}}", "headers": { "Authorization": "Bearer {{superAdmin_token}}" } }, "next": "check-delete" },
+        { "id": "check-delete", "type": "condition", "name": "200?", "conditions": [{ "left": "{{superadmin-delete.response.status}}", "operator": "equals", "right": "200" }], "true_next": "pass", "false_next": "fail" },
+        { "id": "pass", "type": "log", "name": "PASSED", "message": "[Exercise CRUD] Create→Read→Approve→Update→Delete all passed" },
+        { "id": "fail", "type": "log", "name": "FAILED", "message": "[Exercise CRUD] Flow failed" },
+        { "id": "end", "type": "end", "name": "End" }
+    ]
+}

@@ -199,7 +199,7 @@ namespace Application.Service
                     MembershipStartDate = startDate,
                     MembershipEndDate = gymPerson.MemberProfile.MembershipEndDate!.Value,
                     CreatedByUserId = invitation.CreatedByPerson?.UserId ?? 0,
-                    CreatedByPersonId = invitation.CreatedByPersonId
+                    CreatedByPersonId = invitation.CreatedByPersonId ?? 0
                 }, ct);
             }
             else if (personType == PersonType.Staff)

@@ -1,5 +1,6 @@
 using Domain.Attributes;
 using Domain.Interface;
+using Domain.Model.Auth;
 
 namespace Domain.Model.Base
 {
@@ -13,6 +14,7 @@ namespace Domain.Model.Base
     [Filterable(FilterType.Exact)]
 
         public int CreatedById { get; set; }
+        public ApplicationUser? CreatedBy { get; set; }
 
 
     }

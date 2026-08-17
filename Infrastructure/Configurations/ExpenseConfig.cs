@@ -21,10 +21,15 @@ namespace Infrastructure.Configurations
                    .HasForeignKey(x => x.GymStaffId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(x => x.CreatedByPerson)
-                   .WithMany()
-                   .HasForeignKey(e => e.CreatedByPersonId)
-                   .OnDelete(DeleteBehavior.NoAction);
+            // Indexes
+            builder.HasIndex(x => new { x.GymId, x.ExpenseDate });
+            builder.HasIndex(x => new { x.GymId, x.ExpenseCategory });
+            builder.HasIndex(x => new { x.GymId, x.GymStaffId });
+
+            // builder.HasOne(x => x.CreatedByPerson)
+            //        .WithMany()
+            //        .HasForeignKey(e => e.CreatedByPersonId)
+            //        .OnDelete(DeleteBehavior.);
         }
     }
 }

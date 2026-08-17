@@ -1,4 +1,5 @@
 using Domain.Model;
+using Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,15 +15,9 @@ namespace Infrastructure.Config
             builder.Property(x => x.Description).HasMaxLength(500);
             builder.Property(x => x.Price).HasPrecision(18, 2);
 
-            builder.HasOne(x => x.Gym)
-                .WithMany()
-                .HasForeignKey(x => x.GymId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.ConfigureGymAuditing();
 
-            builder.HasOne(x => x.CreatedByPerson)
-                .WithMany()
-                .HasForeignKey(x => x.CreatedByPersonId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasIndex(x => new { x.GymId, x.Name });
         }
     }
 }

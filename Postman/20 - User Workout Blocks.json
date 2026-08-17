@@ -1,0 +1,203 @@
+{
+    "info": {
+        "_postman_id": "f67a8b9c-0d1e-2f3a-4b5c-6d7e8f9a0b1c",
+        "name": "20 - User Workout Blocks",
+        "description": "Endpoints to manage platform-level user workout blocks (restrict users from accessing workout features).",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Paged User Workout Blocks",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+                            "    pm.environment.set(\"lastUserWorkoutBlockId\", jsonData.data.items[0].id);",
+                            "    pm.environment.set(\"lastBlockedUserId\", jsonData.data.items[0].blockedUserId);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "### Endpoint Overview\n\nFetches a paginated list of user workout blocks with dynamic sorting and filtering. Platform-level resource — no gym scoping.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `BlockedUserId` | `int` | Exact | Blocked user account ID |\n| `BlockedUntil` | `DateTime` | Between | ISO block expiry date |\n| `Reason` | `string` | Searchable | Block reason |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"BlockedUserId\": [\"5\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"BlockedUntil\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/UserWorkoutBlocks",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "UserWorkoutBlocks"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get User Workout Block By Id",
+            "request": {
+                "description": "Fetches a single user workout block by ID.\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/UserWorkoutBlocks/{{lastUserWorkoutBlockId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "UserWorkoutBlocks",
+                        "{{lastUserWorkoutBlockId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Block User",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
+                            "    pm.environment.set(\"lastUserWorkoutBlockId\", jsonData.data.id);",
+                            "    pm.environment.set(\"lastBlockedUserId\", jsonData.data.blockedUserId);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Blocks a user from accessing workout features.\n\n### Request Fields (`UserWorkoutBlockCDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `blockedUserId` | `int` | Yes | User ID to block |\n| `durationDays` | `int` | Yes | `1` = one day, `30` = one month, `-1` or `9999` = lifetime |\n| `reason` | `string?` | No | Optional block reason |\n\nReturns `201 Created` with `Result<UserWorkoutBlockRDTO>`.\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"blockedUserId\": 5,\n  \"durationDays\": 30,\n  \"reason\": \"Violation of workout guidelines\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/UserWorkoutBlocks/Block",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "UserWorkoutBlocks",
+                        "Block"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Unblock User",
+            "request": {
+                "description": "Unblocks a user by removing their workout block.\n\n### Route Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `userId` | `int` | Yes | User ID to unblock |\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "POST",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/UserWorkoutBlocks/Unblock/{{lastBlockedUserId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "UserWorkoutBlocks",
+                        "Unblock",
+                        "{{lastBlockedUserId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update User Workout Block",
+            "request": {
+                "description": "Updates a user workout block by ID (e.g., extend block duration).\n\n### Request Fields (`UserWorkoutBlockUDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `blockedUntil` | `DateTime` | Yes | New block expiry date (ISO format) |\n| `reason` | `string?` | No | Updated reason |\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"blockedUntil\": \"2026-12-31T23:59:59Z\",\n  \"reason\": \"Extended block for repeated violations\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/UserWorkoutBlocks/{{lastUserWorkoutBlockId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "UserWorkoutBlocks",
+                        "{{lastUserWorkoutBlockId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete User Workout Block",
+            "request": {
+                "description": "Soft-deletes a user workout block by ID (unblocks the user).\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/UserWorkoutBlocks/{{lastUserWorkoutBlockId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "UserWorkoutBlocks",
+                        "{{lastUserWorkoutBlockId}}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{superAdmin_token}}",
+                "type": "string"
+            }
+        ]
+    }
+}

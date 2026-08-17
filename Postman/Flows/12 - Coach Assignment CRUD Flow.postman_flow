@@ -1,0 +1,30 @@
+{
+    "info": {
+        "name": "Coach Assignment CRUD Flow",
+        "description": "Tests CoachAssignment lifecycle: Assign coach → Query assigned members → Query assigned coaches → Query gym assignments. Gym-scoped.",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        { "id": "start", "type": "start", "name": "Start", "next": "assign" },
+        {
+            "id": "assign", "type": "http", "name": "1. Assign Coach to Member",
+            "request": {
+                "method": "POST", "url": "{{baseUrl}}/api/CoachAssignment/coach-assignments",
+                "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" },
+                "body": { "memberId": "{{gymPersonId}}", "coachStaffId": 1 }
+            },
+            "next": "check-assign"
+        },
+        { "id": "check-assign", "type": "condition", "name": "201?", "conditions": [{ "left": "{{assign.response.status}}", "operator": "equals", "right": "201" }], "true_next": "capture", "false_next": "fail" },
+        { "id": "capture", "type": "set-variable", "name": "Capture ID", "scope": "collection", "variables": [{ "key": "lastCoachAssignmentId", "value": "{{assign.response.body.data.id}}" }], "next": "members-for-coach" },
+        { "id": "members-for-coach", "type": "http", "name": "2. Get Assigned Members for Coach", "request": { "method": "POST", "url": "{{baseUrl}}/api/CoachAssignment/get-assigned-members-for-coach", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "coachId": 1, "gymId": "{{gymId}}", "pageNumber": 1, "pageSize": 10, "orderBy": "Id", "orderDirection": "asc" } }, "next": "check-members" },
+        { "id": "check-members", "type": "condition", "name": "200?", "conditions": [{ "left": "{{members-for-coach.response.status}}", "operator": "equals", "right": "200" }], "true_next": "coaches-for-member", "false_next": "fail" },
+        { "id": "coaches-for-member", "type": "http", "name": "3. Get Assigned Coaches for Member", "request": { "method": "POST", "url": "{{baseUrl}}/api/CoachAssignment/get-assigned-coaches-for-member", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "memberId": "{{gymPersonId}}", "gymId": "{{gymId}}", "pageNumber": 1, "pageSize": 10, "orderBy": "Id", "orderDirection": "asc" } }, "next": "check-coaches" },
+        { "id": "check-coaches", "type": "condition", "name": "200?", "conditions": [{ "left": "{{coaches-for-member.response.status}}", "operator": "equals", "right": "200" }], "true_next": "gym-assignments", "false_next": "fail" },
+        { "id": "gym-assignments", "type": "http", "name": "4. Get Gym Coach Assignments", "request": { "method": "POST", "url": "{{baseUrl}}/api/CoachAssignment/get-gym-coach-assignments", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "pageNumber": 1, "pageSize": 10, "orderBy": "Id", "orderDirection": "asc" } }, "next": "check-gym" },
+        { "id": "check-gym", "type": "condition", "name": "200?", "conditions": [{ "left": "{{gym-assignments.response.status}}", "operator": "equals", "right": "200" }], "true_next": "pass", "false_next": "fail" },
+        { "id": "pass", "type": "log", "name": "PASSED", "message": "[CoachAssignment CRUD] Assign→MembersForCoach→CoachesForMember→GymAssignments all passed" },
+        { "id": "fail", "type": "log", "name": "FAILED", "message": "[CoachAssignment CRUD] Flow failed" },
+        { "id": "end", "type": "end", "name": "End" }
+    ]
+}

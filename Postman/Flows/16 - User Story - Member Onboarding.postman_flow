@@ -1,0 +1,67 @@
+{
+    "info": {
+        "name": "User Story: New Member Onboarding Flow",
+        "description": "Complete business flow: Create GymPerson (Member) → Link Account → Create Invitation → Accept Invitation → Assign Coach → Check-in → Record Body Measurement. Tests the full member onboarding journey.",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        { "id": "start", "type": "start", "name": "Start", "next": "create-member" },
+        {
+            "id": "create-member", "type": "http", "name": "1. Create Member (GymPerson)",
+            "request": {
+                "method": "POST", "url": "{{baseUrl}}/api/GymPerson/Create",
+                "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" },
+                "body": { "personType": 1, "name": "New Member Flow", "phoneNumber": "+1234567892", "email": "newmember@flow.com", "gender": "Male", "staffProfile": null, "memberProfile": { "medicalNotes": "No allergies", "notes": "New member onboarding" } }
+            },
+            "next": "check-create-member"
+        },
+        { "id": "check-create-member", "type": "condition", "name": "200?", "conditions": [{ "left": "{{create-member.response.status}}", "operator": "equals", "right": "200" }], "true_next": "capture-member", "false_next": "fail" },
+        { "id": "capture-member", "type": "set-variable", "name": "Capture Member ID", "scope": "collection", "variables": [{ "key": "lastGymPersonId", "value": "{{create-member.response.body.data.id}}" }, { "key": "gymPersonId", "value": "{{create-member.response.body.data.id}}" }], "next": "invite-member" },
+        {
+            "id": "invite-member", "type": "http", "name": "2. Create Invitation for Member",
+            "request": {
+                "method": "POST", "url": "{{baseUrl}}/api/Invitation/Create",
+                "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" },
+                "body": { "userId": 5, "gymRole": 10, "membership": { "membershipPlanId": "{{membershipPlanId}}", "discountAmount": 10.0 } }
+            },
+            "next": "check-invite"
+        },
+        { "id": "check-invite", "type": "condition", "name": "200?", "conditions": [{ "left": "{{invite-member.response.status}}", "operator": "equals", "right": "200" }], "true_next": "capture-invite", "false_next": "fail" },
+        { "id": "capture-invite", "type": "set-variable", "name": "Capture Invitation ID", "scope": "collection", "variables": [{ "key": "lastInvitationId", "value": "{{invite-member.response.body.data.id}}" }], "next": "accept-invite" },
+        {
+            "id": "accept-invite", "type": "http", "name": "3. Member Accepts Invitation",
+            "request": { "method": "POST", "url": "{{baseUrl}}/api/Invitation/accept/{{lastInvitationId}}", "headers": { "Authorization": "Bearer {{user2_token}}" } },
+            "next": "check-accept"
+        },
+        { "id": "check-accept", "type": "condition", "name": "200?", "conditions": [{ "left": "{{accept-invite.response.status}}", "operator": "equals", "right": "200" }], "true_next": "assign-coach", "false_next": "fail" },
+        {
+            "id": "assign-coach", "type": "http", "name": "4. Assign Coach to Member",
+            "request": {
+                "method": "POST", "url": "{{baseUrl}}/api/CoachAssignment/coach-assignments",
+                "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" },
+                "body": { "memberId": "{{gymPersonId}}", "coachStaffId": 1 }
+            },
+            "next": "check-assign-coach"
+        },
+        { "id": "check-assign-coach", "type": "condition", "name": "201?", "conditions": [{ "left": "{{assign-coach.response.status}}", "operator": "equals", "right": "201" }], "true_next": "checkin", "false_next": "fail" },
+        {
+            "id": "checkin", "type": "http", "name": "5. Check-in Member",
+            "request": { "method": "POST", "url": "{{baseUrl}}/api/Attendance/check-in", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "memberId": "{{gymPersonId}}" } },
+            "next": "check-checkin"
+        },
+        { "id": "check-checkin", "type": "condition", "name": "201?", "conditions": [{ "left": "{{checkin.response.status}}", "operator": "equals", "right": "201" }], "true_next": "body-measurement", "false_next": "fail" },
+        {
+            "id": "body-measurement", "type": "http", "name": "6. Record Body Measurement",
+            "request": {
+                "method": "POST", "url": "{{baseUrl}}/api/BodyMeasurements/Create",
+                "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" },
+                "body": { "weightKg": 75.0, "heightCm": 175.0, "bodyFatPercentage": 20.0, "notes": "Initial measurement" }
+            },
+            "next": "check-measurement"
+        },
+        { "id": "check-measurement", "type": "condition", "name": "201?", "conditions": [{ "left": "{{body-measurement.response.status}}", "operator": "equals", "right": "201" }], "true_next": "pass", "false_next": "fail" },
+        { "id": "pass", "type": "log", "name": "PASSED", "message": "[User Story: Onboarding] Complete flow: CreateMember→Invite→Accept→AssignCoach→CheckIn→BodyMeasurement all passed" },
+        { "id": "fail", "type": "log", "name": "FAILED", "message": "[User Story: Onboarding] Flow failed at one of the steps" },
+        { "id": "end", "type": "end", "name": "End" }
+    ]
+}

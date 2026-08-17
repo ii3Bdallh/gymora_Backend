@@ -1,0 +1,19 @@
+{
+    "info": {
+        "name": "Sessions Security Flow",
+        "description": "Verifies [GymAuthorize] on Sessions endpoints: Non-gym token (401), Cross-gym access (403), Same-gym access (200).",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        { "id": "start", "type": "start", "name": "Start", "next": "non-auth" },
+        { "id": "non-auth", "type": "http", "name": "1. Non-Gym Token (401)", "request": { "method": "POST", "url": "{{baseUrl}}/api/Session", "headers": { "Content-Type": "application/json" }, "body": { "pageNumber": 1, "pageSize": 10, "orderBy": "Id", "orderDirection": "asc" } }, "next": "check-non-auth" },
+        { "id": "check-non-auth", "type": "condition", "name": "401?", "conditions": [{ "left": "{{non-auth.response.status}}", "operator": "equals", "right": "401" }], "true_next": "cross-gym", "false_next": "fail" },
+        { "id": "cross-gym", "type": "http", "name": "2. Cross-Gym Access (403)", "request": { "method": "POST", "url": "{{baseUrl}}/api/Session", "headers": { "Authorization": "Bearer {{user2_token}}", "Content-Type": "application/json" }, "body": { "pageNumber": 1, "pageSize": 10, "orderBy": "Id", "orderDirection": "asc" } }, "next": "check-cross" },
+        { "id": "check-cross", "type": "condition", "name": "403?", "conditions": [{ "left": "{{cross-gym.response.status}}", "operator": "equals", "right": "403" }], "true_next": "same-gym", "false_next": "fail" },
+        { "id": "same-gym", "type": "http", "name": "3. Same-Gym Access (200)", "request": { "method": "POST", "url": "{{baseUrl}}/api/Session", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "pageNumber": 1, "pageSize": 10, "orderBy": "Id", "orderDirection": "asc" } }, "next": "check-same" },
+        { "id": "check-same", "type": "condition", "name": "200?", "conditions": [{ "left": "{{same-gym.response.status}}", "operator": "equals", "right": "200" }], "true_next": "pass", "false_next": "fail" },
+        { "id": "pass", "type": "log", "name": "PASSED", "message": "[Sessions Security] Non-gym:401, Cross-gym:403, Same-gym:200" },
+        { "id": "fail", "type": "log", "name": "FAILED", "message": "[Sessions Security] Security check failed" },
+        { "id": "end", "type": "end", "name": "End" }
+    ]
+}

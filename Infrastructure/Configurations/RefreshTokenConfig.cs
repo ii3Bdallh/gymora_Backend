@@ -32,5 +32,9 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
             .WithMany(u => u.RefreshTokens)
             .HasForeignKey(rt => rt.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Indexes
+        builder.HasIndex(rt => rt.Token).IsUnique();
+        builder.HasIndex(rt => new { rt.UserId, rt.RevokedAt, rt.ExpirationAt });
     }
 }

@@ -41,6 +41,7 @@ namespace Domain.Model
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
 
         public int CreatedById { get; set; }
+        public ApplicationUser? CreatedBy { get; set; }
 
 
         public GymPersonAccessStatus AccessStatus { get; set; }
@@ -51,6 +52,9 @@ namespace Domain.Model
         // Navigation Properties for profiles
         public GymStaffProfile? StaffProfile { get; set; }
         public GymMemberProfile? MemberProfile { get; set; }
+
+
+        public List<Attendance> Attendances { get; set; } = new();
 
 
         

@@ -29,6 +29,9 @@ namespace Infrastructure.Config
                 .WithMany()
                 .HasForeignKey(x => x.MemberId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasIndex(x => new { x.GymId, x.MemberId, x.Status });
+            builder.HasIndex(x => new { x.GymId, x.WorkoutPlanId });
         }
     }
 }

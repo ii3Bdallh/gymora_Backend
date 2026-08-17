@@ -1,5 +1,6 @@
 using Domain.Model;
 using Domain.Model.Auth;
+using Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -27,16 +28,13 @@ namespace Infrastructure.Config
                    .OnDelete(DeleteBehavior.Restrict);
 
             // Audit Creator User Link
-            builder.HasOne<ApplicationUser>()
+            builder.HasOne(x => x.CreatedBy)
                    .WithMany()
                    .HasForeignKey(x => x.CreatedById)
                    .OnDelete(DeleteBehavior.Restrict);
 
             // Link to Gym (standard BaseGymEntity config)
-            builder.HasOne(x => x.Gym)
-                   .WithMany()
-                   .HasForeignKey(x => x.GymId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            builder.ConfigureGymOwned();
 
             builder.HasIndex(x => new { x.GymId, x.PersonType });
 

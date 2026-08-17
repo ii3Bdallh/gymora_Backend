@@ -12,6 +12,8 @@ namespace Infrastructure.Config
             builder.HasKey(x => x.Id);
             builder.ConfigureAuditing(); // Configures CreatedById (ApplicationUser) relation
 
+            builder.HasIndex(x => new { x.CreatedById, x.CreatedOn });
+
             builder.Property(x => x.WeightKg).HasPrecision(5, 2);
             builder.Property(x => x.HeightCm).HasPrecision(5, 2);
             builder.Property(x => x.BodyFatPercentage).HasPrecision(5, 2);

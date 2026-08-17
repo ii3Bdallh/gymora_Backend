@@ -162,10 +162,10 @@
                             "pm.test(\"Tokens are saved to environment\", function () {",
                             "    pm.expect(jsonData.isSuccess).to.eql(true);",
                             "    if (jsonData.data && jsonData.data.accessToken) {",
-                            "        pm.environment.set(\"user1_token\", jsonData.data.accessToken);",
-                            "        pm.environment.set(\"user1_refreshToken\", jsonData.data.refreshToken);",
+                            "        pm.environment.set(\"superAdmin_token\", jsonData.data.accessToken);",
+                            "        pm.environment.set(\"superAdmin_refreshToken\", jsonData.data.refreshToken);",
                             "        if (jsonData.data.currentGym && jsonData.data.currentGym.gymId) {",
-                            "            pm.environment.set(\"gymId\", jsonData.data.currentGym.gymId);",
+                            "            pm.environment.set(\"superAdmin_gymId\", jsonData.data.currentGym.gymId);",
                             "        }",
                             "    }",
                             "});"
@@ -217,6 +217,7 @@
                             "        pm.environment.set(\"user1_token\", jsonData.data.accessToken);",
                             "        pm.environment.set(\"user1_refreshToken\", jsonData.data.refreshToken);",
                             "        if (jsonData.data.currentGym && jsonData.data.currentGym.gymId) {",
+                            "            pm.environment.set(\"user1_gymId\", jsonData.data.currentGym.gymId);",
                             "            pm.environment.set(\"gymId\", jsonData.data.currentGym.gymId);",
                             "        }",
                             "    }",
@@ -266,10 +267,10 @@
                             "pm.test(\"Tokens are saved to environment\", function () {",
                             "    pm.expect(jsonData.isSuccess).to.eql(true);",
                             "    if (jsonData.data && jsonData.data.accessToken) {",
-                            "        pm.environment.set(\"user1_token\", jsonData.data.accessToken);",
-                            "        pm.environment.set(\"user1_refreshToken\", jsonData.data.refreshToken);",
+                            "        pm.environment.set(\"user2_token\", jsonData.data.accessToken);",
+                            "        pm.environment.set(\"user2_refreshToken\", jsonData.data.refreshToken);",
                             "        if (jsonData.data.currentGym && jsonData.data.currentGym.gymId) {",
-                            "            pm.environment.set(\"gymId\", jsonData.data.currentGym.gymId);",
+                            "            pm.environment.set(\"user2_gymId\", jsonData.data.currentGym.gymId);",
                             "        }",
                             "    }",
                             "});"
@@ -316,10 +317,10 @@
                             "});",
                             "var jsonData = pm.response.json();",
                             "if (jsonData.data && jsonData.data.accessToken) {",
-                            "    pm.environment.set(\"user1_token\", jsonData.data.accessToken);",
-                            "    pm.environment.set(\"user1_refreshToken\", jsonData.data.refreshToken);",
+                            "    pm.environment.set(\"superAdmin_token\", jsonData.data.accessToken);",
+                            "    pm.environment.set(\"superAdmin_refreshToken\", jsonData.data.refreshToken);",
                             "    if (jsonData.data.currentGym && jsonData.data.currentGym.gymId) {",
-                            "        pm.environment.set(\"gymId\", jsonData.data.currentGym.gymId);",
+                            "        pm.environment.set(\"superAdmin_gymId\", jsonData.data.currentGym.gymId);",
                             "    }",
                             "}"
                         ],
@@ -328,7 +329,7 @@
                 }
             ],
             "request": {
-                "description": "Switches the SuperAdmin active gym workspace and returns fresh tokens.\n\n### Request Fields (`SwitchGymRequest`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID |\n| `accessToken` | `string` | Yes | Current access token |\n| `refreshToken` | `string` | Yes | Current refresh token |\n\nOn success the `user1_token` and `user1_refreshToken` environment variables are updated and `gymId` is refreshed.",
+                "description": "Switches the SuperAdmin active gym workspace and returns fresh tokens.\n\n### Request Fields (`SwitchGymRequest`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID |\n| `accessToken` | `string` | Yes | Current SuperAdmin access token |\n| `refreshToken` | `string` | Yes | Current SuperAdmin refresh token |\n\nOn success the `superAdmin_token`, `superAdmin_refreshToken`, and `superAdmin_gymId` environment variables are updated.",
                 "method": "POST",
                 "header": [
                     {
@@ -338,7 +339,7 @@
                 ],
                 "body": {
                     "mode": "raw",
-                    "raw": "{\n  \"gymId\": {{gymId}},\n  \"accessToken\": \"{{user1_token}}\",\n  \"refreshToken\": \"{{user1_refreshToken}}\"\n}"
+                    "raw": "{\n  \"gymId\": {{gymId}},\n  \"accessToken\": \"{{superAdmin_token}}\",\n  \"refreshToken\": \"{{superAdmin_refreshToken}}\"\n}"
                 },
                 "url": {
                     "raw": "{{baseUrl}}/api/Auth/switch",
@@ -369,6 +370,7 @@
                             "    pm.environment.set(\"user1_token\", jsonData.data.accessToken);",
                             "    pm.environment.set(\"user1_refreshToken\", jsonData.data.refreshToken);",
                             "    if (jsonData.data.currentGym && jsonData.data.currentGym.gymId) {",
+                            "        pm.environment.set(\"user1_gymId\", jsonData.data.currentGym.gymId);",
                             "        pm.environment.set(\"gymId\", jsonData.data.currentGym.gymId);",
                             "    }",
                             "}"
@@ -378,7 +380,7 @@
                 }
             ],
             "request": {
-                "description": "Switches the User1 active gym workspace and returns fresh tokens.\n\n### Request Fields (`SwitchGymRequest`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID |\n| `accessToken` | `string` | Yes | Current access token |\n| `refreshToken` | `string` | Yes | Current refresh token |\n\nOn success the `user1_token` and `user1_refreshToken` environment variables are updated and `gymId` is refreshed.",
+                "description": "Switches the User1 active gym workspace and returns fresh tokens.\n\n### Request Fields (`SwitchGymRequest`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID |\n| `accessToken` | `string` | Yes | Current User1 access token |\n| `refreshToken` | `string` | Yes | Current User1 refresh token |\n\nOn success the `user1_token`, `user1_refreshToken`, `user1_gymId`, and shared `gymId` environment variables are updated.",
                 "method": "POST",
                 "header": [
                     {
@@ -416,10 +418,10 @@
                             "});",
                             "var jsonData = pm.response.json();",
                             "if (jsonData.data && jsonData.data.accessToken) {",
-                            "    pm.environment.set(\"user1_token\", jsonData.data.accessToken);",
-                            "    pm.environment.set(\"user1_refreshToken\", jsonData.data.refreshToken);",
+                            "    pm.environment.set(\"user2_token\", jsonData.data.accessToken);",
+                            "    pm.environment.set(\"user2_refreshToken\", jsonData.data.refreshToken);",
                             "    if (jsonData.data.currentGym && jsonData.data.currentGym.gymId) {",
-                            "        pm.environment.set(\"gymId\", jsonData.data.currentGym.gymId);",
+                            "        pm.environment.set(\"user2_gymId\", jsonData.data.currentGym.gymId);",
                             "    }",
                             "}"
                         ],
@@ -428,7 +430,7 @@
                 }
             ],
             "request": {
-                "description": "Switches the User2 active gym workspace and returns fresh tokens.\n\n### Request Fields (`SwitchGymRequest`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID |\n| `accessToken` | `string` | Yes | Current access token |\n| `refreshToken` | `string` | Yes | Current refresh token |\n\nOn success the `user1_token` and `user1_refreshToken` environment variables are updated and `gymId` is refreshed.",
+                "description": "Switches the User2 active gym workspace and returns fresh tokens.\n\n### Request Fields (`SwitchGymRequest`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID |\n| `accessToken` | `string` | Yes | Current User2 access token |\n| `refreshToken` | `string` | Yes | Current User2 refresh token |\n\nOn success the `user2_token`, `user2_refreshToken`, and `user2_gymId` environment variables are updated.",
                 "method": "POST",
                 "header": [
                     {
@@ -438,7 +440,7 @@
                 ],
                 "body": {
                     "mode": "raw",
-                    "raw": "{\n  \"gymId\": {{gymId}},\n  \"accessToken\": \"{{user1_token}}\",\n  \"refreshToken\": \"{{user1_refreshToken}}\"\n}"
+                    "raw": "{\n  \"gymId\": {{gymId}},\n  \"accessToken\": \"{{user2_token}}\",\n  \"refreshToken\": \"{{user2_refreshToken}}\"\n}"
                 },
                 "url": {
                     "raw": "{{baseUrl}}/api/Auth/switch",
@@ -507,6 +509,104 @@
                 "body": {
                     "mode": "raw",
                     "raw": "{\n  \"accessToken\": \"{{user1_token}}\",\n  \"refreshToken\": \"{{user1_refreshToken}}\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Auth/refresh-token",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Auth",
+                        "refresh-token"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Refresh Token (User2)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "pm.test(\"Token is updated\", function () {",
+                            "    var jsonData = pm.response.json();",
+                            "    if (jsonData.data && jsonData.data.accessToken) {",
+                            "        pm.environment.set(\"user2_token\", jsonData.data.accessToken);",
+                            "        pm.environment.set(\"user2_refreshToken\", jsonData.data.refreshToken);",
+                            "    }",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Rotates the User2 access and refresh tokens.\n\n### Request Fields (`RefreshTokenReqDto`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `accessToken` | `string` | Yes | Current access token |\n| `refreshToken` | `string` | Yes | Current refresh token |\n\nOn success the `user2_token` and `user2_refreshToken` environment variables are updated.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"accessToken\": \"{{user2_token}}\",\n  \"refreshToken\": \"{{user2_refreshToken}}\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Auth/refresh-token",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Auth",
+                        "refresh-token"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Refresh Token (SuperAdmin)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "pm.test(\"Token is updated\", function () {",
+                            "    var jsonData = pm.response.json();",
+                            "    if (jsonData.data && jsonData.data.accessToken) {",
+                            "        pm.environment.set(\"superAdmin_token\", jsonData.data.accessToken);",
+                            "        pm.environment.set(\"superAdmin_refreshToken\", jsonData.data.refreshToken);",
+                            "    }",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Rotates the SuperAdmin access and refresh tokens.\n\n### Request Fields (`RefreshTokenReqDto`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `accessToken` | `string` | Yes | Current access token |\n| `refreshToken` | `string` | Yes | Current refresh token |\n\nOn success the `superAdmin_token` and `superAdmin_refreshToken` environment variables are updated.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"accessToken\": \"{{superAdmin_token}}\",\n  \"refreshToken\": \"{{superAdmin_refreshToken}}\"\n}"
                 },
                 "url": {
                     "raw": "{{baseUrl}}/api/Auth/refresh-token",

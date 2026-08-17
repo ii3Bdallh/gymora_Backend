@@ -1,0 +1,218 @@
+{
+    "info": {
+        "_postman_id": "f78a9b0c-1d2e-3f4a-5b6c-7d8e9f0a1b2c",
+        "name": "21 - Sessions",
+        "description": "Endpoints to manage workout sessions (day-level containers for exercises within a workout plan).",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Paged Sessions",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+                            "    pm.environment.set(\"lastSessionId\", jsonData.data.items[0].id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "### Endpoint Overview\n\nFetches a paginated list of workout sessions for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `WorkoutPlanId` | `int` | Exact | Parent workout plan ID |\n| `SessionName` | `string` | Searchable | Session name (max 100 chars) |\n| `DayNumber` | `int` | Exact | Day number in the plan (1–365) |\n| `IsApproved` | `bool` | - | Platform approval status |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"WorkoutPlanId\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {\n      \"WorkoutPlanId\": [\"{{lastWorkoutPlanId}}\"]\n    }\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Sessions",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Sessions"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Session By Id",
+            "request": {
+                "description": "Fetches a single workout session by ID, including its exercises.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Sessions/{{lastSessionId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Sessions",
+                        "{{lastSessionId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Create Session",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
+                            "    pm.environment.set(\"lastSessionId\", jsonData.data.id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Creates a new workout session within a plan.\n\n### Request Fields (`SessionCDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `workoutPlanId` | `int` | Yes | Parent workout plan ID |\n| `dayNumber` | `int` | Yes | 1–365 |\n| `sessionName` | `string` | Yes | Max 100 characters |\n| `exercises` | `SessionExerciseCDTO[]` | No | Exercises in this session |\n\nReturns `201 Created` with `Result<SessionRDTO>`.\n\n### Authorization\n\nRequires gym role `Owner`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"workoutPlanId\": {{lastWorkoutPlanId}},\n  \"dayNumber\": 1,\n  \"sessionName\": \"Upper Body Push\",\n  \"exercises\": [\n    {\n      \"exerciseId\": null,\n      \"exerciseName\": \"Overhead Press\",\n      \"sets\": 4,\n      \"reps\": 8,\n      \"weightKg\": 30.0,\n      \"restSeconds\": 120,\n      \"notes\": \"Keep core tight\",\n      \"orderIndex\": 0\n    }\n  ]\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Sessions/Create",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Sessions",
+                        "Create"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Batch Create Sessions",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.length > 0) {",
+                            "    pm.environment.set(\"lastSessionId\", jsonData.data[0].id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Batch-creates multiple workout sessions in a single request.\n\n### Request Body\n\nAn array of `SessionCDTO` objects.\n\nReturns `201 Created` with `Result<IEnumerable<SessionRDTO>>`.\n\n### Authorization\n\nRequires gym role `Owner`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[\n  {\n    \"workoutPlanId\": {{lastWorkoutPlanId}},\n    \"dayNumber\": 1,\n    \"sessionName\": \"Push Day\",\n    \"exercises\": []\n  },\n  {\n    \"workoutPlanId\": {{lastWorkoutPlanId}},\n    \"dayNumber\": 2,\n    \"sessionName\": \"Pull Day\",\n    \"exercises\": []\n  }\n]"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Sessions/Batch",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Sessions",
+                        "Batch"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Approve Session",
+            "request": {
+                "description": "Approves a pending workout session for platform-wide use.\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "POST",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Sessions/{{lastSessionId}}/Approve",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Sessions",
+                        "{{lastSessionId}}",
+                        "Approve"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Session",
+            "request": {
+                "description": "Soft-deletes a workout session by ID.\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Sessions/{{lastSessionId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Sessions",
+                        "{{lastSessionId}}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{user1_token}}",
+                "type": "string"
+            }
+        ]
+    }
+}

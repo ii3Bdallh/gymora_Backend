@@ -1,0 +1,95 @@
+{
+    "info": {
+        "_postman_id": "f89a0b1c-2d3e-4f5a-6b7c-8d9e0f1a2b3c",
+        "name": "22 - Session Exercises",
+        "description": "Endpoints to batch-create and batch-delete exercises within a workout session.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Batch Create Session Exercises",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.length > 0) {",
+                            "    pm.environment.set(\"lastSessionExerciseId\", jsonData.data[0].id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Batch-creates multiple session exercises in a single request.\n\n### Request Body\n\nAn array of `SessionExerciseCDTO` objects:\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `sessionId` | `int` | Yes | Parent session ID |\n| `exerciseId` | `int?` | No | Linked exercise ID (nullable for custom exercises) |\n| `exerciseName` | `string` | Yes | Max 200 characters |\n| `sets` | `int?` | No | Number of sets |\n| `reps` | `int?` | No | Repetitions per set |\n| `weightKg` | `decimal?` | No | Weight in kilograms |\n| `restSeconds` | `int?` | No | Rest period in seconds |\n| `notes` | `string?` | No | Max 300 characters |\n| `orderIndex` | `int` | Yes | Display order (0-based) |\n\nReturns `201 Created` with `Result<IEnumerable<SessionExerciseRDTO>>`.\n\n### Authorization\n\nRequires gym role `Owner`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[\n  {\n    \"sessionId\": {{lastSessionId}},\n    \"exerciseId\": null,\n    \"exerciseName\": \"Incline Dumbbell Press\",\n    \"sets\": 3,\n    \"reps\": 12,\n    \"weightKg\": 20.0,\n    \"restSeconds\": 90,\n    \"notes\": \"Control the negative\",\n    \"orderIndex\": 0\n  },\n  {\n    \"sessionId\": {{lastSessionId}},\n    \"exerciseId\": null,\n    \"exerciseName\": \"Lateral Raises\",\n    \"sets\": 3,\n    \"reps\": 15,\n    \"weightKg\": 10.0,\n    \"restSeconds\": 60,\n    \"notes\": null,\n    \"orderIndex\": 1\n  }\n]"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/SessionExercises/Batch",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "SessionExercises",
+                        "Batch"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Batch Delete Session Exercises",
+            "request": {
+                "description": "Batch-deletes multiple session exercises by their IDs.\n\n### Request Body\n\nAn array of integer IDs to delete:\n\n```json\n[1, 2, 3]\n```\n\nReturns `Result<string>` with message \"Session exercises deleted successfully.\"\n\n### Authorization\n\nRequires gym role `Owner`. SuperAdmin bypasses all gym checks.",
+                "method": "DELETE",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "[{{lastSessionExerciseId}}]"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/SessionExercises/Batch",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "SessionExercises",
+                        "Batch"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{user1_token}}",
+                "type": "string"
+            }
+        ]
+    }
+}

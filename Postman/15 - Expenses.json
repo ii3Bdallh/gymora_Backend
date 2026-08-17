@@ -1,0 +1,180 @@
+{
+    "info": {
+        "_postman_id": "f12a3b4c-5d6e-7f8a-9b0c-1d2e3f4a5b6c",
+        "name": "15 - Expenses",
+        "description": "Endpoints to manage gym expense records (rent, equipment, salaries, and other costs).",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Paged Expenses",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+                            "    pm.environment.set(\"lastExpenseId\", jsonData.data.items[0].id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "### Endpoint Overview\n\nFetches a paginated list of expense records for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `ExpenseCategory` | `Enum (int)` | Exact | `0` = Rent, `1` = Utilities, `2` = Equipment, `3` = Salaries, `4` = Maintenance, `5` = Marketing, `6` = Other |\n| `GymStaffId` | `int?` | Exact | Associated gym person ID of staff |\n| `Amount` | `decimal` | Between | Expense amount |\n| `PaymentMethod` | `Enum (int)` | Exact | `0` = Cash, `1` = CreditCard, `2` = DebitCard, `3` = BankTransfer, `4` = Online, `5` = Other |\n| `ReferenceNumber` | `string` | Searchable | Payment reference number |\n| `ReceiptUrl` | `string` | - | URL to receipt image |\n| `Description` | `string` | - | Optional description |\n| `ExpenseDate` | `DateTime` | Between | ISO format expense date |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"ExpenseCategory\": [\"0\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"ExpenseDate\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {\n      \"ExpenseDate\": {\n        \"min\": \"2026-01-01T00:00:00Z\",\n        \"max\": \"2026-12-31T23:59:59Z\"\n      }\n    },\n    \"exactFilters\": {\n      \"ExpenseCategory\": [\"0\"]\n    }\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Expenses",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Expenses"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Expense By Id",
+            "request": {
+                "description": "Fetches a single expense record by ID.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Expenses/{{lastExpenseId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Expenses",
+                        "{{lastExpenseId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Create Expense",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
+                            "    pm.environment.set(\"lastExpenseId\", jsonData.data.id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Records a new expense entry for the current gym.\n\n### Request Fields (`ExpenseCDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `expenseCategory` | `Enum (int)` | Yes | `0` = Rent, `1` = Utilities, `2` = Equipment, `3` = Salaries, `4` = Maintenance, `5` = Marketing, `6` = Other |\n| `gymStaffId` | `int?` | No | Gym person ID of staff (must belong to the gym) |\n| `amount` | `decimal` | Yes | Must be greater than zero |\n| `paymentMethod` | `Enum (int)` | Yes | `0` = Cash, `1` = CreditCard, `2` = DebitCard, `3` = BankTransfer, `4` = Online, `5` = Other |\n| `referenceNumber` | `string?` | No | Max 100 characters |\n| `receiptUrl` | `string?` | No | Max 500 characters |\n| `description` | `string?` | No | Max 500 characters |\n| `expenseDate` | `DateTime` | Yes | ISO format date |\n\nReturns `201 Created` with `Result<ExpenseRDTO>`.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"expenseCategory\": 3,\n  \"gymStaffId\": null,\n  \"amount\": 2500.00,\n  \"paymentMethod\": 3,\n  \"referenceNumber\": \"EXP-001\",\n  \"receiptUrl\": null,\n  \"description\": \"Monthly staff salary\",\n  \"expenseDate\": \"2026-08-12T00:00:00Z\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Expenses/Create",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Expenses",
+                        "Create"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update Expense",
+            "request": {
+                "description": "Updates an existing expense record by ID.\n\n### Request Fields (`ExpenseUDTO`)\n\nSame fields as Create: `expenseCategory`, `gymStaffId`, `amount`, `paymentMethod`, `referenceNumber`, `receiptUrl`, `description`, `expenseDate`.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"expenseCategory\": 3,\n  \"gymStaffId\": null,\n  \"amount\": 2750.00,\n  \"paymentMethod\": 3,\n  \"referenceNumber\": \"EXP-001-UPDATED\",\n  \"receiptUrl\": null,\n  \"description\": \"Updated monthly staff salary\",\n  \"expenseDate\": \"2026-08-12T00:00:00Z\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Expenses/{{lastExpenseId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Expenses",
+                        "{{lastExpenseId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Expense",
+            "request": {
+                "description": "Soft-deletes an expense record by ID.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Expenses/{{lastExpenseId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Expenses",
+                        "{{lastExpenseId}}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{user1_token}}",
+                "type": "string"
+            }
+        ]
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "info": {
+        "name": "Attendance Check-In & History Flow",
+        "description": "Tests Attendance lifecycle: Dashboard → Check-in → History → Member History. Gym-scoped.",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        { "id": "start", "type": "start", "name": "Start", "next": "dashboard" },
+        { "id": "dashboard", "type": "http", "name": "1. Get Dashboard", "request": { "method": "GET", "url": "{{baseUrl}}/api/Attendance/dashboard/{{gymId}}", "headers": { "Authorization": "Bearer {{user1_token}}" } }, "next": "check-dashboard" },
+        { "id": "check-dashboard", "type": "condition", "name": "200?", "conditions": [{ "left": "{{dashboard.response.status}}", "operator": "equals", "right": "200" }], "true_next": "checkin", "false_next": "fail" },
+        { "id": "checkin", "type": "http", "name": "2. Check-in Member", "request": { "method": "POST", "url": "{{baseUrl}}/api/Attendance/check-in", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "memberId": "{{gymPersonId}}" } }, "next": "check-checkin" },
+        { "id": "check-checkin", "type": "condition", "name": "201?", "conditions": [{ "left": "{{checkin.response.status}}", "operator": "equals", "right": "201" }], "true_next": "history", "false_next": "fail" },
+        { "id": "history", "type": "http", "name": "3. Get History", "request": { "method": "POST", "url": "{{baseUrl}}/api/Attendance/history", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "pageNumber": 1, "pageSize": 10, "orderBy": "Id", "orderDirection": "asc" } }, "next": "check-history" },
+        { "id": "check-history", "type": "condition", "name": "200?", "conditions": [{ "left": "{{history.response.status}}", "operator": "equals", "right": "200" }], "true_next": "member-history", "false_next": "fail" },
+        { "id": "member-history", "type": "http", "name": "4. Get Member History", "request": { "method": "POST", "url": "{{baseUrl}}/api/Attendance/member-history", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "memberId": "{{gymPersonId}}", "pageNumber": 1, "pageSize": 10, "orderBy": "Id", "orderDirection": "asc" } }, "next": "check-member-history" },
+        { "id": "check-member-history", "type": "condition", "name": "200?", "conditions": [{ "left": "{{member-history.response.status}}", "operator": "equals", "right": "200" }], "true_next": "pass", "false_next": "fail" },
+        { "id": "pass", "type": "log", "name": "PASSED", "message": "[Attendance Flow] Dashboard→Check-in→History→MemberHistory all passed" },
+        { "id": "fail", "type": "log", "name": "FAILED", "message": "[Attendance Flow] Flow failed" },
+        { "id": "end", "type": "end", "name": "End" }
+    ]
+}

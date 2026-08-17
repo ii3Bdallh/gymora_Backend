@@ -1,0 +1,50 @@
+{
+    "info": {
+        "name": "Session CRUD Flow",
+        "description": "Tests Session lifecycle: Owner creates (with exercises) → Read → Batch create more → SuperAdmin approves → SuperAdmin deletes. User-scoped via CreatedById.",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        { "id": "start", "type": "start", "name": "Start", "next": "create" },
+        {
+            "id": "create", "type": "http", "name": "1. Create Session",
+            "request": {
+                "method": "POST", "url": "{{baseUrl}}/api/Sessions/Create",
+                "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" },
+                "body": {
+                    "workoutPlanId": "{{lastWorkoutPlanId}}",
+                    "dayNumber": 3,
+                    "sessionName": "Flow Test Session",
+                    "exercises": [
+                        { "exerciseId": null, "exerciseName": "Flow Exercise", "sets": 3, "reps": 10, "weightKg": 25.0, "restSeconds": 90, "notes": "Flow test", "orderIndex": 0 }
+                    ]
+                }
+            },
+            "next": "check-create"
+        },
+        { "id": "check-create", "type": "condition", "name": "201?", "conditions": [{ "left": "{{create.response.status}}", "operator": "equals", "right": "201" }], "true_next": "capture", "false_next": "fail" },
+        { "id": "capture", "type": "set-variable", "name": "Capture ID", "scope": "collection", "variables": [{ "key": "lastSessionId", "value": "{{create.response.body.data.id}}" }], "next": "read" },
+        { "id": "read", "type": "http", "name": "2. Read Session", "request": { "method": "GET", "url": "{{baseUrl}}/api/Sessions/{{lastSessionId}}", "headers": { "Authorization": "Bearer {{user1_token}}" } }, "next": "check-read" },
+        { "id": "check-read", "type": "condition", "name": "200?", "conditions": [{ "left": "{{read.response.status}}", "operator": "equals", "right": "200" }], "true_next": "batch-create", "false_next": "fail" },
+        {
+            "id": "batch-create", "type": "http", "name": "3. Batch Create Sessions",
+            "request": {
+                "method": "POST", "url": "{{baseUrl}}/api/Sessions/Batch",
+                "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" },
+                "body": [
+                    { "workoutPlanId": "{{lastWorkoutPlanId}}", "dayNumber": 4, "sessionName": "Batch Session 1", "exercises": [] },
+                    { "workoutPlanId": "{{lastWorkoutPlanId}}", "dayNumber": 5, "sessionName": "Batch Session 2", "exercises": [] }
+                ]
+            },
+            "next": "check-batch"
+        },
+        { "id": "check-batch", "type": "condition", "name": "201?", "conditions": [{ "left": "{{batch-create.response.status}}", "operator": "equals", "right": "201" }], "true_next": "sa-approve", "false_next": "fail" },
+        { "id": "sa-approve", "type": "http", "name": "4. SuperAdmin Approves", "request": { "method": "POST", "url": "{{baseUrl}}/api/Sessions/{{lastSessionId}}/Approve", "headers": { "Authorization": "Bearer {{superAdmin_token}}" } }, "next": "check-approve" },
+        { "id": "check-approve", "type": "condition", "name": "200?", "conditions": [{ "left": "{{sa-approve.response.status}}", "operator": "equals", "right": "200" }], "true_next": "sa-delete", "false_next": "fail" },
+        { "id": "sa-delete", "type": "http", "name": "5. SuperAdmin Deletes", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/Sessions/{{lastSessionId}}", "headers": { "Authorization": "Bearer {{superAdmin_token}}" } }, "next": "check-delete" },
+        { "id": "check-delete", "type": "condition", "name": "200?", "conditions": [{ "left": "{{sa-delete.response.status}}", "operator": "equals", "right": "200" }], "true_next": "pass", "false_next": "fail" },
+        { "id": "pass", "type": "log", "name": "PASSED", "message": "[Session CRUD] Create→Read→Batch→Approve→Delete all passed" },
+        { "id": "fail", "type": "log", "name": "FAILED", "message": "[Session CRUD] Flow failed" },
+        { "id": "end", "type": "end", "name": "End" }
+    ]
+}

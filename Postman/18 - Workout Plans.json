@@ -1,0 +1,201 @@
+{
+    "info": {
+        "_postman_id": "f45a6b7c-8d9e-0f1a-2b3c-4d5e6f7a8b9c",
+        "name": "18 - Workout Plans",
+        "description": "Endpoints to manage workout plans (templates with sessions and exercises, pending platform approval).",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Paged Workout Plans",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+                            "    pm.environment.set(\"lastWorkoutPlanId\", jsonData.data.items[0].id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "### Endpoint Overview\n\nFetches a paginated list of workout plans for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `PlanName` | `string` | Searchable | Plan name (max 200 chars) |\n| `Description` | `string` | Searchable | Plan description (max 500 chars) |\n| `IsApproved` | `bool` | - | Platform approval status |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"IsApproved\": [\"true\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/WorkoutPlans",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "WorkoutPlans"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Workout Plan By Id",
+            "request": {
+                "description": "Fetches a single workout plan by ID, including its sessions and exercises.\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/WorkoutPlans/{{lastWorkoutPlanId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "WorkoutPlans",
+                        "{{lastWorkoutPlanId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Create Workout Plan",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
+                            "    pm.environment.set(\"lastWorkoutPlanId\", jsonData.data.id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Creates a new workout plan with nested sessions.\n\n### Request Fields (`WorkoutPlanCDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `planName` | `string` | Yes | Max 200 characters |\n| `description` | `string?` | No | Max 500 characters |\n| `sessions` | `SessionCDTO[]` | Yes | At least one session required |\n\n### Session Fields (`SessionCDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `dayNumber` | `int` | Yes | 1–365 |\n| `sessionName` | `string` | Yes | Max 100 characters |\n| `exercises` | `SessionExerciseCDTO[]` | No | Exercises in this session |\n\nReturns `201 Created` with `Result<WorkoutPlanRDTO>`.\n\n### Authorization\n\nRequires gym role `Owner`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"planName\": \"Beginner Full Body\",\n  \"description\": \"3-day full body workout for beginners\",\n  \"sessions\": [\n    {\n      \"dayNumber\": 1,\n      \"sessionName\": \"Upper Body\",\n      \"exercises\": [\n        {\n          \"exerciseId\": null,\n          \"exerciseName\": \"Bench Press\",\n          \"sets\": 3,\n          \"reps\": 10,\n          \"weightKg\": 40.0,\n          \"restSeconds\": 90,\n          \"notes\": \"Warm up first\",\n          \"orderIndex\": 0\n        }\n      ]\n    },\n    {\n      \"dayNumber\": 2,\n      \"sessionName\": \"Lower Body\",\n      \"exercises\": []\n    }\n  ]\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/WorkoutPlans/Create",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "WorkoutPlans",
+                        "Create"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update Workout Plan",
+            "request": {
+                "description": "Updates an existing workout plan by ID. Only SuperAdmin can update.\n\n### Request Fields (`WorkoutPlanUDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `planName` | `string` | Yes | Max 200 characters |\n| `description` | `string?` | No | Max 500 characters |\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"planName\": \"Beginner Full Body (Updated)\",\n  \"description\": \"Updated 3-day full body workout\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/WorkoutPlans/{{lastWorkoutPlanId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "WorkoutPlans",
+                        "{{lastWorkoutPlanId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Approve Workout Plan",
+            "request": {
+                "description": "Approves a pending workout plan for platform-wide use.\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "POST",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/WorkoutPlans/{{lastWorkoutPlanId}}/Approve",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "WorkoutPlans",
+                        "{{lastWorkoutPlanId}}",
+                        "Approve"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Workout Plan",
+            "request": {
+                "description": "Soft-deletes a workout plan by ID.\n\n### Authorization\n\nRequires `SuperAdmin` role.",
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/WorkoutPlans/{{lastWorkoutPlanId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "WorkoutPlans",
+                        "{{lastWorkoutPlanId}}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{user1_token}}",
+                "type": "string"
+            }
+        ]
+    }
+}

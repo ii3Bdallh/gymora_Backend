@@ -1,0 +1,204 @@
+{
+    "info": {
+        "name": "Revenue Multi-Tenant Security Flow",
+        "description": "Verifies gym-scoped isolation: User1 creates a Revenue in Gym A, User2 (Gym B) cannot access it (expects 404).",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        {
+            "id": "start",
+            "type": "start",
+            "name": "Start Security Flow",
+            "next": "create-as-user1"
+        },
+        {
+            "id": "create-as-user1",
+            "type": "http",
+            "name": "1. User1 Creates Revenue",
+            "request": {
+                "method": "POST",
+                "url": "{{baseUrl}}/api/Revenues/Create",
+                "headers": {
+                    "Authorization": "Bearer {{user1_token}}",
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "revenueCategory": 0,
+                    "amount": 100.00,
+                    "paymentMethod": 0,
+                    "referenceNumber": "SEC-REV-001",
+                    "description": "Security test - User1 gym",
+                    "revenueDate": "2026-08-13T00:00:00Z"
+                }
+            },
+            "next": "check-create-ok"
+        },
+        {
+            "id": "check-create-ok",
+            "type": "condition",
+            "name": "User1 create succeeded?",
+            "conditions": [
+                {
+                    "left": "{{create-as-user1.response.status}}",
+                    "operator": "equals",
+                    "right": "201"
+                }
+            ],
+            "true_next": "capture-id",
+            "false_next": "fail-create"
+        },
+        {
+            "id": "capture-id",
+            "type": "set-variable",
+            "name": "Capture revenue ID",
+            "scope": "collection",
+            "variables": [
+                {
+                    "key": "lastRevenueId",
+                    "value": "{{create-as-user1.response.body.data.id}}"
+                }
+            ],
+            "next": "user2-try-read"
+        },
+        {
+            "id": "user2-try-read",
+            "type": "http",
+            "name": "2. User2 Tries to Read User1's Revenue",
+            "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/api/Revenues/{{lastRevenueId}}",
+                "headers": {
+                    "Authorization": "Bearer {{user2_token}}"
+                }
+            },
+            "next": "check-access-denied"
+        },
+        {
+            "id": "check-access-denied",
+            "type": "condition",
+            "name": "User2 got 404 (gym isolation)?",
+            "conditions": [
+                {
+                    "left": "{{user2-try-read.response.status}}",
+                    "operator": "equals",
+                    "right": "404"
+                }
+            ],
+            "true_next": "user2-try-update",
+            "false_next": "check-forbidden"
+        },
+        {
+            "id": "check-forbidden",
+            "type": "condition",
+            "name": "User2 got 403 (forbidden)?",
+            "conditions": [
+                {
+                    "left": "{{user2-try-read.response.status}}",
+                    "operator": "equals",
+                    "right": "403"
+                }
+            ],
+            "true_next": "user2-try-update",
+            "false_next": "log-security-fail"
+        },
+        {
+            "id": "user2-try-update",
+            "type": "http",
+            "name": "3. User2 Tries to Update User1's Revenue",
+            "request": {
+                "method": "PUT",
+                "url": "{{baseUrl}}/api/Revenues/{{lastRevenueId}}",
+                "headers": {
+                    "Authorization": "Bearer {{user2_token}}",
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "revenueCategory": 2,
+                    "amount": 9999.00,
+                    "paymentMethod": 0,
+                    "referenceNumber": "HACK-ATTEMPT",
+                    "description": "User2 trying to modify User1 revenue",
+                    "revenueDate": "2026-08-13T00:00:00Z"
+                }
+            },
+            "next": "check-update-denied"
+        },
+        {
+            "id": "check-update-denied",
+            "type": "condition",
+            "name": "User2 update got 404 or 403?",
+            "conditions": [
+                {
+                    "left": "{{user2-try-update.response.status}}",
+                    "operator": "in",
+                    "right": "404,403"
+                }
+            ],
+            "true_next": "user2-try-delete",
+            "false_next": "log-security-fail"
+        },
+        {
+            "id": "user2-try-delete",
+            "type": "http",
+            "name": "4. User2 Tries to Delete User1's Revenue",
+            "request": {
+                "method": "DELETE",
+                "url": "{{baseUrl}}/api/Revenues/{{lastRevenueId}}",
+                "headers": {
+                    "Authorization": "Bearer {{user2_token}}"
+                }
+            },
+            "next": "check-delete-denied"
+        },
+        {
+            "id": "check-delete-denied",
+            "type": "condition",
+            "name": "User2 delete got 404 or 403?",
+            "conditions": [
+                {
+                    "left": "{{user2-try-delete.response.status}}",
+                    "operator": "in",
+                    "right": "404,403"
+                }
+            ],
+            "true_next": "user1-cleanup",
+            "false_next": "log-security-fail"
+        },
+        {
+            "id": "user1-cleanup",
+            "type": "http",
+            "name": "5. User1 Cleans Up (Delete)",
+            "request": {
+                "method": "DELETE",
+                "url": "{{baseUrl}}/api/Revenues/{{lastRevenueId}}",
+                "headers": {
+                    "Authorization": "Bearer {{user1_token}}"
+                }
+            },
+            "next": "log-security-pass"
+        },
+        {
+            "id": "log-security-pass",
+            "type": "log",
+            "name": "Security Flow PASSED",
+            "message": "[Revenue Security] Gym isolation verified: User2 (Gym B) cannot Read/Update/Delete User1's (Gym A) revenue. Got 404/403 on all attempts."
+        },
+        {
+            "id": "log-security-fail",
+            "type": "log",
+            "name": "Security Flow FAILED",
+            "message": "[Revenue Security] BREACH: User2 was able to access User1's gym-scoped revenue!"
+        },
+        {
+            "id": "fail-create",
+            "type": "log",
+            "name": "Setup Failed",
+            "message": "[Revenue Security] User1 could not create the test revenue"
+        },
+        {
+            "id": "end",
+            "type": "end",
+            "name": "End"
+        }
+    ]
+}

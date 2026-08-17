@@ -1,0 +1,47 @@
+{
+    "info": {
+        "name": "User Story: Staff Management Flow",
+        "description": "Complete business flow: Create Staff (GymPerson with StaffProfile) → Pay Salary → Change Status (Suspend) → Reactivate → Leave Gym. Tests the full staff lifecycle.",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        { "id": "start", "type": "start", "name": "Start", "next": "create-coach" },
+        {
+            "id": "create-coach", "type": "http", "name": "1. Create Coach (Staff)",
+            "request": {
+                "method": "POST", "url": "{{baseUrl}}/api/GymPerson/Create",
+                "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" },
+                "body": {
+                    "personType": 0,
+                    "name": "Flow Coach",
+                    "phoneNumber": "+1234567893",
+                    "email": "flowcoach@test.com",
+                    "gender": "Male",
+                    "staffProfile": {
+                        "gymRoleId": 2,
+                        "salary": 3000.00,
+                        "salaryValidFrom": "2026-08-01",
+                        "salaryValidUntil": "2026-12-31"
+                    },
+                    "memberProfile": null
+                }
+            },
+            "next": "check-create"
+        },
+        { "id": "check-create", "type": "condition", "name": "200?", "conditions": [{ "left": "{{create-coach.response.status}}", "operator": "equals", "right": "200" }], "true_next": "capture", "false_next": "fail" },
+        { "id": "capture", "type": "set-variable", "name": "Capture Staff ID", "scope": "collection", "variables": [{ "key": "lastStaffId", "value": "{{create-coach.response.body.data.id}}" }], "next": "read" },
+        { "id": "read", "type": "http", "name": "2. Read Staff", "request": { "method": "GET", "url": "{{baseUrl}}/api/GymPerson/{{lastStaffId}}", "headers": { "Authorization": "Bearer {{user1_token}}" } }, "next": "check-read" },
+        { "id": "check-read", "type": "condition", "name": "200?", "conditions": [{ "left": "{{read.response.status}}", "operator": "equals", "right": "200" }], "true_next": "pay-salary", "false_next": "fail" },
+        { "id": "pay-salary", "type": "http", "name": "3. Pay Salary", "request": { "method": "POST", "url": "{{baseUrl}}/api/GymPerson/{{lastStaffId}}/pay-salary?salaryValidFrom=2026-08-01&salaryValidUntil=2026-08-31", "headers": { "Authorization": "Bearer {{user1_token}}" } }, "next": "check-salary" },
+        { "id": "check-salary", "type": "condition", "name": "200?", "conditions": [{ "left": "{{pay-salary.response.status}}", "operator": "equals", "right": "200" }], "true_next": "suspend", "false_next": "fail" },
+        { "id": "suspend", "type": "http", "name": "4. Suspend Staff", "request": { "method": "POST", "url": "{{baseUrl}}/api/GymPerson/{{lastStaffId}}/change-status", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "status": 2 } }, "next": "check-suspend" },
+        { "id": "check-suspend", "type": "condition", "name": "200?", "conditions": [{ "left": "{{suspend.response.status}}", "operator": "equals", "right": "200" }], "true_next": "reactivate", "false_next": "fail" },
+        { "id": "reactivate", "type": "http", "name": "5. Reactivate Staff", "request": { "method": "POST", "url": "{{baseUrl}}/api/GymPerson/{{lastStaffId}}/change-status", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "status": 1 } }, "next": "check-reactivate" },
+        { "id": "check-reactivate", "type": "condition", "name": "200?", "conditions": [{ "left": "{{reactivate.response.status}}", "operator": "equals", "right": "200" }], "true_next": "leave-gym", "false_next": "fail" },
+        { "id": "leave-gym", "type": "http", "name": "6. Staff Leave Gym", "request": { "method": "POST", "url": "{{baseUrl}}/api/GymPerson/leave-gym/{{gymId}}", "headers": { "Authorization": "Bearer {{user1_token}}" } }, "next": "check-leave" },
+        { "id": "check-leave", "type": "condition", "name": "200?", "conditions": [{ "left": "{{leave-gym.response.status}}", "operator": "equals", "right": "200" }], "true_next": "pass", "false_next": "fail" },
+        { "id": "pass", "type": "log", "name": "PASSED", "message": "[User Story: Staff Management] Create→Read→PaySalary→Suspend→Reactivate→LeaveGym all passed" },
+        { "id": "fail", "type": "log", "name": "FAILED", "message": "[User Story: Staff Management] Flow failed at one of the steps" },
+        { "id": "end", "type": "end", "name": "End" }
+    ]
+}

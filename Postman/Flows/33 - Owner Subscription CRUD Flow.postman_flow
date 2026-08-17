@@ -1,0 +1,24 @@
+{
+    "info": {
+        "name": "Owner Subscription CRUD Flow",
+        "description": "Tests OwnerSubscription lifecycle: List → Create → Read → Update → Delete. SuperAdmin-only resource.",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        { "id": "start", "type": "start", "name": "Start", "next": "list" },
+        { "id": "list", "type": "http", "name": "1. List Owner Subscriptions", "request": { "method": "POST", "url": "{{baseUrl}}/api/OwnerSubscription", "headers": { "Authorization": "Bearer {{superAdmin_token}}", "Content-Type": "application/json" }, "body": { "pageNumber": 1, "pageSize": 10, "orderBy": "Id", "orderDirection": "asc" } }, "next": "check-list" },
+        { "id": "check-list", "type": "condition", "name": "200?", "conditions": [{ "left": "{{list.response.status}}", "operator": "equals", "right": "200" }], "true_next": "create", "false_next": "fail" },
+        { "id": "create", "type": "http", "name": "2. Create Owner Subscription", "request": { "method": "POST", "url": "{{baseUrl}}/api/OwnerSubscription/Create", "headers": { "Authorization": "Bearer {{superAdmin_token}}", "Content-Type": "application/json" }, "body": { "subscriptionPlanId": 1, "gymId": 1, "couponId": null, "price": 50.0, "startDate": "2026-01-01T00:00:00Z", "endDate": "2026-12-31T23:59:59Z" } }, "next": "check-create" },
+        { "id": "check-create", "type": "condition", "name": "200?", "conditions": [{ "left": "{{create.response.status}}", "operator": "equals", "right": "200" }], "true_next": "capture", "false_next": "fail" },
+        { "id": "capture", "type": "set-variable", "name": "Capture ID", "scope": "collection", "variables": [{ "key": "lastOwnerSubscriptionId", "value": "{{create.response.body.data.id}}" }], "next": "read" },
+        { "id": "read", "type": "http", "name": "3. Read Owner Subscription", "request": { "method": "GET", "url": "{{baseUrl}}/api/OwnerSubscription/{{lastOwnerSubscriptionId}}", "headers": { "Authorization": "Bearer {{superAdmin_token}}" } }, "next": "check-read" },
+        { "id": "check-read", "type": "condition", "name": "200?", "conditions": [{ "left": "{{read.response.status}}", "operator": "equals", "right": "200" }], "true_next": "update", "false_next": "fail" },
+        { "id": "update", "type": "http", "name": "4. Update Owner Subscription", "request": { "method": "PUT", "url": "{{baseUrl}}/api/OwnerSubscription/{{lastOwnerSubscriptionId}}", "headers": { "Authorization": "Bearer {{superAdmin_token}}", "Content-Type": "application/json" }, "body": { "isActive": true } }, "next": "check-update" },
+        { "id": "check-update", "type": "condition", "name": "200?", "conditions": [{ "left": "{{update.response.status}}", "operator": "equals", "right": "200" }], "true_next": "delete", "false_next": "fail" },
+        { "id": "delete", "type": "http", "name": "5. Delete Owner Subscription", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/OwnerSubscription/{{lastOwnerSubscriptionId}}", "headers": { "Authorization": "Bearer {{superAdmin_token}}" } }, "next": "check-delete" },
+        { "id": "check-delete", "type": "condition", "name": "200?", "conditions": [{ "left": "{{delete.response.status}}", "operator": "equals", "right": "200" }], "true_next": "pass", "false_next": "fail" },
+        { "id": "pass", "type": "log", "name": "PASSED", "message": "[OwnerSubscription CRUD] List→Create→Read→Update→Delete all passed" },
+        { "id": "fail", "type": "log", "name": "FAILED", "message": "[OwnerSubscription CRUD] Flow failed" },
+        { "id": "end", "type": "end", "name": "End" }
+    ]
+}

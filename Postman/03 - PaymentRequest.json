@@ -135,15 +135,11 @@
                                                                        "value":  "SUMMER50",
                                                                        "type":  "text"
                                                                    },
-                                                                   {
-                                                                       "key":  "IsPublic",
-                                                                       "value":  "true",
-                                                                       "type":  "text"
-                                                                   },
                                                                     {
-                                                                        "key":  "CreatedById",
-                                                                        "value":  "0",
-                                                                        "type":  "text"
+                                                                        "key":  "IsPublic",
+                                                                        "value":  "false",
+                                                                        "type":  "text",
+                                                                        "disabled": true
                                                                     }
                                                                ]
                                               },

@@ -1,0 +1,36 @@
+{
+    "info": {
+        "name": "GymPerson CRUD & Security Flow",
+        "description": "Tests GymPerson lifecycle: Owner creates member → Read → Update → Change Status → Pay Salary → Renew Membership → Delete. Gym-scoped via BaseGymRepo.",
+        "schema": "https://schema.getpostman.com/flow/v1/flow.json"
+    },
+    "flow": [
+        { "id": "start", "type": "start", "name": "Start", "next": "create" },
+        {
+            "id": "create", "type": "http", "name": "1. Create GymPerson (Member)",
+            "request": {
+                "method": "POST", "url": "{{baseUrl}}/api/GymPerson/Create",
+                "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" },
+                "body": { "personType": 1, "name": "Flow Test Member", "phoneNumber": "+1234567890", "email": "flowmember@test.com", "gender": "Male", "staffProfile": null, "memberProfile": { "medicalNotes": "None", "notes": "Flow test" } }
+            },
+            "next": "check-create"
+        },
+        { "id": "check-create", "type": "condition", "name": "200?", "conditions": [{ "left": "{{create.response.status}}", "operator": "equals", "right": "200" }], "true_next": "capture", "false_next": "fail" },
+        { "id": "capture", "type": "set-variable", "name": "Capture ID", "scope": "collection", "variables": [{ "key": "lastGymPersonId", "value": "{{create.response.body.data.id}}" }, { "key": "gymPersonId", "value": "{{create.response.body.data.id}}" }], "next": "read" },
+        { "id": "read", "type": "http", "name": "2. Read GymPerson", "request": { "method": "GET", "url": "{{baseUrl}}/api/GymPerson/{{lastGymPersonId}}", "headers": { "Authorization": "Bearer {{user1_token}}" } }, "next": "check-read" },
+        { "id": "check-read", "type": "condition", "name": "200?", "conditions": [{ "left": "{{read.response.status}}", "operator": "equals", "right": "200" }], "true_next": "update", "false_next": "fail" },
+        { "id": "update", "type": "http", "name": "3. Update GymPerson", "request": { "method": "PUT", "url": "{{baseUrl}}/api/GymPerson/{{lastGymPersonId}}", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "personType": 1, "name": "Flow Test Member (Updated)", "phoneNumber": "+1234567890", "email": "flowmember@test.com", "gender": "Male", "staffProfile": null, "memberProfile": { "medicalNotes": "Updated notes", "notes": "Updated" } } }, "next": "check-update" },
+        { "id": "check-update", "type": "condition", "name": "200?", "conditions": [{ "left": "{{update.response.status}}", "operator": "equals", "right": "200" }], "true_next": "change-status", "false_next": "fail" },
+        { "id": "change-status", "type": "http", "name": "4. Change Status (Suspend)", "request": { "method": "POST", "url": "{{baseUrl}}/api/GymPerson/{{lastGymPersonId}}/change-status", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "status": 2 } }, "next": "check-status" },
+        { "id": "check-status", "type": "condition", "name": "200?", "conditions": [{ "left": "{{change-status.response.status}}", "operator": "equals", "right": "200" }], "true_next": "reactivate", "false_next": "fail" },
+        { "id": "reactivate", "type": "http", "name": "5. Reactivate Status", "request": { "method": "POST", "url": "{{baseUrl}}/api/GymPerson/{{lastGymPersonId}}/change-status", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "status": 1 } }, "next": "check-reactivate" },
+        { "id": "check-reactivate", "type": "condition", "name": "200?", "conditions": [{ "left": "{{reactivate.response.status}}", "operator": "equals", "right": "200" }], "true_next": "renew", "false_next": "fail" },
+        { "id": "renew", "type": "http", "name": "6. Renew Membership", "request": { "method": "POST", "url": "{{baseUrl}}/api/GymPerson/{{lastGymPersonId}}/renew-membership", "headers": { "Authorization": "Bearer {{user1_token}}", "Content-Type": "application/json" }, "body": { "membershipPlanId": "{{membershipPlanId}}", "pricePaid": 499.00, "discountAmount": 0, "finalAmount": 499.00, "notes": "Renewed via flow" } }, "next": "check-renew" },
+        { "id": "check-renew", "type": "condition", "name": "200?", "conditions": [{ "left": "{{renew.response.status}}", "operator": "equals", "right": "200" }], "true_next": "delete", "false_next": "fail" },
+        { "id": "delete", "type": "http", "name": "7. Delete GymPerson", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/GymPerson/{{lastGymPersonId}}", "headers": { "Authorization": "Bearer {{user1_token}}" } }, "next": "check-delete" },
+        { "id": "check-delete", "type": "condition", "name": "200?", "conditions": [{ "left": "{{delete.response.status}}", "operator": "equals", "right": "200" }], "true_next": "pass", "false_next": "fail" },
+        { "id": "pass", "type": "log", "name": "PASSED", "message": "[GymPerson CRUD] Create→Read→Update→Suspend→Reactivate→Renew→Delete all passed" },
+        { "id": "fail", "type": "log", "name": "FAILED", "message": "[GymPerson CRUD] Flow failed" },
+        { "id": "end", "type": "end", "name": "End" }
+    ]
+}
