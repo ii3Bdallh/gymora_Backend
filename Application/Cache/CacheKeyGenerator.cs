@@ -27,7 +27,8 @@ namespace Application.Cache
         {
             var entityName = CacheEntityNames.ForType<T>();
             var finalGymId = typeof(IBaseGymEntity).IsAssignableFrom(typeof(T)) ? gymId : null;
-            var finalUserId = typeof(IOnlyMeCanSee).IsAssignableFrom(typeof(T)) ? userId : null;
+            var finalUserId = (typeof(IOnlyMeCanSee).IsAssignableFrom(typeof(T)) 
+            || typeof(IOnlyMeCanSeeAtGym).IsAssignableFrom(typeof(T))) ? userId : null;
 
             var scope = ScopeSegment(gymId: finalGymId, userId: finalUserId);
             return $"{Prefix}:{scope}:{entityName}:id:{entityId}";

@@ -68,7 +68,9 @@ namespace Application.Service
         protected virtual int? CacheUserScope =>
             typeof(IOnlyMeCanSee).IsAssignableFrom(typeof(T)) && !HasFullAccess
                 ? CurrentUserId
-                : null;
+                : (typeof(IOnlyMeCanSeeAtGym).IsAssignableFrom(typeof(T)) && !HasFullAccess && !CurrentUser.IsGymOwner && !CurrentUser.IsGymManager)
+                    ? CurrentPersonId
+                    : null;
 
 
         protected async Task<TResult> GetOrCreateCacheAsync<TResult>(

@@ -42,6 +42,17 @@ public class CachingTests
     {
     }
 
+    private class MockOnlyMeCanSeeAtGymEntity : IOnlyMeCanSeeAtGym
+    {
+        public int CreatedByPersonId { get; set; }
+    }
+
+    private class MockGymAndOnlyMeCanSeeAtGymEntity : IBaseGymEntity, IOnlyMeCanSeeAtGym
+    {
+        public int GymId { get; set; }
+        public int CreatedByPersonId { get; set; }
+    }
+
     #endregion
 
     #region CacheKeyGenerator Tests
@@ -88,6 +99,28 @@ public class CachingTests
         // Assert
         // Expecting gymora:global:mockglobalentity:id:5
         key.Should().Be("gymora:global:mockglobalentity:id:5");
+    }
+
+    [Fact]
+    public void ById_ShouldScopeByUserIdOnly_WhenEntityIsOnlyMeCanSeeAtGymEntity()
+    {
+        // Act
+        var key = CacheKeyGenerator.ById<MockOnlyMeCanSeeAtGymEntity>(entityId: 5, gymId: 10, userId: 20);
+
+        // Assert
+        // Expecting gymora:global:user:20:mockonlymecanseeatgymentity:id:5
+        key.Should().Be("gymora:global:user:20:mockonlymecanseeatgymentity:id:5");
+    }
+
+    [Fact]
+    public void ById_ShouldScopeByBothGymAndUser_WhenEntityIsGymAndOnlyMeCanSeeAtGymEntity()
+    {
+        // Act
+        var key = CacheKeyGenerator.ById<MockGymAndOnlyMeCanSeeAtGymEntity>(entityId: 5, gymId: 10, userId: 20);
+
+        // Assert
+        // Expecting gymora:gym:10:user:20:mockgymandonlymecanseeatgymentity:id:5
+        key.Should().Be("gymora:gym:10:user:20:mockgymandonlymecanseeatgymentity:id:5");
     }
 
     #endregion
