@@ -112,7 +112,7 @@ public class PaymentRequestServiceTests
 
         var act = async () => await _sut.AddAsync(cdto);
 
-        await act.Should().ThrowAsync<ApplicationException>()
+        await act.Should().ThrowAsync<ConflictException>()
             .WithMessage("*pending payment request*");
     }
 
@@ -128,7 +128,7 @@ public class PaymentRequestServiceTests
 
         var act = async () => await _sut.AddAsync(cdto);
 
-        await act.Should().ThrowAsync<ApplicationException>()
+        await act.Should().ThrowAsync<BadRequestException>()
             .WithMessage("*Invalid subscription plan*");
     }
 
@@ -146,7 +146,7 @@ public class PaymentRequestServiceTests
 
         var act = async () => await _sut.AddAsync(cdto);
 
-        await act.Should().ThrowAsync<ApplicationException>()
+        await act.Should().ThrowAsync<ConflictException>()
             .WithMessage("*active subscription*");
     }
 
@@ -222,7 +222,7 @@ public class PaymentRequestServiceTests
 
         var act = async () => await _sut.AddAsync(cdto);
 
-        await act.Should().ThrowAsync<ApplicationException>()
+        await act.Should().ThrowAsync<ConflictException>()
             .WithMessage("*already used this coupon*");
     }
 
@@ -299,7 +299,7 @@ public class PaymentRequestServiceTests
 
         var act = async () => await _sut.ApproveAsync(1, new PaymentRequestApprove());
 
-        await act.Should().ThrowAsync<ApplicationException>()
+        await act.Should().ThrowAsync<BadRequestException>()
             .WithMessage("*Only pending*");
     }
 
@@ -353,7 +353,7 @@ public class PaymentRequestServiceTests
 
         var act = async () => await _sut.RejectAsync(1, new PaymentRequestReject { RejectionReason = "test" });
 
-        await act.Should().ThrowAsync<ApplicationException>()
+        await act.Should().ThrowAsync<BadRequestException>()
             .WithMessage("*Only pending*");
     }
 

@@ -141,6 +141,8 @@ namespace Application.DTO
 
             CreateMap<PaymentRequest, PaymentRequestRDTO>()
                 .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>()
+                .ForMember(dest => dest.ProofUrl, opt => opt.MapFrom(src => src.FileUrl))
+                .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => src.OwnerSubscriptions.OrderByDescending(s => s.CreatedOn).Select(s => s.Id).Cast<int?>().FirstOrDefault()))
                 .ReverseMap();
 
             CreateMap<PaymentRequest, PaymentRequestCDTO>()

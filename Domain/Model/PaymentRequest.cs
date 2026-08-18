@@ -63,6 +63,9 @@ namespace Domain.Model
 
     public int? CouponId { get; set; }
     public Coupon? Coupon { get; set; }
+
+    public virtual ICollection<OwnerSubscription> OwnerSubscriptions { get; set; } = new List<OwnerSubscription>();
+
     [Timestamp]
     public byte[] RowVersion { get; set; } = null!;
 

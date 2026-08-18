@@ -154,7 +154,7 @@ public class PaymentRequestControllerTests
 
         var result = await _sut.ApproveAsync(1, new PaymentRequestApprove { ReviewNotes = "Approved" });
 
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value.Should().BeAssignableTo<Result<PaymentRequestRDTO>>().Subject;
         response.IsSuccess.Should().BeTrue();
         response.Data!.Status.Should().Be(PaymentRequestStatus.Approved);
@@ -178,7 +178,7 @@ public class PaymentRequestControllerTests
 
         var result = await _sut.RejectAsync(1, new PaymentRequestReject { RejectionReason = "Invalid proof" });
 
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value.Should().BeAssignableTo<Result<PaymentRequestRDTO>>().Subject;
         response.IsSuccess.Should().BeTrue();
         response.Data!.Status.Should().Be(PaymentRequestStatus.Rejected);
