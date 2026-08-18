@@ -305,14 +305,12 @@ namespace Application.DTO
             CreateMap<RecordCheckInUDTO, Attendance>().ReverseMap();
 
             CreateMap<MembershipPlan, MembershipPlanRDTO>()
-                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableRDTO>()
-                .ReverseMap();
-            CreateMap<MembershipPlan, MembershipPlanCDTO>()
-                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableCDTO>()
-                .ReverseMap();
-            CreateMap<MembershipPlan, MembershipPlanUDTO>()
-                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableUDTO>()
-                .ReverseMap();
+                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableRDTO>();
+            CreateMap<MembershipPlanCDTO, MembershipPlan>()
+                .IncludeBase<BaseGymAuditableCDTO, BaseAuditableGymEntity>();
+            CreateMap<MembershipPlanUDTO, MembershipPlan>()
+                .IncludeBase<BaseGymAuditableUDTO, BaseAuditableGymEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             // Workout Feature Mappings
             CreateMap<ExerciseCDTO, Exercise>()
