@@ -78,7 +78,7 @@ FILTER_MAP = {
     "Coupon": {"search_term": "SUMMER", "order_by": "Name", "between_filters": '"DiscountValue": {"min":"5.0","max":"50.0"},"ValidFrom": {"min":"2026-01-01T00:00:00Z","max":"2026-12-31T23:59:59Z"}', "exact_filters": '"DiscountType": ["1"]'},
     "SubscriptionPlan": {"search_term": "Pro", "order_by": "Name", "between_filters": '"MaxOwnedGyms": {"min":"1","max":"10"}', "exact_filters": ""},
     "PaymentRequest": {"search_term": "", "order_by": "Id", "between_filters": '"OriginalAmount": {"min":"10.0","max":"500.0"}', "exact_filters": '"Status": ["0"]'},
-    "Coach Assignment": {"search_term": "", "order_by": "AssignedAt", "between_filters": '"AssignedAt": {"min":"2026-01-01T00:00:00Z","max":"2026-12-31T23:59:59Z"}', "exact_filters": ""},
+    "Coach Assignment": {"search_term": "", "order_by": "AssignedAt", "between_filters": '"AssignedAt": {"min":"2026-01-01T00:00:00Z","max":"2026-12-31T23:59:59Z"},"EndedAt": {"min":"2026-01-01T00:00:00Z","max":"2026-12-31T23:59:59Z"}', "exact_filters": '"MemberId": ["1"],"CoachStaffId": ["2"]'},
     "Body Measurements": {"search_term": "", "order_by": "Id", "between_filters": "", "exact_filters": ""},
     "Attendance": {"search_term": "Staff", "order_by": "CheckInTime", "between_filters": '"CheckInTime": {"min":"2026-01-01T00:00:00Z","max":"2026-12-31T23:59:59Z"}', "exact_filters": '"EntryMethod": ["Staff Override"]'},
     "Reports": {"search_term": "", "order_by": "Id", "between_filters": "", "exact_filters": ""},

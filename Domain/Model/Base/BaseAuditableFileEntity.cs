@@ -12,7 +12,7 @@ namespace Domain.Model.Base
 
         [Filterable(FilterType.Between)]
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
-    [Filterable(FilterType.Exact)]
+        [Filterable(FilterType.Exact)]
 
         public int CreatedById { get; set; }
         public ApplicationUser? CreatedBy { get; set; }

@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Application.DTO.Model;
-
 using Application.DTO.Pagintion;
 using Domain.Model;
 

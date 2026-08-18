@@ -13,11 +13,13 @@ namespace Domain.Model.Base
 {
     public class BaseAuditableGymEntity : BaseGymEntity, IBaseAuditableGymEntity
     {
-    [Filterable(FilterType.Exact)]
+        [Filterable(FilterType.Exact)]
 
         public int? CreatedByPersonId { get; set; }
 
         public GymPerson? CreatedByPerson { get; set; } 
+        [Filterable(FilterType.Between)]
+
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
 
     }

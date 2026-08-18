@@ -20,6 +20,7 @@ namespace Domain.Model
         public int AssignedById { get; set; }
         public GymPerson AssignedBy { get; set; } = null!;
 
+        [Filterable(FilterType.Between)]
         public DateTime? EndedAt { get; set; }
     }
 }

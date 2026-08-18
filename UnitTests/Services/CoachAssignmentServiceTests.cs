@@ -127,4 +127,25 @@ public class CoachAssignmentServiceTests
         await act.Should().ThrowAsync<NotFoundException>()
             .WithMessage($"Coach with ID {dto.CoachStaffId} was not found.");
     }
+
+    [Fact]
+    public async Task GetByIdDetailsAsync_ShouldDelegateToRepo()
+    {
+        // Arrange
+        int id = 5;
+        var entity = new CoachAssignment { Id = id, GymId = 1, MemberId = 10, CoachStaffId = 2 };
+        var rDto = new CoachAssignmentRDTO { Id = id, GymId = 1, MemberId = 10, CoachStaffId = 2 };
+
+        _repo.Setup(r => r.GetByIdDetailsAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entity);
+        _mapper.Setup(m => m.Map<CoachAssignmentRDTO>(entity))
+            .Returns(rDto);
+
+        // Act
+        var result = await _sut.GetByIdDetailsAsync(id, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(id);
+    }
 }
