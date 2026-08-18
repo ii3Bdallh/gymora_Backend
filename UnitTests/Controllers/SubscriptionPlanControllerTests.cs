@@ -141,7 +141,6 @@ public class SubscriptionPlanControllerTests
             MaxOwnedGyms = 2,
             MaxCoaches = 10,
             MaxMembers = 100,
-            IsActive = true
         };
         var rDto = new SubscriptionPlanRDTO { Id = 1, Name = "Updated" };
 

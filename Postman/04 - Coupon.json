@@ -1,220 +1,202 @@
 {
-    "info":  {
-                 "_postman_id":  "f6cedf3c-fac5-4359-8c79-02d315f6cf42",
-                 "name":  "04 - Coupon",
-                 "description":  "Endpoints to manage and validate discount coupons.",
-                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-             },
-    "item":  [
-                 {
-                     "name":  "Get Paged Coupons",
-                     "event":  [
-                                   {
-                                       "listen":  "test",
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\"Status code is 200\", function () {",
-                                                                   "    pm.response.to.have.status(200);",
-                                                                   "});",
-                                                                   "var jsonData = pm.response.json();",
-                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
-                                                                   "    pm.environment.set(\"couponId\", jsonData.data.items[0].id);",
-                                                                   "}"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  }
-                                   }
-                               ],
-                     "request":  {
-                                     "description":  "### Endpoint Overview\n\nFetches a paginated list of coupons with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Code` | `string` | Searchable | Unique promo code |\n| `Name` | `string` | Searchable | Coupon display name |\n| `Description` | `string` | - | Optional description |\n| `DiscountType` | `Enum (int)` | Exact | `1` = Percentage, `2` = FixedAmount |\n| `DiscountValue` | `decimal` | Between | Percentage rate or amount |\n| `MaxDiscountAmount` | `decimal` | - | Maximum discount limit |\n| `MinimumPurchaseAmount`| `decimal` | - | Minimum cart total required |\n| `UsageLimit` | `int` | - | Max times coupon can be redeemed |\n| `UsedCount` | `int` | - | Current redemption count |\n| `ValidFrom` | `DateTime` | Between | ISO format validation start date |\n| `ValidTo` | `DateTime` | Between | ISO format validation expiry date |\n| `IsFirstPurchaseOnly` | `bool` | - | If true, restricted to first purchase |\n| `IsActive` | `bool` | Exact | Activation status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"DiscountType\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"DiscountValue\": { \"min\": \"5\", \"max\": \"50\" } }`",
-                                     "method":  "POST",
-                                     "header":  [
-                                                    {
-                                                        "key":  "Content-Type",
-                                                        "value":  "application/json"
-                                                    }
-                                                ],
-                                     "body":  {
-                                                  "mode":  "raw",
-                                                  "raw":  "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
-                                              },
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/Coupon",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "Coupon"
-                                                          ]
-                                             }
-                                 },
-                     "response":  [
-
-                                  ]
-                 },
-                 {
-                     "name":  "Get Coupon By Id",
-                     "request":  {
-                                     "method":  "GET",
-                                     "header":  [
-
-                                                ],
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/Coupon/{{couponId}}",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "Coupon",
-                                                              "{{couponId}}"
-                                                          ]
-                                             }
-                                 },
-                     "response":  [
-
-                                  ]
-                 },
-                 {
-                     "name":  "Create Coupon",
-                     "event":  [
-                                   {
-                                       "listen":  "test",
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\"Status code is 200\", function () {",
-                                                                   "    pm.response.to.have.status(200);",
-                                                                   "});",
-                                                                   "var jsonData = pm.response.json();",
-                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
-                                                                   "    pm.environment.set(\"couponId\", jsonData.data.id);",
-                                                                   "}"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  }
-                                   }
-                               ],
-                     "request":  {
-                                     "method":  "POST",
-                                     "header":  [
-                                                    {
-                                                        "key":  "Content-Type",
-                                                        "value":  "application/json"
-                                                    }
-                                                ],
-                                     "body":  {
-                                                  "mode":  "raw",
-                                                  "raw":  "{\n  \"code\": \"SUMMER50\",\n  \"name\": \"Summer Discount\",\n  \"description\": \"50% off summer pass\",\n  \"discountType\": 1,\n  \"discountValue\": 50.0,\n  \"maxDiscountAmount\": 100.0,\n  \"minimumPurchaseAmount\": 200.0,\n  \"usageLimit\": 100,\n  \"validFrom\": \"2026-07-22T00:00:00Z\",\n  \"validTo\": \"2026-08-22T00:00:00Z\",\n  \"isFirstPurchaseOnly\": false\n}"
-                                              },
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/Coupon/Create",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "Coupon",
-                                                              "Create"
-                                                          ]
-                                             }
-                                 },
-                     "response":  [
-
-                                  ]
-                 },
-                 {
-                     "name":  "Update Coupon",
-                     "request":  {
-                                     "method":  "PUT",
-                                     "header":  [
-                                                    {
-                                                        "key":  "Content-Type",
-                                                        "value":  "application/json"
-                                                    }
-                                                ],
-                                     "body":  {
-                                                  "mode":  "raw",
-                                                  "raw":  "{\n  \"name\": \"Updated Summer Discount\",\n  \"description\": \"Updated summer pass description\",\n  \"maxDiscountAmount\": 120.0,\n  \"minimumPurchaseAmount\": 150.0,\n  \"usageLimit\": 150,\n  \"validTo\": \"2026-09-22T00:00:00Z\",\n  \"isActive\": true\n}"
-                                              },
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/Coupon/{{couponId}}",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "Coupon",
-                                                              "{{couponId}}"
-                                                          ]
-                                             }
-                                 },
-                     "response":  [
-
-                                  ]
-                 },
-                 {
-                     "name":  "Validate Coupon",
-                     "request":  {
-                                     "method":  "GET",
-                                     "header":  [
-
-                                                ],
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/Coupon/Validate/SUMMER50?orderAmount=300",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "Coupon",
-                                                              "Validate",
-                                                              "SUMMER50"
-                                                          ],
-                                                 "query":  [
-                                                               {
-                                                                   "key":  "orderAmount",
-                                                                   "value":  "300"
-                                                               }
-                                                           ]
-                                             }
-                                 },
-                     "response":  [
-
-                                  ]
-                 },
-                 {
-                     "name":  "Delete Coupon",
-                     "request":  {
-                                     "method":  "DELETE",
-                                     "header":  [
-
-                                                ],
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/Coupon/{{couponId}}",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "Coupon",
-                                                              "{{couponId}}"
-                                                          ]
-                                             }
-                                 },
-                     "response":  [
-
-                                  ]
-                 }
-             ],
-    "auth":  {
-                  "type":  "bearer",
-                  "bearer":  [
-                                 {
-                                     "key":  "token",
-                                     "value":  "{{user1_token}}",
-                                     "type":  "string"
-                                 }
-                             ]
-              }
+    "info": {
+        "_postman_id": "f6cedf3c-fac5-4359-8c79-02d315f6cf42",
+        "name": "04 - Coupon",
+        "description": "Endpoints to manage and validate discount coupons.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Paged Coupons",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+                            "    pm.environment.set(\"couponId\", jsonData.data.items[0].id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "### Endpoint Overview\n\nFetches a paginated list of coupons with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Code` | `string` | Searchable | Unique promo code |\n| `Name` | `string` | Searchable | Coupon display name |\n| `Description` | `string` | - | Optional description |\n| `DiscountType` | `Enum (int)` | Exact | `1` = Percentage, `2` = FixedAmount |\n| `DiscountValue` | `decimal` | Between | Percentage rate or amount |\n| `MaxDiscountAmount` | `decimal` | - | Maximum discount limit |\n| `MinimumPurchaseAmount`| `decimal` | - | Minimum cart total required |\n| `UsageLimit` | `int` | - | Max times coupon can be redeemed |\n| `UsedCount` | `int` | - | Current redemption count |\n| `ValidFrom` | `DateTime` | Between | ISO format validation start date |\n| `ValidTo` | `DateTime` | Between | ISO format validation expiry date |\n| `IsFirstPurchaseOnly` | `bool` | Exact | If true, restricted to first purchase |\n| \n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"DiscountType\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"DiscountValue\": { \"min\": \"5\", \"max\": \"50\" } }`",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Coupon",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Coupon"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Coupon By Id",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Coupon/{{couponId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Coupon",
+                        "{{couponId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Create Coupon",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
+                            "    pm.environment.set(\"couponId\", jsonData.data.id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"code\": \"SUMMER50\",\n  \"name\": \"Summer Discount\",\n  \"description\": \"50% off summer pass\",\n  \"discountType\": 1,\n  \"discountValue\": 50.0,\n  \"maxDiscountAmount\": 100.0,\n  \"minimumPurchaseAmount\": 200.0,\n  \"usageLimit\": 100,\n  \"validFrom\": \"2026-07-22T00:00:00Z\",\n  \"validTo\": \"2026-08-22T00:00:00Z\",\n  \"isFirstPurchaseOnly\": false\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Coupon/Create",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Coupon",
+                        "Create"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update Coupon",
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"name\": \"Updated Summer Discount\",\n  \"description\": \"Updated summer pass description\",\n  \"maxDiscountAmount\": 120.0,\n  \"minimumPurchaseAmount\": 150.0,\n  \"usageLimit\": 150,\n  \"validTo\": \"2026-09-22T00:00:00Z\",\n  \"isActive\": true\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/Coupon/{{couponId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Coupon",
+                        "{{couponId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Validate Coupon",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Coupon/Validate/SUMMER50?orderAmount=300",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Coupon",
+                        "Validate",
+                        "SUMMER50"
+                    ],
+                    "query": [
+                        {
+                            "key": "orderAmount",
+                            "value": "300"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Coupon",
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/Coupon/{{couponId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "Coupon",
+                        "{{couponId}}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{user1_token}}",
+                "type": "string"
+            }
+        ]
+    }
 }

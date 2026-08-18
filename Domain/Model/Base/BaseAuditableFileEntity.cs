@@ -10,6 +10,7 @@ namespace Domain.Model.Base
     public abstract class BaseAuditableFileEntity : BaseFileEntity , IAuditableEntity
     {
 
+        [Filterable(FilterType.Between)]
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
     [Filterable(FilterType.Exact)]
 

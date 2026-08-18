@@ -25,13 +25,6 @@ namespace Infrastructure.Repo
                 .FirstOrDefaultAsync(x => x.Code.ToUpper() == code.ToUpper(), ct);
         }
 
-        public Coupon IncrementUsageAsync(Coupon entity, CancellationToken ct = default)
-        {
 
-
-            entity.UsedCount++;
-
-            return entity;
-        }
     }
 }

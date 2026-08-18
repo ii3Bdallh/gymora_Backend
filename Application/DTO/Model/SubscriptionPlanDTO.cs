@@ -42,7 +42,6 @@ namespace Application.DTO.Model
         public int MaxCoaches { get; set; }
         public int MaxMembers { get; set; }
         public string? FeaturesJson { get; set; }
-        public bool IsActive { get; set; }
         public DateTime CreatedOn { get; set; }
 
         public ICollection<PlanPriceRDTO> Prices { get; set; } = new List<PlanPriceRDTO>();
@@ -67,7 +66,6 @@ namespace Application.DTO.Model
         [Range(0, int.MaxValue, ErrorMessage = "MaxMembers must be non-negative.")]
         public int MaxMembers { get; set; }
         public string? FeaturesJson { get; set; }
-        public bool IsActive { get; set; }
 
         // public ICollection<PlanPriceUDTO> Prices { get; set; } = new List<PlanPriceUDTO>();
     }

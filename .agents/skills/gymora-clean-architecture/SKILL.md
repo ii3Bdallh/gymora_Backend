@@ -12,7 +12,7 @@ This guide provides guidelines, rules, and examples for developing new features,
 ## 1. Domain Layer Base Entities
 
 All entities in `Domain/Model/` must inherit from the base classes located in [Domain/Model/Base/](file:///d:/Abdallah/Projects/Gymora/gymora_Backend/Domain/Model/Base):
-- **`BaseEntity`**: Simple ID, contains `int Id` (PK) and `bool IsActive = true` (soft delete).
+- **`BaseEntity`**: Simple ID, contains `int Id` (PK).
 - **`BaseAuditableEntity`**: Extends `BaseEntity` with audit logs: `CreatedOn` and `CreatedById`.
 - **`BaseGymEntity`**: Has `int GymId` and navigation property to `Gym`.
 - **`BaseGymAuditableEntity`**: Extends `BaseGymEntity` with `CreatedOn`, `CreatedById`, and audit properties.

@@ -242,7 +242,6 @@ def enrich_pagination_body(item, folder_name):
         "searchTerm": fc["search_term"],
         "orderBy": fc["order_by"],
         "orderDirection": "asc",
-        "isActive": True,
         "filters": {
             "betweenFilters": json.loads("{" + fc["between_filters"] + "}") if fc["between_filters"] else {},
             "exactFilters": json.loads("{" + fc["exact_filters"] + "}") if fc["exact_filters"] else {},

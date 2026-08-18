@@ -130,13 +130,12 @@ namespace Application.DTO
                 .IncludeBase<BaseEntity, BaseRDTO>()
                 .ReverseMap();
 
-            CreateMap<Coupon, CouponCDTO>()
-                .IncludeBase<BaseEntity, BaseCDTO>()
-                .ReverseMap();
+            CreateMap<CouponCDTO, Coupon>()
+                .IncludeBase<BaseCDTO, BaseEntity>();
 
-            CreateMap<Coupon, CouponUDTO>()
-                .IncludeBase<BaseEntity, BaseUDTO>()
-                .ReverseMap();
+            CreateMap<CouponUDTO, Coupon>()
+                .IncludeBase<BaseUDTO, BaseEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
 
             CreateMap<PaymentRequest, PaymentRequestRDTO>()

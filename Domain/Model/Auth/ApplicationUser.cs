@@ -10,7 +10,6 @@ public sealed class ApplicationUser : IdentityUser<int>
     public string? ProfileImageUrl { get; set; }
     public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
 
-    public bool IsActive { get; set; } = true;
 
 
     public string? PasswordResetOtp { get; set; }

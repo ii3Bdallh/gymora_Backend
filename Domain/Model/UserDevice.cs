@@ -14,7 +14,6 @@ public class UserDevice
 
     public DateTime LastUsedAt { get; set; }
 
-    public bool IsActive { get; set; }
 
     public DateTime CreatedAt { get; set; }
 }

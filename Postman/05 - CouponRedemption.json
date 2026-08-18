@@ -1,90 +1,84 @@
 {
-    "info":  {
-                 "_postman_id":  "91ca6890-ed5f-4b8c-9d5f-3422833b6e29",
-                 "name":  "05 - Coupon Redemption",
-                 "description":  "Endpoints to view coupon redemptions history.",
-                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-             },
-    "item":  [
-                 {
-                     "name":  "Get Paged Coupon Redemptions",
-                     "event":  [
-                                   {
-                                       "listen":  "test",
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\"Status code is 200\", function () {",
-                                                                   "    pm.response.to.have.status(200);",
-                                                                   "});",
-                                                                   "var jsonData = pm.response.json();",
-                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
-                                                                   "    pm.environment.set(\"couponRedemptionId\", jsonData.data.items[0].id);",
-                                                                   "}"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  }
-                                   }
-                               ],
-                     "request":  {
-                                     "description":  "### Endpoint Overview\n\nFetches a paginated list of coupon redemptions with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `CouponId` | `int` | Exact | Id of Coupon redeemed |\n| `PaymentRequestId` | `int` | Exact | Associated payment request Id |\n| `DiscountAmount` | `decimal` | Between | Applied discount amount |\n| `CreatedOn` | `DateTime` | Between | ISO format date of creation |\n| `CreatedById` | `int` | Exact | ID of user who created the record |\n| `IsActive` | `bool` | Exact | Activation status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"CouponId\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"DiscountAmount\": { \"min\": \"5\", \"max\": \"50\" } }`",
-                                     "method":  "POST",
-                                     "header":  [
-                                                    {
-                                                        "key":  "Content-Type",
-                                                        "value":  "application/json"
-                                                    }
-                                                ],
-                                     "body":  {
-                                                  "mode":  "raw",
-                                                  "raw":  "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
-                                              },
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/CouponRedemption",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "CouponRedemption"
-                                                          ]
-                                             }
-                                 },
-                     "response":  [
-
-                                  ]
-                 },
-                 {
-                     "name":  "Get Coupon Redemption By Id",
-                     "request":  {
-                                     "method":  "GET",
-                                     "header":  [
-
-                                                ],
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/CouponRedemption/{{couponRedemptionId}}",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "CouponRedemption",
-                                                              "{{couponRedemptionId}}"
-                                                          ]
-                                             }
-                                 },
-                     "response":  [
-
-                                  ]
-                 }
-             ],
-    "auth":  {
-                  "type":  "bearer",
-                  "bearer":  [
-                                 {
-                                     "key":  "token",
-                                     "value":  "{{user1_token}}",
-                                     "type":  "string"
-                                 }
-                             ]
-              }
+    "info": {
+        "_postman_id": "91ca6890-ed5f-4b8c-9d5f-3422833b6e29",
+        "name": "05 - Coupon Redemption",
+        "description": "Endpoints to view coupon redemptions history.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Paged Coupon Redemptions",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+                            "    pm.environment.set(\"couponRedemptionId\", jsonData.data.items[0].id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "### Endpoint Overview\n\nFetches a paginated list of coupon redemptions with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `CouponId` | `int` | Exact | Id of Coupon redeemed |\n| `PaymentRequestId` | `int` | Exact | Associated payment request Id |\n| `DiscountAmount` | `decimal` | Between | Applied discount amount |\n| `CreatedOn` | `DateTime` | Between | ISO format date of creation |\n| `CreatedById` | `int` | Exact | ID of user who created the record |\n| \n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"CouponId\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"DiscountAmount\": { \"min\": \"5\", \"max\": \"50\" } }`",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/CouponRedemption",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "CouponRedemption"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Coupon Redemption By Id",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/CouponRedemption/{{couponRedemptionId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "CouponRedemption",
+                        "{{couponRedemptionId}}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{user1_token}}",
+                "type": "string"
+            }
+        ]
+    }
 }

@@ -1,194 +1,180 @@
 {
-    "info":  {
-                 "_postman_id":  "c01a2b3c-4d5e-4f6a-8b9c-0d1e2f3a4b5c",
-                 "name":  "10 - Membership Plans",
-                 "description":  "Endpoints to manage gym membership plans (durations, pricing, freeze limits, attendance limits).",
-                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-             },
-    "item":  [
-                 {
-                     "name":  "Get Paged Membership Plans",
-                     "event":  [
-                                   {
-                                       "listen":  "test",
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\"Status code is 200\", function () {",
-                                                                   "    pm.response.to.have.status(200);",
-                                                                   "});",
-                                                                   "var jsonData = pm.response.json();",
-                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
-                                                                   "    pm.environment.set(\"membershipPlanId\", jsonData.data.items[0].id);",
-                                                                   "}"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  }
-                                   }
-                               ],
-                     "request":  {
-                                     "description":  "### Endpoint Overview\n\nFetches a paginated list of membership plans for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `Name` | `string` | Searchable | Plan name (max 100 chars) |\n| `Description` | `string` | Searchable | Plan description (max 500 chars) |\n| `DurationDays` | `int` | Exact | Membership duration in days |\n| `Price` | `decimal` | Between | Plan price |\n| `FreezeDaysLimit` | `int` | Exact | Allowed freeze days |\n| `AttendanceLimit` | `int` | - | Max attendances (nullable) |\n| `IsActive` | `bool` | Exact | Active status |\n| `CreatedByPersonId` | `int` | Exact | Creator gym person ID |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"DurationDays\": [\"30\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"Price\": { \"min\": \"100\", \"max\": \"1000\" } }`\n\n---\n\n### Authorization\n\nRequires gym membership with role `Owner`, `Manager`, `Receptionist`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
-                                     "method":  "POST",
-                                     "header":  [
-                                                    {
-                                                        "key":  "Content-Type",
-                                                        "value":  "application/json"
-                                                    }
-                                                ],
-                                     "body":  {
-                                                  "mode":  "raw",
-                                                  "raw":  "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
-                                              },
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/MembershipPlans",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "MembershipPlans"
-                                                          ]
-                                             }
-                                 },
-                     "response":  [
-
-                                  ]
-                 },
-                 {
-                     "name":  "Get Membership Plan By Id",
-                     "request":  {
-                                     "description":  "Fetches a single membership plan by ID.\n\n### Response (`MembershipPlanRDTO`)\n\n| Field | Type | Description |\n| :--- | :--- | :--- |\n| `id` | `int` | Unique identifier |\n| `gymId` | `int` | Associated gym ID |\n| `name` | `string` | Plan name |\n| `description` | `string?` | Plan description |\n| `durationDays` | `int` | Duration in days |\n| `price` | `decimal` | Plan price |\n| `freezeDaysLimit` | `int` | Allowed freeze days |\n| `attendanceLimit` | `int?` | Max attendances |\n| `createdByPersonId` | `int` | Creator gym person ID |\n| `createdOn` | `DateTime` | ISO creation date |\n\nRequires gym membership (`GymAuthorize`, any role). SuperAdmin bypasses all gym checks.",
-                                     "method":  "GET",
-                                     "header":  [
-
-                                                ],
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/MembershipPlans/{{membershipPlanId}}",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "MembershipPlans",
-                                                              "{{membershipPlanId}}"
-                                                          ]
-                                             }
-                                 },
-                     "response":  [
-
-                                  ]
-                 },
-                 {
-                     "name":  "Create Membership Plan",
-                     "event":  [
-                                   {
-                                       "listen":  "test",
-                                       "script":  {
-                                                      "exec":  [
-                                                                   "pm.test(\"Status code is 201\", function () {",
-                                                                   "    pm.response.to.have.status(201);",
-                                                                   "});",
-                                                                   "var jsonData = pm.response.json();",
-                                                                   "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
-                                                                   "    pm.environment.set(\"membershipPlanId\", jsonData.data.id);",
-                                                                   "}"
-                                                               ],
-                                                      "type":  "text/javascript"
-                                                  }
-                                   }
-                               ],
-                     "request":  {
-                                     "description":  "Creates a new membership plan for the current gym. `gymId` and `createdByPersonId` are resolved from the authenticated user.\n\n### Request Fields (`MembershipPlanCDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `name` | `string` | Yes | Plan name (max 100 chars) |\n| `description` | `string?` | No | Plan description (max 500 chars) |\n| `durationDays` | `int` | Yes | Must be greater than zero |\n| `price` | `decimal` | Yes | Must be non-negative |\n| `freezeDaysLimit` | `int` | Yes | Must be non-negative |\n| `attendanceLimit` | `int?` | No | Max allowed attendances |\n\nReturns `201 Created` with `Result<MembershipPlanRDTO>`.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
-                                     "method":  "POST",
-                                     "header":  [
-                                                    {
-                                                        "key":  "Content-Type",
-                                                        "value":  "application/json"
-                                                    }
-                                                ],
-                                     "body":  {
-                                                  "mode":  "raw",
-"raw": "{\n  \"name\": \"Monthly Premium\",\n  \"description\": \"Unlimited gym access for one month\",\n  \"durationDays\": 30,\n  \"price\": 499.00\n}"
-                                              },
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/MembershipPlans/Create",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "MembershipPlans",
-                                                              "Create"
-                                                          ]
-                                             }
-                                 },
-                     "response":  [
-
-                                  ]
-                 },
-                 {
-                     "name":  "Update Membership Plan",
-                     "request":  {
-                                     "description":  "Updates an existing membership plan by ID. `createdByPersonId` is preserved from the existing record.\n\n### Request Fields (`MembershipPlanUDTO`)\n\nSame fields as Create: `name`, `description`, `durationDays`, `price`, `freezeDaysLimit`, `attendanceLimit`.\n\nReturns `Result<MembershipPlanRDTO>`.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
-                                     "method":  "PUT",
-                                     "header":  [
-                                                    {
-                                                        "key":  "Content-Type",
-                                                        "value":  "application/json"
-                                                    }
-                                                ],
-                                     "body":  {
-                                                  "mode":  "raw",
-"raw": "{\n  \"name\": \"Monthly Premium Plus\",\n  \"description\": \"Unlimited gym access with freezes\",\n  \"durationDays\": 30,\n  \"price\": 599.00\n}"
-                                              },
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/MembershipPlans/{{membershipPlanId}}",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "MembershipPlans",
-                                                              "{{membershipPlanId}}"
-                                                          ]
-                                             }
-                                 },
-                     "response":  [
-
-                                  ]
-                 },
-                 {
-                     "name":  "Delete Membership Plan",
-                     "request":  {
-                                     "description":  "Soft-deletes a membership plan by ID.\n\nReturns `Result<MembershipPlanRDTO>`.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
-                                     "method":  "DELETE",
-                                     "header":  [
-
-                                                ],
-                                     "url":  {
-                                                 "raw":  "{{baseUrl}}/api/MembershipPlans/{{membershipPlanId}}",
-                                                 "host":  [
-                                                              "{{baseUrl}}"
-                                                          ],
-                                                 "path":  [
-                                                              "api",
-                                                              "MembershipPlans",
-                                                              "{{membershipPlanId}}"
-                                                          ]
-                                             }
-                                 },
-                     "response":  [
-
-                                  ]
-                 }
-             ],
-"auth":  {
-                  "type":  "bearer",
-                  "bearer":  [
-                                 {
-                                     "key":  "token",
-                                     "value":  "{{user1_token}}",
-                                     "type":  "string"
-                                 }
-                             ]
-              }
+    "info": {
+        "_postman_id": "c01a2b3c-4d5e-4f6a-8b9c-0d1e2f3a4b5c",
+        "name": "10 - Membership Plans",
+        "description": "Endpoints to manage gym membership plans (durations, pricing, freeze limits, attendance limits).",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get Paged Membership Plans",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
+                            "    pm.environment.set(\"membershipPlanId\", jsonData.data.items[0].id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "### Endpoint Overview\n\nFetches a paginated list of membership plans for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `Name` | `string` | Searchable | Plan name (max 100 chars) |\n| `Description` | `string` | Searchable | Plan description (max 500 chars) |\n| `DurationDays` | `int` | Exact | Membership duration in days |\n| `Price` | `decimal` | Between | Plan price |\n| `FreezeDaysLimit` | `int` | Exact | Allowed freeze days |\n| `AttendanceLimit` | `int` | - | Max attendances (nullable) |\n| `CreatedByPersonId` | `int` | Exact | Creator gym person ID |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"DurationDays\": [\"30\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"Price\": { \"min\": \"100\", \"max\": \"1000\" } }`\n\n---\n\n### Authorization\n\nRequires gym membership with role `Owner`, `Manager`, `Receptionist`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/MembershipPlans",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "MembershipPlans"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Membership Plan By Id",
+            "request": {
+                "description": "Fetches a single membership plan by ID.\n\n### Response (`MembershipPlanRDTO`)\n\n| Field | Type | Description |\n| :--- | :--- | :--- |\n| `id` | `int` | Unique identifier |\n| `gymId` | `int` | Associated gym ID |\n| `name` | `string` | Plan name |\n| `description` | `string?` | Plan description |\n| `durationDays` | `int` | Duration in days |\n| `price` | `decimal` | Plan price |\n| `freezeDaysLimit` | `int` | Allowed freeze days |\n| `attendanceLimit` | `int?` | Max attendances |\n| `createdByPersonId` | `int` | Creator gym person ID |\n| `createdOn` | `DateTime` | ISO creation date |\n\nRequires gym membership (`GymAuthorize`, any role). SuperAdmin bypasses all gym checks.",
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/MembershipPlans/{{membershipPlanId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "MembershipPlans",
+                        "{{membershipPlanId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Create Membership Plan",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 201\", function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
+                            "    pm.environment.set(\"membershipPlanId\", jsonData.data.id);",
+                            "}"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "description": "Creates a new membership plan for the current gym. `gymId` and `createdByPersonId` are resolved from the authenticated user.\n\n### Request Fields (`MembershipPlanCDTO`)\n\n| Field | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `name` | `string` | Yes | Plan name (max 100 chars) |\n| `description` | `string?` | No | Plan description (max 500 chars) |\n| `durationDays` | `int` | Yes | Must be greater than zero |\n| `price` | `decimal` | Yes | Must be non-negative |\n| `freezeDaysLimit` | `int` | Yes | Must be non-negative |\n| `attendanceLimit` | `int?` | No | Max allowed attendances |\n\nReturns `201 Created` with `Result<MembershipPlanRDTO>`.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"name\": \"Monthly Premium\",\n  \"description\": \"Unlimited gym access for one month\",\n  \"durationDays\": 30,\n  \"price\": 499.00\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/MembershipPlans/Create",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "MembershipPlans",
+                        "Create"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Update Membership Plan",
+            "request": {
+                "description": "Updates an existing membership plan by ID. `createdByPersonId` is preserved from the existing record.\n\n### Request Fields (`MembershipPlanUDTO`)\n\nSame fields as Create: `name`, `description`, `durationDays`, `price`, `freezeDaysLimit`, `attendanceLimit`.\n\nReturns `Result<MembershipPlanRDTO>`.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"name\": \"Monthly Premium Plus\",\n  \"description\": \"Unlimited gym access with freezes\",\n  \"durationDays\": 30,\n  \"price\": 599.00\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/MembershipPlans/{{membershipPlanId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "MembershipPlans",
+                        "{{membershipPlanId}}"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Delete Membership Plan",
+            "request": {
+                "description": "Soft-deletes a membership plan by ID.\n\nReturns `Result<MembershipPlanRDTO>`.\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/MembershipPlans/{{membershipPlanId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "MembershipPlans",
+                        "{{membershipPlanId}}"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{user1_token}}",
+                "type": "string"
+            }
+        ]
+    }
 }

@@ -35,6 +35,5 @@ namespace Domain.Model
         public string? VideoUrl { get; set; }
 
         public bool IsApproved { get; set; } = false;
-        public bool IsActive { get; set; } = true;
     }
 }

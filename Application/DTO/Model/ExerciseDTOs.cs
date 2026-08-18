@@ -60,6 +60,5 @@ namespace Application.DTO.Model
         public DifficultyLevel DifficultyLevel { get; set; }
         public string? VideoUrl { get; set; }
         public bool IsApproved { get; set; }
-        public bool IsActive { get; set; }
     }
 }

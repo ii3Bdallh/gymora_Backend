@@ -27,7 +27,7 @@
                 }
             ],
             "request": {
-                "description": "### Endpoint Overview\n\nFetches a paginated list of gyms with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Name` | `string` | Searchable | Gym name |\n| `Description` | `string` | - | Optional description |\n| `PhoneNumber` | `string` | - | Contact phone |\n| `Email` | `string` | - | Contact email |\n| `AddressLine1` | `string` | - | Main address line |\n| `AddressLine2` | `string` | - | Secondary address line |\n| `City` | `string` | - | City |\n| `State` | `string` | - | State |\n| `PostalCode` | `string` | - | Postal/Zip code |\n| `Latitude` | `decimal` | Between | Geographical latitude |\n| `Longitude` | `decimal` | Between | Geographical longitude |\n| `Status` | `Enum (int)` | Exact | `1` = Active, `2` = Inactive, etc. |\n| `FileUrl` | `string` | - | URL to gym logo/image |\n| `CreatedOn` | `DateTime` | Between | ISO format creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"Status\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"Latitude\": { \"min\": \"30.0\", \"max\": \"31.0\" } }`",
+                "description": "### Endpoint Overview\n\nFetches a paginated list of gyms with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Name` | `string` | Searchable | Gym name |\n| `Description` | `string` | - | Optional description |\n| `PhoneNumber` | `string` | - | Contact phone |\n| `Email` | `string` | - | Contact email |\n| `AddressLine1` | `string` | - | Main address line |\n| `AddressLine2` | `string` | - | Secondary address line |\n| `City` | `string` | - | City |\n| `State` | `string` | - | State |\n| `PostalCode` | `string` | - | Postal/Zip code |\n| `Latitude` | `decimal` | Between | Geographical latitude |\n| `Longitude` | `decimal` | Between | Geographical longitude |\n| `Status` | `Enum (int)` | Exact | `1` = Active, `2` = Inactive, etc. |\n| `FileUrl` | `string` | - | URL to gym logo/image |\n| `CreatedOn` | `DateTime` | Between | ISO format creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"Status\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"Latitude\": { \"min\": \"30.0\", \"max\": \"31.0\" } }`",
                 "method": "POST",
                 "header": [
                     {
@@ -454,11 +454,11 @@
         {
             "name": "Get User Gyms",
             "request": {
-                "description": "Fetches the current user's gyms (workspaces) with pagination and a status filter.\n\n### Query Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `pageNumber` | `int` | No | Page number (default `1`) |\n| `pageSize` | `int` | No | Page size (default `10`, max `50`) |\n| `orderBy` | `string` | No | Sort field (default `Id`) |\n| `orderDirection` | `string` | No | `asc` or `desc` |\n| `isActive` | `bool` | No | Filter by active status |\n| `searchTerm` | `string?` | No | Free-text search |\n| `statusFilter` | `string?` | No | Gym status: `Active`, `Expired`, `Locked`, `Blocked` |\n\n### Response\n\nReturns `UserGymsListRDTO` with `gyms`, `hasActivePlatformSubscription`, `totalCount`, `pageNumber`, and `pageSize`. Each gym contains `gymId`, `gymName`, `logoUrl`, `role`, `gymStatus`, `isAccessible`, and `inaccessibleReason`.",
+                "description": "Fetches the current user's gyms (workspaces) with pagination and a status filter.\n\n### Query Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `pageNumber` | `int` | No | Page number (default `1`) |\n| `pageSize` | `int` | No | Page size (default `10`, max `50`) |\n| `orderBy` | `string` | No | Sort field (default `Id`) |\n| `orderDirection` | `string` | No | `asc` or `desc` |\n| `searchTerm` | `string?` | No | Free-text search |\n| `statusFilter` | `string?` | No | Gym status: `Active`, `Expired`, `Locked`, `Blocked` |\n\n### Response\n\nReturns `UserGymsListRDTO` with `gyms`, `hasActivePlatformSubscription`, `totalCount`, `pageNumber`, and `pageSize`. Each gym contains `gymId`, `gymName`, `logoUrl`, `role`, `gymStatus`, `isAccessible`, and `inaccessibleReason`.",
                 "method": "GET",
                 "header": [],
                 "url": {
-                    "raw": "{{baseUrl}}/api/Gym/user-gyms?pageNumber=1&pageSize=10&orderBy=Id&orderDirection=asc&isActive=true",
+                    "raw": "{{baseUrl}}/api/Gym/user-gyms?pageNumber=1&pageSize=10&orderBy=Id&orderDirection=asc",
                     "host": [
                         "{{baseUrl}}"
                     ],
@@ -483,10 +483,6 @@
                         {
                             "key": "orderDirection",
                             "value": "asc"
-                        },
-                        {
-                            "key": "isActive",
-                            "value": "true"
                         },
                         {
                             "key": "searchTerm",

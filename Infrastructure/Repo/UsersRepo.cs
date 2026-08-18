@@ -39,7 +39,6 @@ bool trackChanges = false)
                 ? DbSet
                 : DbSet.AsNoTracking();
 
-            // query = query.Where(x => x.IsActive == isActive);
 
 
             return query;

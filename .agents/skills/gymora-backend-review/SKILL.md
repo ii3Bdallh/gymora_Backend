@@ -52,6 +52,9 @@ For the given controller, identify and trace all connected files across the laye
 * **EF Core Mappings & Indexes**:
   * Ensure correct configuration in `Infrastructure/Configurations/` for keys, foreign keys, and cascade paths (using `DeleteBehavior.Restrict` where loops/cycles are possible).
   * Check that composite indexes (like `(GymId, Status)`) are defined *only* if they are justified by actual query filters. Do not duplicate primary key or simple unique indexes.
+* **Postman Sync on Schema/Filter Changes**:
+  * If any modifications are made to model search/filter attributes (`[Searchable]`, `[Filterable]`), response DTO properties, or endpoint validations, ensure the corresponding Postman collection file in `Postman/` is updated.
+  * Specifically, update the markdown table inside the description of the `GetPaged` endpoint, adjust request body structures, and run `python generate_collection.py` to rebuild `Gymora Complete Collection.postman_collection.json`.
 
 ### 2.3. Shared Interfaces Enforcement
 * **`IOnlyMeCanSee`**:
@@ -101,6 +104,12 @@ For the given controller, identify and trace all connected files across the laye
   2. Map it to the appropriate HTTP status code inside `Api/Middlewares/ExceptionHandlingMiddleware.cs`.
 
 ### 2.8. Security, Rate Limiting & Auth Flow Review
+* **Controller Response Wrapper**:
+  * Every controller action/endpoint must return a wrapped `Result` or `Result<T>` response (e.g., `Task<ActionResult<Result<T>>>` or `Task<ActionResult<Result>>`). Direct un-wrapped DTOs, primitive types, or raw objects must not be returned.
+* **Mandatory Authorization Scoping**:
+  * Verify that every controller class or action endpoint enforces authorization. No action should be left unsecured unless explicitly marked with `[AllowAnonymous]`.
+  * Platform/Application-wide actions targeting system roles (e.g., `SuperAdmin`, standard `User`) must use the standard ASP.NET Core `[Authorize]` attribute (e.g., `[Authorize(Roles = $"{AppRole.SuperAdmin}")]`, `[Authorize]`, or `[AllowAnonymous]`).
+  * Gym/Tenant-scoped actions must use the custom `[GymAuthorize]` filter attribute (e.g., `[GymAuthorize]` or `[GymAuthorize(GymRoleString.Owner)]`) to validate gym membership and gym-specific roles.
 * **Rate Limiting**:
   * Ensure rate limiting policies (e.g., `[EnableRateLimiting("Ip_5Limit_1Min")]`) are applied to all public endpoints (login, registration) and sensitive flows (OTP verification/resending, password resets, and changes).
 * **Claims Validation & Body Spoofing**:

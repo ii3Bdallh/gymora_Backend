@@ -1,5 +1,6 @@
 using Domain.Attributes;
 using Domain.Enum;
+using Domain.Interface;
 using Domain.Model.Base;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace Domain.Model
 {
   // Dont Forget to add [Searchable] , [Filterable] , 
   // Dont Forget to add Config , UDTO , CDTO , RDTO
-  public class Coupon : BaseEntity
+  public class Coupon : BaseEntity, ICacheableEntity
   {
     [Searchable]
     public string Code { get; set; } = null!;
@@ -39,6 +40,7 @@ namespace Domain.Model
     [Filterable(FilterType.Between)]
     public DateTime ValidTo { get; set; }
 
+    [Filterable(FilterType.Exact)]
     public bool IsFirstPurchaseOnly { get; set; }
 
     [Timestamp]

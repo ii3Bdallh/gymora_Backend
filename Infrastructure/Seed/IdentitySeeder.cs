@@ -55,7 +55,6 @@ public sealed class IdentitySeeder
                 Email = superAdminEmail,
                 PersonName = "Super Admin",
                 EmailConfirmed = true,
-                IsActive = true,
                 CreatedOn = DateTime.UtcNow,
 
             };
@@ -76,7 +75,6 @@ public sealed class IdentitySeeder
                 Email = user1Email,
                 PersonName = "User One",
                 EmailConfirmed = true,
-                IsActive = true,
                 CreatedOn = DateTime.UtcNow
             };
             var result = await _userManager.CreateAsync(user1, password);
@@ -95,7 +93,6 @@ public sealed class IdentitySeeder
                 Email = user2Email,
                 PersonName = "User Two",
                 EmailConfirmed = true,
-                IsActive = true,
                 CreatedOn = DateTime.UtcNow
             };
             var result = await _userManager.CreateAsync(user2, password);

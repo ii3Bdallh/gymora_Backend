@@ -17,7 +17,7 @@
                             "    pm.response.to.have.status(200);",
                             "});",
                             "var jsonData = pm.response.json();",
-                            "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
+                            "if (jsonData && jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
                             "    pm.environment.set(\"gymPersonId\", jsonData.data.items[0].id);",
                             "    pm.environment.set(\"gymPersonInviteCode\", jsonData.data.items[0].inviteCode);",
                             "}"
@@ -27,7 +27,7 @@
                 }
             ],
             "request": {
-                "description": "### Endpoint Overview\n\nFetches a paginated list of gym persons (staff and members) with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `UserId` | `int` | Exact | Associated User Account ID (Nullable) |\n| `PersonType` | `Enum (int)` | Exact | `0` = Staff, `1` = Member, `2` = StaffMember |\n| `Name` | `string` | Searchable | Full name of the person |\n| `PhoneNumber` | `string` | Searchable | Contact phone |\n| `Email` | `string` | Searchable | Contact email (Nullable) |\n| `Gender` | `string` | - | Gender (Nullable) |\n| `DateOfBirth` | `DateTime` | - | Date of birth (Nullable) |\n| `PhotoUrl` | `string` | - | Photo URL (Nullable) |\n| `InviteCode` | `Guid` | - | Invitation code for linking user accounts |\n| `CreatedOn` | `DateTime` | Between | ISO format creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n| `UpdatedAt` | `DateTime` | - | Last update timestamp |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"PersonType\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym membership with role `Owner`, `Manager`, `Coach`, or `Receptionist`. SuperAdmin bypasses all gym checks.",
+                "description": "### Endpoint Overview\n\nFetches a paginated list of gym persons (staff and members) with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `UserId` | `int` | Exact | Associated User Account ID (Nullable) |\n| `PersonType` | `Enum (int)` | Exact | `0` = Staff, `1` = Member, `2` = StaffMember |\n| `Name` | `string` | Searchable | Full name of the person |\n| `PhoneNumber` | `string` | Searchable | Contact phone |\n| `Email` | `string` | Searchable | Contact email (Nullable) |\n| `Gender` | `string` | - | Gender (Nullable) |\n| `DateOfBirth` | `DateTime` | - | Date of birth (Nullable) |\n| `PhotoUrl` | `string` | - | Photo URL (Nullable) |\n| `InviteCode` | `Guid` | - | Invitation code for linking user accounts |\n| `CreatedOn` | `DateTime` | Between | ISO format creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n| `UpdatedAt` | `DateTime` | - | Last update timestamp |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"PersonType\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym membership with role `Owner`, `Manager`, `Coach`, or `Receptionist`. SuperAdmin bypasses all gym checks.",
                 "method": "POST",
                 "header": [
                     {
@@ -83,7 +83,7 @@
                             "    pm.response.to.have.status(200);",
                             "});",
                             "var jsonData = pm.response.json();",
-                            "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
                             "    pm.environment.set(\"gymPersonId\", jsonData.data.id);",
                             "    pm.environment.set(\"gymPersonInviteCode\", jsonData.data.inviteCode);",
                             "}"
@@ -155,7 +155,7 @@
                 "method": "POST",
                 "header": [],
                 "url": {
-                    "raw": "{{baseUrl}}/api/GymPerson/LinkAccountToGym?gymId={{gymId}}\u0026inviteCode={{gymPersonInviteCode}}",
+                    "raw": "{{baseUrl}}/api/GymPerson/LinkAccountToGym?gymId={{gymId}}&inviteCode={{gymPersonInviteCode}}",
                     "host": [
                         "{{baseUrl}}"
                     ],
@@ -185,7 +185,7 @@
                 "method": "POST",
                 "header": [],
                 "url": {
-                    "raw": "{{baseUrl}}/api/GymPerson/{{gymPersonId}}/pay-salary?salaryValidFrom=2026-01-01\u0026salaryValidUntil=2026-12-31",
+                    "raw": "{{baseUrl}}/api/GymPerson/{{gymPersonId}}/pay-salary?salaryValidFrom=2026-01-01&salaryValidUntil=2026-12-31",
                     "host": [
                         "{{baseUrl}}"
                     ],

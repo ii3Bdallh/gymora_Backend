@@ -13,7 +13,6 @@ namespace Application.Interface.Repo
     {
         Task<Coupon?> GetByCodeAsync(string code, CancellationToken ct = default);
 
-        Coupon IncrementUsageAsync(Coupon entity, CancellationToken ct = default);
 
 
 
