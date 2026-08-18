@@ -89,6 +89,8 @@ namespace Application.DTO.Model
 
         public GymStatus Status { get; set; }
 
+        public int OwnerUserId { get; set; }
+        public ApplicationUserRDTO? OwnerUser { get; set; }
     }
 
     public sealed class SwitchGymRequest

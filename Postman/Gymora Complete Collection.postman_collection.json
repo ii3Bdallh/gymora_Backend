@@ -1,6 +1,6 @@
 {
     "info": {
-        "_postman_id": "3e2096ff-fe6f-41ab-b9be-cf5b648ccc2b",
+        "_postman_id": "433d51dc-6970-4256-a118-26d07cebd863",
         "name": "Gymora Complete Collection",
         "description": "Complete Gymora Backend Integration Test Suite.\n\n## Structure\n- **00 - Authentication & Setup**: Login, Switch Gym, Token management\n- **API Endpoints**: All 25 controllers, 133 endpoints\n- **01 - CRUD Verification**: Full lifecycle tests\n- **02 - Security & Isolation Boundaries**: Multi-tenant and Ownership tests\n- **03 - Caching & Auditing**: Cache behavior tests\n- **04 - Creative User Stories**: End-to-end business flows\n\n## Prerequisites\n1. Select **Development** environment\n2. Run **00 - Authentication & Setup** first\n3. Run **Switch Gym** requests\n\n## Variables\n- `{{baseUrl}}`: API base URL\n- `{{user1_token}}`, `{{user2_token}}`, `{{superAdmin_token}}`: Auth tokens\n- `{{gymId}}`: Active gym context\n- `last<EntityName>Id`: Auto-captured entity IDs",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
