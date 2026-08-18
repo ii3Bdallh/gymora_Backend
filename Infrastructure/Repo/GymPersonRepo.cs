@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Application.DTO;
 using Application.DTO.Pagintion;
 using Domain.Enum;
+using System.Management;
 
 namespace Infrastructure.Repo
 {
@@ -46,6 +47,12 @@ namespace Infrastructure.Repo
             include ??= Includes();
             return base.GetByIdAsync(id, trackChanges, cancellationToken, include);
         }
+
+        public override Task<GymPerson?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return base.GetByIdAsync(id, false, cancellationToken, Includes());
+        }
+
 
 
 
@@ -112,11 +119,11 @@ namespace Infrastructure.Repo
         {
             var now = DateTime.UtcNow;
             return await DbSet
-                .Where(x => x.GymId == gymId && 
-                            x.PersonType == PersonType.Member && 
-                            x.MemberProfile != null && 
-                            x.MemberProfile.MembershipEndDate.HasValue && 
-                            x.MemberProfile.MembershipEndDate.Value > now && 
+                .Where(x => x.GymId == gymId &&
+                            x.PersonType == PersonType.Member &&
+                            x.MemberProfile != null &&
+                            x.MemberProfile.MembershipEndDate.HasValue &&
+                            x.MemberProfile.MembershipEndDate.Value > now &&
                             x.AccessStatus == GymPersonAccessStatus.Active)
                 .CountAsync(ct);
         }
@@ -125,10 +132,10 @@ namespace Infrastructure.Repo
         {
             var now = DateTime.UtcNow;
             return await DbSet
-                .Where(x => x.GymId == gymId && 
-                            x.PersonType == PersonType.Member && 
-                            x.MemberProfile != null && 
-                            (!x.MemberProfile.MembershipEndDate.HasValue || x.MemberProfile.MembershipEndDate.Value <= now) && 
+                .Where(x => x.GymId == gymId &&
+                            x.PersonType == PersonType.Member &&
+                            x.MemberProfile != null &&
+                            (!x.MemberProfile.MembershipEndDate.HasValue || x.MemberProfile.MembershipEndDate.Value <= now) &&
                             x.AccessStatus == GymPersonAccessStatus.Active)
                 .CountAsync(ct);
         }

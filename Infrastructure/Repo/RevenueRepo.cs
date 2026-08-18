@@ -22,24 +22,24 @@ namespace Infrastructure.Repo
             return query => query.Include(x => x.GymMember);
         }
 
-        public override async Task<PaginatedRes<Revenue>> GetPageAsync(
+        public override  Task<PaginatedRes<Revenue>> GetPageAsync(
             PaginatedSearchReq searchReq,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<Revenue>, IQueryable<Revenue>>? include = null)
         {
             include ??= Includes();
-            return await base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
+            return  base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
 
-        public override async Task<Revenue?> GetByIdAsync(
+        public override  Task<Revenue?> GetByIdAsync(
             int id,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<Revenue>, IQueryable<Revenue>>? include = null)
         {
             include ??= Includes();
-            return await base.GetByIdAsync(id, trackChanges, cancellationToken, include);
+            return  base.GetByIdAsync(id, trackChanges, cancellationToken, include);
         }
     }
 }

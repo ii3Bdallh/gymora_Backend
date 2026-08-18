@@ -10,6 +10,8 @@ namespace Domain.Model
 {
     public class GymPerson : BaseGymEntity, IAuditableEntity
     {
+        [Filterable(FilterType.Exact)]
+
         public int? UserId { get; set; } // FK -> ApplicationUser, nullable: unregistered person
 
         public ApplicationUser? User { get; set; } // Navigation property to ApplicationUser
@@ -44,6 +46,7 @@ namespace Domain.Model
         public ApplicationUser? CreatedBy { get; set; }
 
 
+        [Filterable(FilterType.Exact)]
         public GymPersonAccessStatus AccessStatus { get; set; }
 
         [Timestamp]

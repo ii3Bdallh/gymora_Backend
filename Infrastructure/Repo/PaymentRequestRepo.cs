@@ -25,14 +25,14 @@ namespace Infrastructure.Repo
             return query => query.Include(x => x.Plan).Include(x => x.PlanPrice).Include(x => x.Coupon);
         }
 
-        public override async Task<PaymentRequest?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+        public override  Task<PaymentRequest?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
         {
-            return await base.GetByIdAsync(id, false, cancellationToken, Includes());
+            return  base.GetByIdAsync(id, false, cancellationToken, Includes());
         }
 
-        public async Task<bool> HasPendingRequestAsync(int UserId, CancellationToken ct = default)
+        public  Task<bool> HasPendingRequestAsync(int UserId, CancellationToken ct = default)
         {
-            return await DbSet.AnyAsync(x =>
+            return  DbSet.AnyAsync(x =>
                 x.CreatedById == UserId &&
                 x.Status == PaymentRequestStatus.Pending, ct);
         }

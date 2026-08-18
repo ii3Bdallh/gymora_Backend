@@ -40,24 +40,24 @@ namespace Infrastructure.Repo
             return query;
         }
 
-        public override async Task<PaginatedRes<CoachAssignment>> GetPageAsync(
+        public override  Task<PaginatedRes<CoachAssignment>> GetPageAsync(
             PaginatedSearchReq searchReq,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<CoachAssignment>, IQueryable<CoachAssignment>>? include = null)
         {
             include ??= Includes();
-            return await base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
+            return  base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
 
-        public override async Task<CoachAssignment?> GetByIdAsync(
+        public override  Task<CoachAssignment?> GetByIdAsync(
             int id,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<CoachAssignment>, IQueryable<CoachAssignment>>? include = null)
         {
             include ??= Includes();
-            return await base.GetByIdAsync(id, trackChanges, cancellationToken, include);
+            return  base.GetByIdAsync(id, trackChanges, cancellationToken, include);
         }
 
     }

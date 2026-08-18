@@ -67,7 +67,7 @@ ENTITY_MAP = {
 
 FILTER_MAP = {
     "Gym": {"search_term": "Fitness", "order_by": "Name", "between_filters": '"Latitude": {"min":"29.9","max":"31.0"},"Longitude": {"min":"31.0","max":"32.0"}', "exact_filters": '"Status": ["1"]'},
-    "GymPerson": {"search_term": "Member", "order_by": "Name", "between_filters": "", "exact_filters": '"PersonType": ["0"]'},
+    "GymPerson": {"search_term": "Member", "order_by": "Name", "between_filters": "", "exact_filters": '"PersonType": ["0"],"AccessStatus": ["1"]'},
     "Membership Plans": {"search_term": "Premium", "order_by": "Name", "between_filters": '"Price": {"min":"10.0","max":"100.0"}', "exact_filters": '"DurationDays": ["30"]'},
     "Revenues": {"search_term": "", "order_by": "RevenueDate", "between_filters": '"RevenueDate": {"min":"2026-01-01T00:00:00Z","max":"2026-12-31T23:59:59Z"}', "exact_filters": '"RevenueCategory": ["0"]'},
     "Expenses": {"search_term": "", "order_by": "ExpenseDate", "between_filters": '"ExpenseDate": {"min":"2026-01-01T00:00:00Z","max":"2026-12-31T23:59:59Z"}', "exact_filters": '"ExpenseCategory": ["0"]'},

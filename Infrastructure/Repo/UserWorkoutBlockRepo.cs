@@ -21,24 +21,24 @@ namespace Infrastructure.Repo
             return query => query.Include(x => x.BlockedUser);
         }
 
-        public override async Task<PaginatedRes<UserWorkoutBlock>> GetPageAsync(
+        public override  Task<PaginatedRes<UserWorkoutBlock>> GetPageAsync(
             PaginatedSearchReq searchReq,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<UserWorkoutBlock>, IQueryable<UserWorkoutBlock>>? include = null)
         {
             include ??= Includes();
-            return await base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
+            return  base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
 
-        public override async Task<UserWorkoutBlock?> GetByIdAsync(
+        public override  Task<UserWorkoutBlock?> GetByIdAsync(
             int id,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<UserWorkoutBlock>, IQueryable<UserWorkoutBlock>>? include = null)
         {
             include ??= Includes();
-            return await base.GetByIdAsync(id, trackChanges, cancellationToken, include);
+            return  base.GetByIdAsync(id, trackChanges, cancellationToken, include);
         }
     }
 }

@@ -33,14 +33,14 @@ namespace Infrastructure.Repo
             return await base.GetByIdAsync(id, trackChanges, cancellationToken, include);
         }
 
-        public override async Task<PaginatedRes<MemberWorkoutPlan>> GetPageAsync(
+        public override  Task<PaginatedRes<MemberWorkoutPlan>> GetPageAsync(
             PaginatedSearchReq searchReq,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<MemberWorkoutPlan>, IQueryable<MemberWorkoutPlan>>? include = null)
         {
             // include ??= Includes();
-            return await base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
+            return  base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
     }
 }

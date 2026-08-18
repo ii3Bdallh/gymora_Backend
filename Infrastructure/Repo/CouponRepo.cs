@@ -19,9 +19,9 @@ namespace Infrastructure.Repo
     public class CouponRepo(ApplicationDbContext context, ILogger<CouponRepo> logger, QueryCache queryCache)
     : BaseRepo<Coupon>(context, logger, queryCache), ICouponRepo
     {
-        public async Task<Coupon?> GetByCodeAsync(string code, CancellationToken ct = default)
+        public  Task<Coupon?> GetByCodeAsync(string code, CancellationToken ct = default)
         {
-            return await DbSet
+            return  DbSet
                 .FirstOrDefaultAsync(x => x.Code.ToUpper() == code.ToUpper(), ct);
         }
 

@@ -24,9 +24,9 @@ namespace Infrastructure.Repo
             return query => query.Include(x => x.Coupon).Include(x => x.PaymentRequest);
         }
 
-        public override async Task<CouponRedemption?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+        public override  Task<CouponRedemption?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
         {
-            return await base.GetByIdAsync(id, false, cancellationToken, Includes());
+            return  base.GetByIdAsync(id, false, cancellationToken, Includes());
         }
     }
 }

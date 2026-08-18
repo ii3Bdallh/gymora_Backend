@@ -42,21 +42,21 @@ namespace Infrastructure.Repo
             return query.OrderByDescending(x => x.CheckInTime);
         }
 
-        public override async Task<PaginatedRes<Attendance>> GetPageAsync(
+        public override  Task<PaginatedRes<Attendance>> GetPageAsync(
             PaginatedSearchReq searchReq,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<Attendance>, IQueryable<Attendance>>? include = null)
         {
             include ??= Includes();
-            return await base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
+            return  base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
 
 
-        public override async Task<Attendance?> GetByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<Attendance>, IQueryable<Attendance>>? include = null)
+        public override  Task<Attendance?> GetByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<Attendance>, IQueryable<Attendance>>? include = null)
         {
             include ??= Includes();
-            return await base.GetByIdAsync(id, trackChanges, cancellationToken, include);
+            return  base.GetByIdAsync(id, trackChanges, cancellationToken, include);
         }
 
         public async Task<int> GetTodayCheckInsCountAsync(int gymId, CancellationToken ct = default)

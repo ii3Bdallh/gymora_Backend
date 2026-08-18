@@ -17,16 +17,15 @@ namespace Application.DTO
             // Script will Add After Here MapperConfig
 
             CreateMap<GymPerson, GymPersonRDTO>()
-                .IncludeBase<BaseEntity, BaseRDTO>()
+                .IncludeBase<BaseGymEntity, BaseGymRDTO>()
                 .ReverseMap();
 
-            CreateMap<GymPerson, GymPersonCDTO>()
-                .IncludeBase<BaseEntity, BaseCDTO>()
-                .ReverseMap();
+            CreateMap<GymPersonCDTO, GymPerson>()
+                .IncludeBase<BaseGymCDTO, BaseGymEntity>();
 
-            CreateMap<GymPerson, GymPersonUDTO>()
-                .IncludeBase<BaseEntity, BaseUDTO>()
-                .ReverseMap();
+            CreateMap<GymPersonUDTO, GymPerson>()
+                .IncludeBase<BaseGymUDTO, BaseGymEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<GymStaffProfile, GymStaffProfileRDTO>().ReverseMap();
             CreateMap<GymStaffProfile, GymStaffProfileCDTO>().ReverseMap();

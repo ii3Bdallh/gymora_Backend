@@ -24,9 +24,9 @@ namespace Infrastructure.Repo
             return query => query.Include(x => x.Plan).Include(x => x.PlanPrice).Include(x => x.PaymentRequest);
         }
 
-        public override async Task<OwnerSubscription?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+        public override  Task<OwnerSubscription?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
         {
-            return await base.GetByIdAsync(id, false, cancellationToken, Includes());
+            return  base.GetByIdAsync(id, false, cancellationToken, Includes());
         }
 
         public async Task<bool> HasActiveSubscriptionAsync(int ownerUserId, CancellationToken ct = default)
