@@ -60,7 +60,7 @@ public class CouponRedemptionControllerTests
     public async Task GetByIdAsync_ShouldReturnOk_WhenEntityExists()
     {
         var entity = new CouponRedemptionRDTO { Id = 1, CouponId = 1, PaymentRequestId = 1, DiscountAmount = 10m };
-        _service.Setup(s => s.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+        _service.Setup(s => s.GetByIdDetailsAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(entity);
 
         var result = await _sut.GetByIdAsync(1);

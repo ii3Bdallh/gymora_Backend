@@ -31,7 +31,7 @@ namespace Api.Controllers
         {
             logger.LogInformation("Fetching PaymentRequest with Id: {Id}", id);
 
-            var PaymentRequest = await service.GetByIdAsync(id, false, cancellationToken: cancellationToken);
+            var PaymentRequest = await service.GetByIdDetailsAsync(id, cancellationToken);
 
             logger.LogInformation("Successfully fetched PaymentRequest with Id: {Id}", id);
             return Ok(Result<PaymentRequestRDTO>.Success(PaymentRequest));

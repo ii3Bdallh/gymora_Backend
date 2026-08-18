@@ -12,11 +12,21 @@ using Google;
 using Infrastructure.Persistence;
 using Infrastructure.Cache;
 using Application.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repo
 {
-    public class CouponRedemptionRepo(ApplicationDbContext context, ILogger<CouponRedemptionRepo> logger, QueryCache queryCache , CurrentUser currentUser)
+    public class CouponRedemptionRepo(ApplicationDbContext context, ILogger<CouponRedemptionRepo> logger, QueryCache queryCache, CurrentUser currentUser)
     : BaseAuditableRepo<CouponRedemption>(context, logger, queryCache, currentUser), ICouponRedemptionRepo
     {
+        protected override Func<IQueryable<CouponRedemption>, IQueryable<CouponRedemption>>? Includes()
+        {
+            return query => query.Include(x => x.Coupon).Include(x => x.PaymentRequest);
+        }
+
+        public override async Task<CouponRedemption?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return await base.GetByIdAsync(id, false, cancellationToken, Includes());
+        }
     }
 }

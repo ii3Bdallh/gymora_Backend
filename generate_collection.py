@@ -86,7 +86,7 @@ FILTER_MAP = {
     "User Workout Blocks": {"search_term": "", "order_by": "Id", "between_filters": "", "exact_filters": ""},
     "Session Exercises": {"search_term": "", "order_by": "OrderIndex", "between_filters": "", "exact_filters": ""},
     "OwnerSubscription": {"search_term": "", "order_by": "Id", "between_filters": '"StartDate": {"min":"2026-01-01T00:00:00Z","max":"2026-12-31T23:59:59Z"}', "exact_filters": '"CurrencyCode": ["USD"]'},
-    "CouponRedemption": {"search_term": "", "order_by": "Id", "between_filters": "", "exact_filters": ""},
+    "CouponRedemption": {"search_term": "", "order_by": "Id", "between_filters": '"DiscountAmount": {"min":"1.0","max":"100.0"}', "exact_filters": '"CouponId": ["1"]'},
     "Users": {"search_term": "", "order_by": "Id", "between_filters": "", "exact_filters": ""},
     "Test": {"search_term": "", "order_by": "Id", "between_filters": "", "exact_filters": ""},
 }

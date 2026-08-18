@@ -30,7 +30,7 @@ namespace Api.Controllers
         {
             logger.LogInformation("Fetching CouponRedemption with Id: {Id}", id);
 
-            var CouponRedemption = await service.GetByIdAsync(id, false, cancellationToken: cancellationToken);
+            var CouponRedemption = await service.GetByIdDetailsAsync(id, cancellationToken);
 
             logger.LogInformation("Successfully fetched CouponRedemption with Id: {Id}", id);
             return Ok(Result<CouponRedemptionRDTO>.Success(CouponRedemption));

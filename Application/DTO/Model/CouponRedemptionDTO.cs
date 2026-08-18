@@ -18,5 +18,9 @@ namespace Application.DTO.Model
         public int CouponId { get; set; }
         public int PaymentRequestId { get; set; }
         public decimal DiscountAmount { get; set; }
+
+        public CouponRDTO? Coupon { get; set; }
+
+        public PaymentRequestRDTO? PaymentRequest { get; set; }
     }
 }

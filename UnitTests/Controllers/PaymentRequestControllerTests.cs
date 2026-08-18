@@ -80,7 +80,7 @@ public class PaymentRequestControllerTests
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Pending
         };
-        _service.Setup(s => s.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+        _service.Setup(s => s.GetByIdDetailsAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(entity);
 
         var result = await _sut.GetByIdAsync(1);
@@ -191,7 +191,7 @@ public class PaymentRequestControllerTests
     [Fact]
     public async Task GetByIdAsync_ShouldThrowNotFoundException_WhenPaymentNotFound()
     {
-        _service.Setup(s => s.GetByIdAsync(999, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+        _service.Setup(s => s.GetByIdDetailsAsync(999, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NotFoundException("Payment request not found."));
 
         var act = async () => await _sut.GetByIdAsync(999);
