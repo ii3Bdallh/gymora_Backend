@@ -17,7 +17,6 @@ namespace Domain.Model
         public int? RecordedById { get; set; }
         public GymPerson? RecordedBy { get; set; }
 
-        [Filterable(FilterType.Exact)]
-        public string EntryMethod { get; set; } = "Staff Override";
+
     }
 }

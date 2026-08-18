@@ -39,7 +39,7 @@ public static class RepositoryCollectionExtensions
         services.AddScoped<IInvitationRepo, InvitationRepo>();
         services.AddScoped<IRevenueRepo, RevenueRepo>();
         services.AddScoped<IExpenseRepo, ExpenseRepo>();
-        services.AddScoped<IFinancialReportRepo, FinancialReportRepo>();
+        services.AddScoped<IReportRepo, ReportRepo>();
 
         // Workout Feature Repositories
         services.AddScoped<IExerciseRepo, ExerciseRepo>();

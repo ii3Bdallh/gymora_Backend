@@ -42,7 +42,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<IRevenueService, RevenueService>();
         services.AddScoped<IExpenseService, ExpenseService>();
-        services.AddScoped<IFinancialReportService, FinancialReportService>();
+        services.AddScoped<IReportService, ReportService>();
 
         // Workout Feature Services
         services.AddScoped<IExerciseService, ExerciseService>();
