@@ -9,6 +9,7 @@ namespace Infrastructure.Config
     {
         public void Configure(EntityTypeBuilder<BodyMeasurement> builder)
         {
+            builder.ToTable("BodyMeasurements", t => t.HasCheckConstraint("CK_BodyMeasurements_Weight", "\"WeightKg\" > 0"));
             builder.HasKey(x => x.Id);
             builder.ConfigureAuditing(); // Configures CreatedById (ApplicationUser) relation
 

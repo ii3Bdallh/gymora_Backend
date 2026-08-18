@@ -26,10 +26,10 @@ namespace Infrastructure.Configurations
             builder.HasIndex(x => new { x.GymId, x.ExpenseCategory });
             builder.HasIndex(x => new { x.GymId, x.GymStaffId });
 
-            // builder.HasOne(x => x.CreatedByPerson)
-            //        .WithMany()
-            //        .HasForeignKey(e => e.CreatedByPersonId)
-            //        .OnDelete(DeleteBehavior.);
+            builder.HasOne(x => x.CreatedByPerson)
+                   .WithMany()
+                   .HasForeignKey(e => e.CreatedByPersonId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

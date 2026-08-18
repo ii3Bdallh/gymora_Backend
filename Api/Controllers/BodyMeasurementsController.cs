@@ -30,7 +30,7 @@ namespace Api.Controllers
         public async Task<ActionResult<Result<BodyMeasurementRDTO>>> GetById(int id, CancellationToken ct)
         {
             logger.LogInformation("Fetching body measurement with Id: {Id}", id);
-            var result = await service.GetByIdAsync(id, false, ct);
+            var result = await service.GetByIdDetailsAsync(id, ct);
             return Ok(Result<BodyMeasurementRDTO>.Success(result));
         }
 

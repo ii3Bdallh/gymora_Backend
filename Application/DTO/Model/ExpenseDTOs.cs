@@ -64,6 +64,8 @@ namespace Application.DTO.Model
         public ExpenseCategory ExpenseCategory { get; init; }
         public int? GymStaffId { get; init; }
         public string? GymStaffName { get; init; }
+        public GymPersonRDTO? GymStaff { get; init; }
+        public GymPersonRDTO? CreatedByPerson { get; init; }
         public decimal Amount { get; init; }
         public PaymentMethod PaymentMethod { get; init; }
         public string? ReferenceNumber { get; init; }

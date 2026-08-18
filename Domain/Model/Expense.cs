@@ -15,6 +15,7 @@ namespace Domain.Model
         public int? GymStaffId { get; set; }
         public GymPerson? GymStaff { get; set; }
 
+        [Filterable(FilterType.Between)]
         public decimal Amount { get; set; }
 
         [Filterable(FilterType.Exact)]
@@ -28,6 +29,7 @@ namespace Domain.Model
         public string? ReceiptUrl { get; set; }
 
         [MaxLength(500)]
+        [Searchable]
         public string? Description { get; set; }
 
         [Filterable(FilterType.Between)]

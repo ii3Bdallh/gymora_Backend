@@ -66,21 +66,21 @@ namespace Application.DTO
                 .ReverseMap();
 
             CreateMap<RevenueCDTO, Revenue>()
-                .IncludeBase<BaseGymCDTO, BaseGymEntity>();
+                .IncludeBase<BaseGymAuditableCDTO, BaseAuditableGymEntity>();
             CreateMap<RevenueUDTO, Revenue>()
-                .IncludeBase<BaseGymUDTO, BaseGymEntity>()
+                .IncludeBase<BaseGymAuditableUDTO, BaseAuditableGymEntity>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<Revenue, RevenueRDTO>()
-                .IncludeBase<BaseGymEntity, BaseGymRDTO>()
+                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableRDTO>()
                 .ForMember(dest => dest.GymMemberName, opt => opt.MapFrom(src => src.GymMember != null ? src.GymMember.Name : string.Empty));
 
             CreateMap<ExpenseCDTO, Expense>()
-                .IncludeBase<BaseGymCDTO, BaseGymEntity>();
+                .IncludeBase<BaseGymAuditableCDTO, BaseAuditableGymEntity>();
             CreateMap<ExpenseUDTO, Expense>()
-                .IncludeBase<BaseGymUDTO, BaseGymEntity>()
+                .IncludeBase<BaseGymAuditableUDTO, BaseAuditableGymEntity>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<Expense, ExpenseRDTO>()
-                .IncludeBase<BaseGymEntity, BaseGymRDTO>()
+                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableRDTO>()
                 .ForMember(dest => dest.GymStaffName, opt => opt.MapFrom(src => src.GymStaff != null ? src.GymStaff.Name : string.Empty));
 
 

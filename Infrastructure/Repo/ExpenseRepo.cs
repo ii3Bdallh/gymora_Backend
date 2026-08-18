@@ -19,26 +19,20 @@ namespace Infrastructure.Repo
     {
         protected override Func<IQueryable<Expense>, IQueryable<Expense>>? Includes()
         {
-            return query => query.Include(x => x.GymStaff);
+            return query => query.Include(x => x.GymStaff).Include(x => x.CreatedByPerson);
         }
 
-        public override  Task<PaginatedRes<Expense>> GetPageAsync(
+        public override Task<PaginatedRes<Expense>> GetPageAsync(
             PaginatedSearchReq searchReq,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<Expense>, IQueryable<Expense>>? include = null)
         {
-            include ??= Includes();
-            return  base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
+            // include ??= Includes();
+            return base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
-        public override  Task<Expense?> GetByIdAsync(
-            int id,
-            bool trackChanges = false,
-            CancellationToken cancellationToken = default,
-            Func<IQueryable<Expense>, IQueryable<Expense>>? include = null)
-        {
-            include ??= Includes();
-            return  base.GetByIdAsync(id, trackChanges, cancellationToken, include);
-        }
+
+        public override async Task<Expense?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+            => await base.GetByIdAsync(id, false, cancellationToken, Includes());
     }
 }
