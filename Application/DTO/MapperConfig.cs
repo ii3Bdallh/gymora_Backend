@@ -137,6 +137,15 @@ namespace Application.DTO
                 .IncludeBase<BaseUDTO, BaseEntity>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
+            // CouponRedemption Mappings
+            CreateMap<CouponRedemptionCDTO, CouponRedemption>()
+                .IncludeBase<BaseAuditableCDTO, BaseAuditableEntity>();
+            CreateMap<CouponRedemptionUDTO, CouponRedemption>()
+                .IncludeBase<BaseAuditableUDTO, BaseAuditableEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<CouponRedemption, CouponRedemptionRDTO>()
+                .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>();
+
 
             CreateMap<PaymentRequest, PaymentRequestRDTO>()
                 .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>()
