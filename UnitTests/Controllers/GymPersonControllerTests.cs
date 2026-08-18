@@ -70,6 +70,35 @@ public class GymPersonControllerTests
 
     #endregion
 
+    #region GetMeAsync
+
+    [Fact]
+    public async Task GetMeAsync_ShouldReturnOk_WhenProfileExists()
+    {
+        var entity = new GymPersonRDTO
+        {
+            Id = 5,
+            GymId = 1,
+            PersonType = PersonType.Member,
+            Name = "Current User Person",
+            PhoneNumber = "+1234567890",
+            AccessStatus = GymPersonAccessStatus.Active
+        };
+
+        _service.Setup(s => s.GetMeAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entity);
+
+        var result = await _sut.GetMeAsync();
+
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<Result<GymPersonRDTO>>().Subject;
+        response.IsSuccess.Should().BeTrue();
+        response.Data!.Id.Should().Be(5);
+        _service.Verify(s => s.GetMeAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    #endregion
+
     #region GetByIdAsync
 
     [Fact]

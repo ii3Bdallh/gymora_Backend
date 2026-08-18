@@ -72,6 +72,7 @@ namespace Application.DTO.Model
     public record InvitationRDTO : BaseGymAuditableRDTO
     {
         public int UserId { get; init; }
+        public ApplicationUserRDTO? User { get; init; }
         public GymRole GymRole { get; init; }
         public InvitationStatus Status { get; init; }
         public DateTime? AcceptedAt { get; init; }

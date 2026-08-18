@@ -266,6 +266,14 @@ namespace Application.Service
             return _mapper.Map<GymPersonRDTO>(member);
         }
 
+        public async Task<GymPersonRDTO> GetMeAsync(CancellationToken ct = default)
+        {
+            if (!CurrentPersonId.HasValue || CurrentPersonId.Value == 0)
+                throw new NotFoundException("GymPerson profile for the current user was not found in this gym.");
+
+            return await GetByIdDetailsAsync(CurrentPersonId.Value, ct);
+        }
+
         public async Task LeaveGymAsync(int gymId, CancellationToken ct = default)
         {
             var person = await _gymPersonRepo.GetGymPersonAsync(gymId, CurrentUserId, ct);

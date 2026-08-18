@@ -32,6 +32,18 @@ namespace Api.Controllers
             return Ok(Result<PaginatedRes<GymPersonRDTO>>.Success(GymPersons));
         }
 
+        [HttpGet("me")]
+        [GymAuthorize]
+        public async Task<ActionResult<Result<GymPersonRDTO>>> GetMeAsync(CancellationToken cancellationToken = default)
+        {
+            logger.LogInformation("Fetching current GymPerson profile");
+
+            var gymPerson = await service.GetMeAsync(cancellationToken);
+
+            logger.LogInformation("Successfully fetched current GymPerson profile");
+            return Ok(Result<GymPersonRDTO>.Success(gymPerson));
+        }
+
         [HttpGet("{id}")]
         [GymAuthorize]
         public async Task<ActionResult<Result<GymPersonRDTO>>> GetByIdAsync(int id, CancellationToken cancellationToken = default)

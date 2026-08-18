@@ -53,6 +53,26 @@
             "response": []
         },
         {
+            "name": "Get Current Gym Person Profile (Me)",
+            "request": {
+                "description": "Fetches the current authenticated user's GymPerson profile in the active gym context (`/api/GymPerson/me`).\n\nRequires gym membership (`[GymAuthorize]`, any role). SuperAdmin bypasses all gym checks.",
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/GymPerson/me",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "GymPerson",
+                        "me"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
             "name": "Get Gym Person By Id",
             "request": {
                 "description": "Fetches a single gym person by ID.\n\nRequires gym membership (`GymAuthorize`, any role). SuperAdmin bypasses all gym checks.",

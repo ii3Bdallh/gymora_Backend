@@ -95,7 +95,7 @@ namespace Application.DTO.Model
 
     public record GymPersonUDTO : BaseGymUDTO
     {
-        public int? UserId { get; set; }
+ 
 
         [Required(ErrorMessage = "PersonType is required")]
         public PersonType PersonType { get; set; }

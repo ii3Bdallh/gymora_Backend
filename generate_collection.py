@@ -74,7 +74,7 @@ FILTER_MAP = {
     "Exercises": {"search_term": "Push", "order_by": "Name", "between_filters": "", "exact_filters": '"PrimaryMuscle": ["0"],"DifficultyLevel": ["0"]'},
     "Workout Plans": {"search_term": "Strength", "order_by": "Id", "between_filters": "", "exact_filters": ""},
     "Sessions": {"search_term": "Day", "order_by": "DayNumber", "between_filters": "", "exact_filters": ""},
-    "Invitation": {"search_term": "", "order_by": "Id", "between_filters": "", "exact_filters": '"Status": ["0"],"GymRole": ["0"]'},
+    "Invitation": {"search_term": "", "order_by": "Id", "between_filters": "", "exact_filters": '"Status": ["0"],"GymRole": ["10"],"UserId": ["5"]'},
     "Coupon": {"search_term": "SUMMER", "order_by": "Name", "between_filters": '"DiscountValue": {"min":"5.0","max":"50.0"},"ValidFrom": {"min":"2026-01-01T00:00:00Z","max":"2026-12-31T23:59:59Z"}', "exact_filters": '"DiscountType": ["1"]'},
     "SubscriptionPlan": {"search_term": "Pro", "order_by": "Name", "between_filters": '"MaxOwnedGyms": {"min":"1","max":"10"}', "exact_filters": ""},
     "PaymentRequest": {"search_term": "", "order_by": "Id", "between_filters": '"OriginalAmount": {"min":"10.0","max":"500.0"}', "exact_filters": '"Status": ["0"]'},

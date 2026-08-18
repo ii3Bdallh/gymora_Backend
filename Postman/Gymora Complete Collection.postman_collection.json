@@ -1,6 +1,6 @@
 {
     "info": {
-        "_postman_id": "9e9107e7-f38b-43e3-9d0d-0d7e8cd0c3f9",
+        "_postman_id": "f3096b35-8c20-4e62-9bad-8a94a47be112",
         "name": "Gymora Complete Collection",
         "description": "Complete Gymora Backend Integration Test Suite.\n\n## Structure\n- **00 - Authentication & Setup**: Login, Switch Gym, Token management\n- **API Endpoints**: All 25 controllers, 133 endpoints\n- **01 - CRUD Verification**: Full lifecycle tests\n- **02 - Security & Isolation Boundaries**: Multi-tenant and Ownership tests\n- **03 - Caching & Auditing**: Cache behavior tests\n- **04 - Creative User Stories**: End-to-end business flows\n\n## Prerequisites\n1. Select **Development** environment\n2. Run **00 - Authentication & Setup** first\n3. Run **Switch Gym** requests\n\n## Variables\n- `{{baseUrl}}`: API base URL\n- `{{user1_token}}`, `{{user2_token}}`, `{{superAdmin_token}}`: Auth tokens\n- `{{gymId}}`: Active gym context\n- `last<EntityName>Id`: Auto-captured entity IDs",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -3346,7 +3346,7 @@
                                     "pm.test(\"Pagination has items\", function () { var d = pm.response.json(); pm.expect(d.data).to.have.property(\"items\"); });",
                                     "var d = pm.response.json();",
                                     "if (d && d.data && d.data.items && d.data.items.length > 0) { pm.collectionVariables.set(\"last08 - Gym PersonId\", d.data.items[0].id); }",
-                                    "postman.setNextRequest(\"Get Gym Person By Id\");"
+                                    "postman.setNextRequest(\"Get Current Gym Person Profile (Me)\");"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3377,6 +3377,50 @@
                         }
                     },
                     "response": [],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{user1_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Get Current Gym Person Profile (Me)",
+                    "request": {
+                        "description": "Fetches the current authenticated user's GymPerson profile in the active gym context (`/api/GymPerson/me`).\n\nRequires gym membership (`[GymAuthorize]`, any role). SuperAdmin bypasses all gym checks.",
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/GymPerson/me",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "GymPerson",
+                                "me"
+                            ]
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                                    "pm.test(\"Response is valid JSON\", function () { pm.response.to.be.json; });",
+                                    "pm.test(\"IsSuccess is true\", function () { var d = pm.response.json(); pm.expect(d.isSuccess).to.eql(true); });",
+                                    "postman.setNextRequest(\"Get Gym Person By Id\");"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
                     "auth": {
                         "type": "bearer",
                         "bearer": [
