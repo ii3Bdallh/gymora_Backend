@@ -80,8 +80,9 @@ namespace Application.DTO
 
 
             CreateMap<ApplicationUser, ApplicationUserRDTO>().ReverseMap();
-            CreateMap<ApplicationUser, ApplicationUserCDTO>().ReverseMap();
-            CreateMap<ApplicationUser, ApplicationUserUDTO>().ReverseMap();
+            CreateMap<ApplicationUserCDTO, ApplicationUser>();
+            CreateMap<ApplicationUserUDTO, ApplicationUser>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<Gym, GymRDTO>()
                 .IncludeBase<BaseFileEntity, BaseFRDTO>()

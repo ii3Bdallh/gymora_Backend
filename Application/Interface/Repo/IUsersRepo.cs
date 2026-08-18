@@ -42,6 +42,10 @@ namespace Application.Interface.Repo
         CancellationToken cancellationToken = default,
         Func<IQueryable<ApplicationUser>, IQueryable<ApplicationUser>>? include = null);
 
+        Task<ApplicationUser?> GetByIdDetailsAsync(
+            int id,
+            CancellationToken cancellationToken = default);
+
         // جلب عنصر واحد بـ ID مع الـ Includes بتوعه
         Task<ApplicationUser?> GetByIdIgnoringSecurityAsync(
         int id,

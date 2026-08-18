@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Application.Common.FileValidation;
 using Application.DTO.Pagintion;
 using Domain.Enum;
+using Microsoft.AspNetCore.Http;
 
 namespace Gymora.Contracts.Authentication
 {
@@ -206,5 +208,12 @@ namespace Gymora.Contracts.Authentication
         [Url(ErrorMessage = "Profile picture must be a valid URL.")]
         string? ProfilePictureUrl
     );
+
+    public record UserProfilePictureUploadDTO
+    {
+        [Required(ErrorMessage = "File is required.")]
+        [AllowedFileTypes(10, AllowedFileType.Jpg, AllowedFileType.Png)]
+        public IFormFile File { get; set; } = null!;
+    }
 
 }

@@ -8,41 +8,44 @@ using System.Threading.Tasks;
 using System.Linq;
 using Domain.Model;
 using Application.Interface.Repo;
+using Application.Interface.Repo.Shared;
 using Application.Interface.Service;
 using Application.Service.Base;
 using Application.DTO.Model;
+using Application.DTO.Exceptions;
 using Application.Service.Shared;
 using Application.Interface.Service.Shared;
 using MassTransit;
 using Application.Model;
 using Domain.Model.Auth;
 using Application.DTO.Pagintion;
+using Gymora.Contracts.Authentication;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.Service
 {
     public class UsersService(
         IUsersRepo repo,
+        IUserRepo userRepo,
+        IUnitOfWork unitOfWork,
+        IStorageService storageService,
         IMapper mapper,
         ILogger<UsersService> logger
     ) : IUsersService
-    { // <-- تم إضافة قوس البداية المفقود هنا
+    {
 
-        // تم إضافة async هنا لتتوافق مع await بالداخل
         public async Task<IEnumerable<ApplicationUserRDTO>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            // تم استبدال typeof(T).Name بـ nameof(ApplicationUser)
             logger.LogInformation("Fetching all {EntityType} records", nameof(ApplicationUser));
 
             var models = await repo.GetAllAsync(cancellationToken: cancellationToken);
 
-            // تم تغيير RDTO إلى UsersRDTO
             var result = mapper.Map<IEnumerable<ApplicationUserRDTO>>(models);
 
             logger.LogInformation("Fetched {Count} {EntityType} records", models.Count(), nameof(ApplicationUser));
             return result;
         }
 
-        // تم إضافة async وتعديل أسماء المتغيرات لتطابق الـ Constructor
         public async Task<ApplicationUserRDTO> GetByIdAsync(int id, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching {EntityType} with ID {Id}", nameof(ApplicationUser), id);
@@ -54,7 +57,7 @@ namespace Application.Service
                 cancellationToken);
 
             if (entity is null)
-                throw new Exception($"{nameof(ApplicationUser)} with ID {id} was not found."); // استبدلها بـ NotFoundException الخاصة بك إن وجدت
+                throw new NotFoundException($"User with ID {id} was not found.");
 
 
             var dto = mapper.Map<ApplicationUserRDTO>(entity);
@@ -63,7 +66,18 @@ namespace Application.Service
             return dto;
         }
 
-        // تم إضافة async هنا أيضاً وتعديل الأسماء
+        public async Task<ApplicationUserRDTO> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+        {
+            logger.LogInformation("Fetching {EntityType} details with ID {Id}", nameof(ApplicationUser), id);
+
+            var entity = await repo.GetByIdDetailsAsync(id, cancellationToken);
+
+            if (entity is null)
+                throw new NotFoundException($"{nameof(ApplicationUser)} with ID {id} was not found.");
+
+            return mapper.Map<ApplicationUserRDTO>(entity);
+        }
+
         public async Task<PaginatedRes<ApplicationUserRDTO>> GetPageAsync(PaginatedSearchReq searchReq, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default)
         {
             var page = await repo.GetPageAsync(
@@ -81,6 +95,110 @@ namespace Application.Service
             };
         }
 
+        public async Task<UserProfileRDTO> GetUserProfileAsync(int userId, CancellationToken cancellationToken = default)
+        {
+            var user = await userRepo.GetByIdAsync(userId, false, cancellationToken);
+            if (user == null)
+            {
+                throw new NotFoundException("User profile not found.");
+            }
 
+            var roles = await userRepo.GetUserRolesAsync(userId, cancellationToken);
+            var platformRole = roles.FirstOrDefault() ?? "User";
+
+            return new UserProfileRDTO(
+                UserId: user.Id.ToString(),
+                PersonName: user.PersonName ?? string.Empty,
+                Email: user.Email ?? string.Empty,
+                PhoneNumber: user.PhoneNumber,
+                ProfilePictureUrl: user.ProfileImageUrl,
+                CreatedAt: user.CreatedOn,
+                PlatformRole: platformRole
+            );
+        }
+
+        public async Task<UserProfileRDTO> UpdateUserProfileAsync(int userId, UserProfileUDTO updateDto, CancellationToken cancellationToken = default)
+        {
+            var user = await userRepo.GetByIdAsync(userId, true, cancellationToken);
+            if (user == null)
+            {
+                throw new NotFoundException("User profile not found.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(updateDto.PhoneNumber) && user.PhoneNumber != updateDto.PhoneNumber)
+            {
+                bool isPhoneInUse = await userRepo.IsPhoneNumberUsedByOtherUserAsync(updateDto.PhoneNumber, userId, cancellationToken);
+                if (isPhoneInUse)
+                {
+                    throw new ConflictException("This phone number is already registered to another account.");
+                }
+                user.PhoneNumber = updateDto.PhoneNumber;
+            }
+
+            user.PersonName = updateDto.PersonName;
+            
+            if (!string.IsNullOrWhiteSpace(updateDto.ProfilePictureUrl))
+            {
+                user.ProfileImageUrl = updateDto.ProfilePictureUrl;
+            }
+
+            await userRepo.UpdateAsync(user, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            var roles = await userRepo.GetUserRolesAsync(userId, cancellationToken);
+            var platformRole = roles.FirstOrDefault() ?? "User";
+
+            return new UserProfileRDTO(
+                UserId: user.Id.ToString(),
+                PersonName: user.PersonName ?? string.Empty,
+                Email: user.Email ?? string.Empty,
+                PhoneNumber: user.PhoneNumber,
+                ProfilePictureUrl: user.ProfileImageUrl,
+                CreatedAt: user.CreatedOn,
+                PlatformRole: platformRole
+            );
+        }
+
+        public async Task<UserProfileRDTO> UploadProfilePictureAsync(int userId, IFormFile file, CancellationToken cancellationToken = default)
+        {
+            var user = await userRepo.GetByIdAsync(userId, true, cancellationToken);
+            if (user == null)
+            {
+                throw new NotFoundException("User profile not found.");
+            }
+
+            string? oldStoredFilePath = user.ProfileImageUrl;
+
+            string storedFilePath = await storageService.UploadFileToStorageAsync(
+                file,
+                isPublic: true,
+                entityType: "Users",
+                cancellationToken: cancellationToken);
+
+            string fileUrl = storageService.GetFileAccessUrl(storedFilePath, isPublic: true);
+
+            user.ProfileImageUrl = fileUrl;
+
+            if (!string.IsNullOrWhiteSpace(oldStoredFilePath))
+            {
+                await storageService.DeleteFileFromStorageAsync(oldStoredFilePath, cancellationToken);
+            }
+
+            await userRepo.UpdateAsync(user, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            var roles = await userRepo.GetUserRolesAsync(userId, cancellationToken);
+            var platformRole = roles.FirstOrDefault() ?? "User";
+
+            return new UserProfileRDTO(
+                UserId: user.Id.ToString(),
+                PersonName: user.PersonName ?? string.Empty,
+                Email: user.Email ?? string.Empty,
+                PhoneNumber: user.PhoneNumber,
+                ProfilePictureUrl: user.ProfileImageUrl,
+                CreatedAt: user.CreatedOn,
+                PlatformRole: platformRole
+            );
+        }
     }
 }

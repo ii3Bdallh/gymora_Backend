@@ -31,7 +31,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICurrentPlanService, CurrentPlanService>();
         services.AddScoped<IGymPersonService, GymPersonService>();
         services.AddScoped<IUsersService, UsersService>();
-        services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGymService, GymService>();
         services.AddScoped<ICouponRedemptionService, CouponRedemptionService>();
         services.AddScoped<IOwnerSubscriptionService, OwnerSubscriptionService>();

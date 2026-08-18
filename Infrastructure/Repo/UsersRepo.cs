@@ -130,6 +130,13 @@ bool trackChanges = false)
                 .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 
+        public virtual async Task<ApplicationUser?> GetByIdDetailsAsync(
+            int id,
+            CancellationToken cancellationToken = default)
+        {
+            return await GetByIdAsync(id, true, false, cancellationToken, Includes());
+        }
+
         public Task<ApplicationUser?> GetByIdIgnoringSecurityAsync(int id, bool isActive = true, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<ApplicationUser>, IQueryable<ApplicationUser>>? include = null)
         {
             IQueryable<ApplicationUser> query = trackChanges
