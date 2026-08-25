@@ -375,41 +375,17 @@ namespace Application.DTO
                 .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>();
 
             CreateMap<UserWorkoutBlockCDTO, UserWorkoutBlock>()
+                .IncludeBase<BaseCDTO, BaseEntity>()
                 .ForMember(dest => dest.BlockedUntil, opt => opt.MapFrom(src => 
                     src.DurationDays == -1 || src.DurationDays == 9999 
                         ? DateTime.MaxValue 
                         : DateTime.UtcNow.AddDays(src.DurationDays)));
             CreateMap<UserWorkoutBlockUDTO, UserWorkoutBlock>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<UserWorkoutBlock, UserWorkoutBlockRDTO>()
-                .ForMember(dest => dest.BlockedUserName, opt => opt.MapFrom(src => src.BlockedUser != null ? src.BlockedUser.PersonName : string.Empty));
-
-            // WorkoutPlan Mappings
-            CreateMap<WorkoutPlanCDTO, WorkoutPlan>()
-                .IncludeBase<BaseAuditableFCDTO, BaseAuditableFileEntity>();
-            CreateMap<WorkoutPlanUDTO, WorkoutPlan>()
-                .IncludeBase<BaseAuditableFUDTO, BaseAuditableFileEntity>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<WorkoutPlan, WorkoutPlanRDTO>()
-                .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>();
-
-            // Session Mappings
-            CreateMap<SessionCDTO, Session>()
-                .IncludeBase<BaseAuditableCDTO, BaseAuditableEntity>();
-            CreateMap<SessionUDTO, Session>()
-                .IncludeBase<BaseAuditableUDTO, BaseAuditableEntity>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<Session, SessionRDTO>()
-                .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>();
-
-            // SessionExercise Mappings
-            CreateMap<SessionExerciseCDTO, SessionExercise>()
-                .IncludeBase<BaseCDTO, BaseEntity>();
-            CreateMap<SessionExerciseUDTO, SessionExercise>()
                 .IncludeBase<BaseUDTO, BaseEntity>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<SessionExercise, SessionExerciseRDTO>()
-                .IncludeBase<BaseEntity, BaseRDTO>();
+            CreateMap<UserWorkoutBlock, UserWorkoutBlockRDTO>()
+                .IncludeBase<BaseEntity, BaseRDTO>()
+                .ForMember(dest => dest.BlockedUserName, opt => opt.MapFrom(src => src.BlockedUser != null ? src.BlockedUser.PersonName : string.Empty));
         }
     }
-}
+}

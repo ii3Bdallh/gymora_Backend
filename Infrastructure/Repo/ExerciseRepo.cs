@@ -17,6 +17,11 @@ namespace Infrastructure.Repo
     {
         private readonly CurrentUser _currentUser = currentUser;
 
+        protected override Func<IQueryable<Exercise>, IQueryable<Exercise>>? Includes() => null;
+
+        public override async Task<Exercise?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+            => await base.GetByIdAsync(id, false, cancellationToken, Includes());
+
         protected override IQueryable<Exercise> ApplyExtraFilters(IQueryable<Exercise> query)
         {
             query = base.ApplyExtraFilters(query);

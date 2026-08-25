@@ -182,7 +182,7 @@ namespace Infrastructure.Repo
                 {
                     UserName = email,
                     Email = email,
-                    PersonName = payload.Name,
+                    PersonName = payload.Picture,
                     EmailConfirmed = true,
                 };
 

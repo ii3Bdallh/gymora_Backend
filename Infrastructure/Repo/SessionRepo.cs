@@ -35,24 +35,25 @@ namespace Infrastructure.Repo
             return query.Where(x => x.IsApproved || x.CreatedById == _currentUser.UserId);
         }
 
-        public override  Task<Session?> GetByIdAsync(
+        public override async Task<Session?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+            => await base.GetByIdAsync(id, false, cancellationToken, Includes());
+
+        public override Task<Session?> GetByIdAsync(
             int id,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<Session>, IQueryable<Session>>? include = null)
         {
-            include ??= Includes();
-            return  base.GetByIdAsync(id, trackChanges, cancellationToken, include);
+            return base.GetByIdAsync(id, trackChanges, cancellationToken, include);
         }
 
-        public override  Task<PaginatedRes<Session>> GetPageAsync(
+        public override Task<PaginatedRes<Session>> GetPageAsync(
             PaginatedSearchReq searchReq,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<Session>, IQueryable<Session>>? include = null)
         {
-            // include ??= Includes();
-            return  base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
+            return base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
     }
 }

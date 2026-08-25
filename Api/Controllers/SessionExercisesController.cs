@@ -20,7 +20,7 @@ namespace Api.Controllers
     {
         [HttpPost("Batch")]
         [GymAuthorize(GymRoleString.Owner)]
-        public async Task<ActionResult<Result<IEnumerable<SessionExerciseRDTO>>>> BatchCreate([FromBody] IEnumerable<SessionExerciseCDTO> dtos, CancellationToken ct)
+        public async Task<ActionResult<Result<IEnumerable<SessionExerciseRDTO>>>> BatchCreate([FromBody] IEnumerable<SessionExerciseCDTO> dtos, CancellationToken ct = default)
         {
             logger.LogInformation("Batch creating session exercises");
             var result = await service.AddRangeAsync(dtos, ct);
@@ -29,7 +29,7 @@ namespace Api.Controllers
 
         [HttpDelete("Batch")]
         [GymAuthorize(GymRoleString.Owner)]
-        public async Task<ActionResult<Result<string>>> BatchDelete([FromBody] IEnumerable<int> ids, CancellationToken ct)
+        public async Task<ActionResult<Result<string>>> BatchDelete([FromBody] IEnumerable<int> ids, CancellationToken ct = default)
         {
             logger.LogInformation("Batch deleting session exercises");
             await service.DeleteRangeAsync(ids, ct);

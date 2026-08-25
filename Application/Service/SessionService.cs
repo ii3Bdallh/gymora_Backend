@@ -18,7 +18,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Service
 {
-    public class SessionService : BaseService<Session, SessionRDTO, SessionCDTO, SessionUDTO>, ISessionService
+    public class SessionService : BaseAuditableService<Session, SessionRDTO, SessionCDTO, SessionUDTO>, ISessionService
     {
         private readonly IUserWorkoutBlockRepo _blockRepo;
         private readonly ICurrentPlanService _currentPlanService;
@@ -83,8 +83,6 @@ namespace Application.Service
             }
         }
 
-
-
         protected override async Task BeforeDeleteAsync(Session entity, CancellationToken cancellationToken)
         {
             await base.BeforeDeleteAsync(entity, cancellationToken);
@@ -99,6 +97,11 @@ namespace Application.Service
 
         public async Task ApproveAsync(int id, CancellationToken cancellationToken)
         {
+            if (!CurrentUser.IsSuperAdmin)
+            {
+                throw new ForbiddenException("Only SuperAdmins are allowed to approve workout sessions.");
+            }
+
             var entity = await _repo.GetByIdAsync(id, true, cancellationToken);
             if (entity == null)
             {
@@ -135,6 +138,7 @@ namespace Application.Service
             foreach (var dto in dtos)
             {
                 var entity = _mapper.Map<Session>(dto);
+                entity.CreatedById = CurrentUserId;
                 entity.IsApproved = CurrentUser.IsSuperAdmin;
 
                 var added = await _repo.AddAsync(entity, cancellationToken);

@@ -23,24 +23,25 @@ namespace Infrastructure.Repo
                                  .Include(x => x.Member);
         }
 
+        public override async Task<MemberWorkoutPlan?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+            => await base.GetByIdAsync(id, false, cancellationToken, Includes());
+
         public override async Task<MemberWorkoutPlan?> GetByIdAsync(
             int id,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<MemberWorkoutPlan>, IQueryable<MemberWorkoutPlan>>? include = null)
         {
-            include ??= Includes();
             return await base.GetByIdAsync(id, trackChanges, cancellationToken, include);
         }
 
-        public override  Task<PaginatedRes<MemberWorkoutPlan>> GetPageAsync(
+        public override Task<PaginatedRes<MemberWorkoutPlan>> GetPageAsync(
             PaginatedSearchReq searchReq,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<MemberWorkoutPlan>, IQueryable<MemberWorkoutPlan>>? include = null)
         {
-            // include ??= Includes();
-            return  base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
+            return base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
     }
 }

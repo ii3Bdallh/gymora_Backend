@@ -33,7 +33,6 @@ namespace Application.DTO.Model
         public string PlanName { get; set; } = null!;
         public string? Description { get; set; }
         public bool IsApproved { get; set; }
-        public bool IsDeleted { get; set; }
         public ICollection<SessionRDTO> Sessions { get; set; } = new List<SessionRDTO>();
     }
 }
