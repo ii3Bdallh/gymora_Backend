@@ -19,6 +19,16 @@ namespace Infrastructure.Repo
     public class OwnerSubscriptionRepo(ApplicationDbContext context, ILogger<OwnerSubscriptionRepo> logger, QueryCache queryCache, CurrentUser currentUser)
     : BaseAuditableRepo<OwnerSubscription>(context, logger, queryCache, currentUser), IOwnerSubscriptionRepo
     {
+        protected override Func<IQueryable<OwnerSubscription>, IQueryable<OwnerSubscription>>? Includes()
+        {
+            return query => query.Include(x => x.Plan).Include(x => x.PlanPrice).Include(x => x.PaymentRequest);
+        }
+
+        public override  Task<OwnerSubscription?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return  base.GetByIdAsync(id, false, cancellationToken, Includes());
+        }
+
         public async Task<bool> HasActiveSubscriptionAsync(int ownerUserId, CancellationToken ct = default)
         {
             return await DbSet.AnyAsync(x =>

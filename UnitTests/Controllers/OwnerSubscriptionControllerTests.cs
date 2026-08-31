@@ -83,7 +83,7 @@ public class OwnerSubscriptionControllerTests
             CurrencyCode = "USD",
             Status = OwnerSubscriptionStatus.Active
         };
-        _service.Setup(s => s.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+        _service.Setup(s => s.GetByIdDetailsAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(entity);
 
         var result = await _sut.GetByIdAsync(1);

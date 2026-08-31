@@ -42,21 +42,29 @@ namespace Infrastructure.Repo
             return query.OrderByDescending(x => x.CheckInTime);
         }
 
-        public override async Task<PaginatedRes<Attendance>> GetPageAsync(
+        public override Task<PaginatedRes<Attendance>> GetPageAsync(
             PaginatedSearchReq searchReq,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<Attendance>, IQueryable<Attendance>>? include = null)
         {
             include ??= Includes();
-            return await base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
+            return base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
 
-
-        public override async Task<Attendance?> GetByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<Attendance>, IQueryable<Attendance>>? include = null)
+        public override Task<Attendance?> GetByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<Attendance>, IQueryable<Attendance>>? include = null)
         {
             include ??= Includes();
-            return await base.GetByIdAsync(id, trackChanges, cancellationToken, include);
+            return base.GetByIdAsync(id, trackChanges, cancellationToken, include);
+        }
+
+        public override async Task<Attendance?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+        {
+
+            return await base.GetByIdAsync(id, false, cancellationToken, 
+            query => query.Include(x => x.Member)
+                            .ThenInclude(y => y.MemberProfile)
+                            .Include(x => x.RecordedBy));
         }
 
         public async Task<int> GetTodayCheckInsCountAsync(int gymId, CancellationToken ct = default)

@@ -24,21 +24,33 @@ namespace Api.Controllers
          GymRoleString.Coach,
          GymRoleString.Receptionist
          )]
-        public async Task<ActionResult<IEnumerable<GymPersonRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
+        public async Task<ActionResult<Result<PaginatedRes<GymPersonRDTO>>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching all GymPersons");
-            PaginatedRes<GymPersonRDTO> GymPersons = await service.GetPageAsync(searchReq, false);
+            PaginatedRes<GymPersonRDTO> GymPersons = await service.GetPageAsync(searchReq, false, cancellationToken);
             logger.LogInformation("Successfully fetched all GymPersons");
             return Ok(Result<PaginatedRes<GymPersonRDTO>>.Success(GymPersons));
         }
 
+        [HttpGet("me")]
+        [GymAuthorize]
+        public async Task<ActionResult<Result<GymPersonRDTO>>> GetMeAsync(CancellationToken cancellationToken = default)
+        {
+            logger.LogInformation("Fetching current GymPerson profile");
+
+            var gymPerson = await service.GetMeAsync(cancellationToken);
+
+            logger.LogInformation("Successfully fetched current GymPerson profile");
+            return Ok(Result<GymPersonRDTO>.Success(gymPerson));
+        }
+
         [HttpGet("{id}")]
         [GymAuthorize]
-        public async Task<ActionResult<GymPersonRDTO>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<Result<GymPersonRDTO>>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching GymPerson with Id: {Id}", id);
 
-            var GymPerson = await service.GetByIdAsync(id, false, cancellationToken: cancellationToken);
+            var GymPerson = await service.GetByIdDetailsAsync(id, cancellationToken);
 
             logger.LogInformation("Successfully fetched GymPerson with Id: {Id}", id);
             return Ok(Result<GymPersonRDTO>.Success(GymPerson));
@@ -49,17 +61,11 @@ namespace Api.Controllers
          GymRoleString.Manager,
          GymRoleString.Coach,
          GymRoleString.Receptionist)]
-        public async Task<ActionResult<GymPersonRDTO>> CreateAsync([FromBody] GymPersonCDTO GymPersonDto)
+        public async Task<ActionResult<Result<GymPersonRDTO>>> CreateAsync([FromBody] GymPersonCDTO GymPersonDto, CancellationToken cancellationToken = default)
         {
-            if (!ModelState.IsValid)
-            {
-                logger.LogWarning("Invalid ModelState while creating GymPerson: {@GymPersonDto}", GymPersonDto);
-                return BadRequest(ModelState);
-            }
-
             logger.LogInformation("Creating a new GymPerson: {@GymPersonDto}", GymPersonDto);
 
-            var createdGymPerson = await service.AddAsync(GymPersonDto);
+            var createdGymPerson = await service.AddAsync(GymPersonDto, cancellationToken);
 
             return Ok(Result<GymPersonRDTO>.Success(createdGymPerson));
         }
@@ -71,17 +77,11 @@ namespace Api.Controllers
             GymRoleString.Coach,
             GymRoleString.Receptionist
         )]
-        public async Task<ActionResult> UpdateAsync(int id, [FromBody] GymPersonUDTO GymPersonDto)
+        public async Task<ActionResult<Result<GymPersonRDTO>>> UpdateAsync(int id, [FromBody] GymPersonUDTO GymPersonDto, CancellationToken cancellationToken = default)
         {
-            if (!ModelState.IsValid)
-            {
-                logger.LogWarning("Invalid ModelState while updating GymPerson Id: {Id}", id);
-                return BadRequest(ModelState);
-            }
-
             logger.LogInformation("Updating GymPerson with Id: {Id}", id);
 
-            var updatedGymPerson = await service.UpdateAsync(id, GymPersonDto);
+            var updatedGymPerson = await service.UpdateAsync(id, GymPersonDto, cancellationToken);
 
             logger.LogInformation("Successfully updated GymPerson with Id: {Id}", id);
             return Ok(Result<GymPersonRDTO>.Success(updatedGymPerson));
@@ -94,11 +94,11 @@ namespace Api.Controllers
             GymRoleString.Coach,
             GymRoleString.Receptionist
         )]
-        public async Task<ActionResult> DeleteAsync(int id)
+        public async Task<ActionResult<Result<GymPersonRDTO>>> DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Deleting GymPerson with Id: {Id}", id);
 
-            var deletedGymPerson = await service.DeleteAsync(id);
+            var deletedGymPerson = await service.DeleteAsync(id, cancellationToken);
 
             logger.LogInformation("Successfully deleted GymPerson with Id: {Id}", id);
             return Ok(Result<GymPersonRDTO>.Success(deletedGymPerson));
@@ -106,7 +106,7 @@ namespace Api.Controllers
 
         [HttpPost("LinkAccountToGym")]
         [Authorize]
-        public async Task<ActionResult<GymPersonRDTO>> LinkAccountToGymAsync([FromQuery] int gymId, [FromQuery] Guid inviteCode, CancellationToken ct = default)
+        public async Task<ActionResult<Result<GymPersonRDTO>>> LinkAccountToGymAsync([FromQuery] int gymId, [FromQuery] Guid inviteCode, CancellationToken ct = default)
         {
             logger.LogInformation("Linking account to gym with Id: {GymId} using invite code: {InviteCode}", gymId, inviteCode);
 
@@ -121,7 +121,7 @@ namespace Api.Controllers
             GymRoleString.Owner,
             GymRoleString.Manager
         )]
-        public async Task<ActionResult> PaySalaryAsync(
+        public async Task<ActionResult<Result<string>>> PaySalaryAsync(
             int id,
             [FromQuery] DateTime? salaryValidFrom,
             [FromQuery] DateTime? salaryValidUntil,
@@ -139,7 +139,7 @@ namespace Api.Controllers
             GymRoleString.Manager,
             GymRoleString.Receptionist
         )]
-        public async Task<ActionResult<GymPersonRDTO>> RenewMembershipAsync(
+        public async Task<ActionResult<Result<GymPersonRDTO>>> RenewMembershipAsync(
             int id,
             [FromBody] RenewMembershipDTO dto,
             CancellationToken ct = default)
@@ -155,7 +155,7 @@ namespace Api.Controllers
             GymRoleString.Owner,
             GymRoleString.Manager
         )]
-        public async Task<ActionResult<GymPersonRDTO>> ChangeStatusAsync(
+        public async Task<ActionResult<Result<GymPersonRDTO>>> ChangeStatusAsync(
             int id,
             [FromBody] UpdateAccessStatusDTO dto,
             CancellationToken ct = default)
@@ -168,7 +168,7 @@ namespace Api.Controllers
 
         [HttpPost("leave-gym/{gymId}")]
         [Authorize]
-        public async Task<ActionResult> LeaveGymAsync(int gymId, CancellationToken ct = default)
+        public async Task<ActionResult<Result<string>>> LeaveGymAsync(int gymId, CancellationToken ct = default)
         {
             logger.LogInformation("User leaving gym with ID: {GymId}", gymId);
             await service.LeaveGymAsync(gymId, ct);

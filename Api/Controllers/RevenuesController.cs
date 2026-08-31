@@ -20,10 +20,10 @@ namespace Api.Controllers
     {
         [HttpPost]
         [GymAuthorize(GymRoleString.Owner, GymRoleString.Manager)]
-        public async Task<ActionResult<Result<PaginatedRes<RevenueRDTO>>>> GetPaged([FromBody] PaginatedSearchReq searchReq)
+        public async Task<ActionResult<Result<PaginatedRes<RevenueRDTO>>>> GetPaged([FromBody] PaginatedSearchReq searchReq, CancellationToken ct)
         {
             logger.LogInformation("Fetching revenues");
-            var result = await service.GetPageAsync(searchReq, false);
+            var result = await service.GetPageAsync(searchReq, false, ct);
             return Ok(Result<PaginatedRes<RevenueRDTO>>.Success(result));
         }
 
@@ -32,7 +32,7 @@ namespace Api.Controllers
         public async Task<ActionResult<Result<RevenueRDTO>>> GetById(int id, CancellationToken ct)
         {
             logger.LogInformation("Fetching revenue with Id: {Id}", id);
-            var result = await service.GetByIdAsync(id, false, ct);
+            var result = await service.GetByIdDetailsAsync(id, ct);
             return Ok(Result<RevenueRDTO>.Success(result));
         }
 

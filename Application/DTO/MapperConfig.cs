@@ -16,17 +16,25 @@ namespace Application.DTO
 
             // Script will Add After Here MapperConfig
 
+            CreateMap<CoachAssignmentCDTO, CoachAssignment>()
+                .IncludeBase<BaseGymCDTO, BaseGymEntity>();
+            CreateMap<CoachAssignmentUDTO, CoachAssignment>()
+                .IncludeBase<BaseGymUDTO, BaseGymEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<CoachAssignment, CoachAssignmentRDTO>()
+                .IncludeBase<BaseGymEntity, BaseGymRDTO>()
+                .ForMember(dest => dest.CoachStaff, opt => opt.MapFrom(src => src.Coach));
+
             CreateMap<GymPerson, GymPersonRDTO>()
-                .IncludeBase<BaseEntity, BaseRDTO>()
+                .IncludeBase<BaseGymEntity, BaseGymRDTO>()
                 .ReverseMap();
 
-            CreateMap<GymPerson, GymPersonCDTO>()
-                .IncludeBase<BaseEntity, BaseCDTO>()
-                .ReverseMap();
+            CreateMap<GymPersonCDTO, GymPerson>()
+                .IncludeBase<BaseGymCDTO, BaseGymEntity>();
 
-            CreateMap<GymPerson, GymPersonUDTO>()
-                .IncludeBase<BaseEntity, BaseUDTO>()
-                .ReverseMap();
+            CreateMap<GymPersonUDTO, GymPerson>()
+                .IncludeBase<BaseGymUDTO, BaseGymEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<GymStaffProfile, GymStaffProfileRDTO>().ReverseMap();
             CreateMap<GymStaffProfile, GymStaffProfileCDTO>().ReverseMap();
@@ -58,21 +66,21 @@ namespace Application.DTO
                 .ReverseMap();
 
             CreateMap<RevenueCDTO, Revenue>()
-                .IncludeBase<BaseGymCDTO, BaseGymEntity>();
+                .IncludeBase<BaseGymAuditableCDTO, BaseAuditableGymEntity>();
             CreateMap<RevenueUDTO, Revenue>()
-                .IncludeBase<BaseGymUDTO, BaseGymEntity>()
+                .IncludeBase<BaseGymAuditableUDTO, BaseAuditableGymEntity>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<Revenue, RevenueRDTO>()
-                .IncludeBase<BaseGymEntity, BaseGymRDTO>()
+                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableRDTO>()
                 .ForMember(dest => dest.GymMemberName, opt => opt.MapFrom(src => src.GymMember != null ? src.GymMember.Name : string.Empty));
 
             CreateMap<ExpenseCDTO, Expense>()
-                .IncludeBase<BaseGymCDTO, BaseGymEntity>();
+                .IncludeBase<BaseGymAuditableCDTO, BaseAuditableGymEntity>();
             CreateMap<ExpenseUDTO, Expense>()
-                .IncludeBase<BaseGymUDTO, BaseGymEntity>()
+                .IncludeBase<BaseGymAuditableUDTO, BaseAuditableGymEntity>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<Expense, ExpenseRDTO>()
-                .IncludeBase<BaseGymEntity, BaseGymRDTO>()
+                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableRDTO>()
                 .ForMember(dest => dest.GymStaffName, opt => opt.MapFrom(src => src.GymStaff != null ? src.GymStaff.Name : string.Empty));
 
 
@@ -81,8 +89,9 @@ namespace Application.DTO
 
 
             CreateMap<ApplicationUser, ApplicationUserRDTO>().ReverseMap();
-            CreateMap<ApplicationUser, ApplicationUserCDTO>().ReverseMap();
-            CreateMap<ApplicationUser, ApplicationUserUDTO>().ReverseMap();
+            CreateMap<ApplicationUserCDTO, ApplicationUser>();
+            CreateMap<ApplicationUserUDTO, ApplicationUser>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<Gym, GymRDTO>()
                 .IncludeBase<BaseFileEntity, BaseFRDTO>()
@@ -130,17 +139,27 @@ namespace Application.DTO
                 .IncludeBase<BaseEntity, BaseRDTO>()
                 .ReverseMap();
 
-            CreateMap<Coupon, CouponCDTO>()
-                .IncludeBase<BaseEntity, BaseCDTO>()
-                .ReverseMap();
+            CreateMap<CouponCDTO, Coupon>()
+                .IncludeBase<BaseCDTO, BaseEntity>();
 
-            CreateMap<Coupon, CouponUDTO>()
-                .IncludeBase<BaseEntity, BaseUDTO>()
-                .ReverseMap();
+            CreateMap<CouponUDTO, Coupon>()
+                .IncludeBase<BaseUDTO, BaseEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+            // CouponRedemption Mappings
+            CreateMap<CouponRedemptionCDTO, CouponRedemption>()
+                .IncludeBase<BaseAuditableCDTO, BaseAuditableEntity>();
+            CreateMap<CouponRedemptionUDTO, CouponRedemption>()
+                .IncludeBase<BaseAuditableUDTO, BaseAuditableEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<CouponRedemption, CouponRedemptionRDTO>()
+                .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>();
 
 
             CreateMap<PaymentRequest, PaymentRequestRDTO>()
                 .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>()
+                .ForMember(dest => dest.ProofUrl, opt => opt.MapFrom(src => src.FileUrl))
+                .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => src.OwnerSubscriptions.OrderByDescending(s => s.CreatedOn).Select(s => s.Id).Cast<int?>().FirstOrDefault()))
                 .ReverseMap();
 
             CreateMap<PaymentRequest, PaymentRequestCDTO>()
@@ -157,6 +176,7 @@ namespace Application.DTO
             CreateMap<SubscriptionPlan, SubscriptionPlanUDTO>()
                 .ReverseMap()
                 .ForMember(dest => dest.Prices, opt => opt.Ignore())
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null))
                 ;
             CreateMap<SubscriptionPlan, SubscriptionPlanRDTO>()
                 .ReverseMap();
@@ -164,7 +184,9 @@ namespace Application.DTO
             CreateMap<PlanPrice, PlanPriceCDTO>()
                 .ReverseMap();
             CreateMap<PlanPrice, PlanPriceUDTO>()
-                .ReverseMap();
+                .ReverseMap()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null))
+                ;
             CreateMap<PlanPrice, PlanPriceRDTO>()
                 .ReverseMap();
 
@@ -282,24 +304,24 @@ namespace Application.DTO
             #endregion
 
             CreateMap<Attendance, AttendanceLogItemRDTO>()
-                .IncludeBase<BaseEntity, BaseRDTO>()
+                .IncludeBase<BaseGymEntity, BaseGymRDTO>()
                 .ForMember(dest => dest.MemberFullName, opt => opt.MapFrom(src => src.Member.Name))
                 .ForMember(dest => dest.DisplayId, opt => opt.MapFrom(src => $"#M-{src.MemberId}"))
                 .ForMember(dest => dest.MembershipStatus, opt => opt.MapFrom(src => (src.Member.MemberProfile != null && src.Member.MemberProfile.MembershipEndDate.HasValue && src.Member.MemberProfile.MembershipEndDate.Value > DateTime.UtcNow) ? "Active" : "Expired"))
                 .ForMember(dest => dest.RecordedByStaffName, opt => opt.MapFrom(src => src.RecordedBy != null ? src.RecordedBy.Name : null));
 
-            CreateMap<RecordCheckInCDTO, Attendance>().ReverseMap();
-            CreateMap<RecordCheckInUDTO, Attendance>().ReverseMap();
+            CreateMap<RecordCheckInCDTO, Attendance>()
+                .IncludeBase<BaseGymCDTO, BaseGymEntity>();
+            CreateMap<RecordCheckInUDTO, Attendance>()
+                .IncludeBase<BaseGymUDTO, BaseGymEntity>();
 
             CreateMap<MembershipPlan, MembershipPlanRDTO>()
-                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableRDTO>()
-                .ReverseMap();
-            CreateMap<MembershipPlan, MembershipPlanCDTO>()
-                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableCDTO>()
-                .ReverseMap();
-            CreateMap<MembershipPlan, MembershipPlanUDTO>()
-                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableUDTO>()
-                .ReverseMap();
+                .IncludeBase<BaseAuditableGymEntity, BaseGymAuditableRDTO>();
+            CreateMap<MembershipPlanCDTO, MembershipPlan>()
+                .IncludeBase<BaseGymAuditableCDTO, BaseAuditableGymEntity>();
+            CreateMap<MembershipPlanUDTO, MembershipPlan>()
+                .IncludeBase<BaseGymAuditableUDTO, BaseAuditableGymEntity>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             // Workout Feature Mappings
             CreateMap<ExerciseCDTO, Exercise>()
@@ -353,41 +375,17 @@ namespace Application.DTO
                 .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>();
 
             CreateMap<UserWorkoutBlockCDTO, UserWorkoutBlock>()
+                .IncludeBase<BaseCDTO, BaseEntity>()
                 .ForMember(dest => dest.BlockedUntil, opt => opt.MapFrom(src => 
                     src.DurationDays == -1 || src.DurationDays == 9999 
                         ? DateTime.MaxValue 
                         : DateTime.UtcNow.AddDays(src.DurationDays)));
             CreateMap<UserWorkoutBlockUDTO, UserWorkoutBlock>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<UserWorkoutBlock, UserWorkoutBlockRDTO>()
-                .ForMember(dest => dest.BlockedUserName, opt => opt.MapFrom(src => src.BlockedUser != null ? src.BlockedUser.PersonName : string.Empty));
-
-            // WorkoutPlan Mappings
-            CreateMap<WorkoutPlanCDTO, WorkoutPlan>()
-                .IncludeBase<BaseAuditableFCDTO, BaseAuditableFileEntity>();
-            CreateMap<WorkoutPlanUDTO, WorkoutPlan>()
-                .IncludeBase<BaseAuditableFUDTO, BaseAuditableFileEntity>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<WorkoutPlan, WorkoutPlanRDTO>()
-                .IncludeBase<BaseAuditableFileEntity, BaseAuditableFRDTO>();
-
-            // Session Mappings
-            CreateMap<SessionCDTO, Session>()
-                .IncludeBase<BaseAuditableCDTO, BaseAuditableEntity>();
-            CreateMap<SessionUDTO, Session>()
-                .IncludeBase<BaseAuditableUDTO, BaseAuditableEntity>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<Session, SessionRDTO>()
-                .IncludeBase<BaseAuditableEntity, BaseAuditableRDTO>();
-
-            // SessionExercise Mappings
-            CreateMap<SessionExerciseCDTO, SessionExercise>()
-                .IncludeBase<BaseCDTO, BaseEntity>();
-            CreateMap<SessionExerciseUDTO, SessionExercise>()
                 .IncludeBase<BaseUDTO, BaseEntity>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<SessionExercise, SessionExerciseRDTO>()
-                .IncludeBase<BaseEntity, BaseRDTO>();
+            CreateMap<UserWorkoutBlock, UserWorkoutBlockRDTO>()
+                .IncludeBase<BaseEntity, BaseRDTO>()
+                .ForMember(dest => dest.BlockedUserName, opt => opt.MapFrom(src => src.BlockedUser != null ? src.BlockedUser.PersonName : string.Empty));
         }
     }
-}
+}

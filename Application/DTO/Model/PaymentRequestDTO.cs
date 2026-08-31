@@ -76,5 +76,9 @@ namespace Application.DTO.Model
         public string? RejectionReason { get; set; }
         public int? ReviewedBy { get; set; }
         public DateTime? ReviewedAt { get; set; }
+
+        public SubscriptionPlanRDTO? Plan { get; set; }
+        public PlanPriceRDTO? PlanPrice { get; set; }
+        public CouponRDTO? Coupon { get; set; }
     }
 }

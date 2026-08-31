@@ -26,11 +26,11 @@ namespace Infrastructure.Config
 
       builder.HasOne(x => x.Plan).WithMany().HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict);
       builder.HasOne(x => x.PlanPrice).WithMany().HasForeignKey(x => x.PlanPriceId).OnDelete(DeleteBehavior.Restrict);
-      builder.HasOne(x => x.PaymentRequest).WithMany().HasForeignKey(x => x.PaymentRequestId).OnDelete(DeleteBehavior.Restrict);
+      builder.HasOne(x => x.PaymentRequest).WithMany(x => x.OwnerSubscriptions).HasForeignKey(x => x.PaymentRequestId).OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(x => new { x.CreatedById, x.EndDate });
 
             builder.ToTable(t => t.HasCheckConstraint("CK_OwnerSubscriptions_Dates", "\"StartDate\" < \"EndDate\""));
     }
   }
-}
+}  

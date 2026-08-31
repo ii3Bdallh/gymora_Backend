@@ -18,7 +18,7 @@ namespace Api.Controllers
 
         [HttpPost]
         [Authorize(Roles = $"{AppRole.SuperAdmin}")]
-        public async Task<ActionResult<IEnumerable<PaymentRequestRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
+        public async Task<ActionResult<Result<PaginatedRes<PaymentRequestRDTO>>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
         {
             logger.LogInformation("Fetching all PaymentRequests");
             PaginatedRes<PaymentRequestRDTO> PaymentRequests = await service.GetPageAsync(searchReq, false);
@@ -27,11 +27,11 @@ namespace Api.Controllers
         }
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<ActionResult<PaymentRequestRDTO>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<Result<PaymentRequestRDTO>>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching PaymentRequest with Id: {Id}", id);
 
-            var PaymentRequest = await service.GetByIdAsync(id, false, cancellationToken: cancellationToken);
+            var PaymentRequest = await service.GetByIdDetailsAsync(id, cancellationToken);
 
             logger.LogInformation("Successfully fetched PaymentRequest with Id: {Id}", id);
             return Ok(Result<PaymentRequestRDTO>.Success(PaymentRequest));
@@ -40,7 +40,7 @@ namespace Api.Controllers
         [HttpPost("Create")]
         [Authorize]
 
-        public async Task<ActionResult<PaymentRequestRDTO>> CreateAsync([FromForm] PaymentRequestCDTO PaymentRequestDto)
+        public async Task<ActionResult<Result<PaymentRequestRDTO>>> CreateAsync([FromForm] PaymentRequestCDTO PaymentRequestDto)
         {
             if (!ModelState.IsValid)
             {
@@ -78,7 +78,7 @@ namespace Api.Controllers
 
         [HttpPut("Approve/{id}")]
         [Authorize(Roles = $"{AppRole.SuperAdmin}")]
-        public async Task<ActionResult> ApproveAsync(int id, PaymentRequestApprove dto)
+        public async Task<ActionResult<Result<PaymentRequestRDTO>>> ApproveAsync(int id, PaymentRequestApprove dto)
         {
             logger.LogInformation("Approving PaymentRequest with Id: {Id}", id);
 
@@ -90,7 +90,7 @@ namespace Api.Controllers
 
         [HttpPut("Reject/{id}")]
         [Authorize(Roles = $"{AppRole.SuperAdmin}")]
-        public async Task<ActionResult> RejectAsync(int id, PaymentRequestReject dto)
+        public async Task<ActionResult<Result<PaymentRequestRDTO>>> RejectAsync(int id, PaymentRequestReject dto)
         {
             logger.LogInformation("Rejecting PaymentRequest with Id: {Id}", id);
 

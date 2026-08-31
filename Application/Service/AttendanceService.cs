@@ -88,6 +88,15 @@ namespace Application.Service
             }
         }
 
+        protected override Task AfterMapAddAsync(Attendance entity, RecordCheckInCDTO dto, CancellationToken ct)
+        {
+            if (CurrentUser.CurrentPersonId.HasValue && CurrentUser.CurrentPersonId.Value > 0)
+            {
+                entity.RecordedById = CurrentUser.CurrentPersonId.Value;
+            }
+            return Task.CompletedTask;
+        }
+
 
 
 

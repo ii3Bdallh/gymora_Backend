@@ -89,15 +89,17 @@ namespace Application.Service
             await _gymPersonRepo.AddAsync(ownerPerson, cancellationToken);
         }
 
-        private async Task CheckCanModifyGymAsync(int gymId, CancellationToken ct)
+        private Task CheckCanModifyGymAsync(int gymId, CancellationToken ct)
         {
             if (CurrentUser.IsSuperAdmin)
-                return;
+                return Task.CompletedTask;
 
             var isOwner = CurrentUser.IsGymOwner;
 
             if (!isOwner)
                 throw new UnauthorizedAccessException("You do not have permission to modify this gym.");
+
+            return Task.CompletedTask;
         }
 
         protected override async Task BeforeUpdateAsync(Gym entity, GymUDTO dto, CancellationToken cancellationToken)

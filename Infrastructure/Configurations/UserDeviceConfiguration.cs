@@ -31,16 +31,12 @@ public class UserDeviceConfiguration : IEntityTypeConfiguration<UserDevice>
         builder.Property(x => x.LastUsedAt)
             .IsRequired();
 
-        builder.Property(x => x.IsActive)
-            .IsRequired()
-            .HasDefaultValue(true);
-
         builder.Property(x => x.CreatedAt)
             .IsRequired()
             .HasDefaultValueSql("GETUTCDATE()");
 
         // Indexes
         builder.HasIndex(x => x.DeviceToken).IsUnique();
-        builder.HasIndex(x => new { x.UserId, x.IsActive });
+        builder.HasIndex(x => x.UserId);
     }
 }

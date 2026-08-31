@@ -56,6 +56,18 @@ public class CacheService : ICacheService
         return Task.CompletedTask;
     }
 
+    public Task RemoveByPrefixAsync(string prefix)
+    {
+        var keysToRemove = CacheKeys.Keys
+            .Where(k => k.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .ToList();
 
+        foreach (var key in keysToRemove)
+        {
+            _cache.Remove(key);
+            CacheKeys.TryRemove(key, out _);
+        }
 
+        return Task.CompletedTask;
+    }
 }

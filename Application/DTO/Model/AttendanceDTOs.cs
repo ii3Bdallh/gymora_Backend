@@ -12,8 +12,9 @@ namespace Application.DTO.Model
 
     public class MemberAttendanceHistoryPagedReq : PaginatedSearchReq
     {
+        [Required(ErrorMessage = "MemberId is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Invalid MemberId")]
         public int MemberId { get; set; }
-
     }
 
     // --- Response DTOs (RDTOs) ---
@@ -25,6 +26,7 @@ namespace Application.DTO.Model
         public string DisplayId { get; set; } = null!;
         public string MembershipStatus { get; set; } = null!;
         public DateTime CheckInTime { get; set; }
+        public int? RecordedById { get; set; }
         public string? RecordedByStaffName { get; set; }
     }
 
@@ -62,6 +64,15 @@ namespace Application.DTO.Model
         public List<RecentCheckInItemRDTO> RecentEntries { get; set; } = new();
     }
 
+    public record AttendanceReportRDTO
+    {
+        public int TotalCheckIns { get; set; }
+        public decimal PercentageChangeVsLastPeriod { get; set; }
+        public List<FinancialChartPointRDTO> ChartDataPoints { get; set; } = new();
+        public List<AttendanceLogItemRDTO> RecentTransactions { get; set; } = new();
+        public AttendanceDashboardStatsRDTO? Stats { get; set; }
+    }
+
     // --- Request DTO (Record Check-In DTO) ---
 
     public record RecordCheckInCDTO : BaseGymCDTO
@@ -69,6 +80,8 @@ namespace Application.DTO.Model
         [Required(ErrorMessage = "MemberId is required")]
         [Range(1, int.MaxValue, ErrorMessage = "Invalid MemberId")]
         public int MemberId { get; init; }
+
+        public string EntryMethod { get; init; } = "Staff Override";
     }
 
     public record RecordCheckInUDTO : BaseGymUDTO

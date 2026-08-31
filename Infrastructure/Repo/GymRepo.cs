@@ -23,6 +23,15 @@ namespace Infrastructure.Repo
     public class GymRepo(ApplicationDbContext context, ILogger<GymRepo> logger, QueryCache queryCache)
     : BaseRepo<Gym>(context, logger, queryCache), IGymRepo
     {
+        protected override Func<IQueryable<Gym>, IQueryable<Gym>>? Includes()
+        {
+            return query => query.Include(x => x.OwnerUser);
+        }
+
+        public override async Task<Gym?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return await base.GetByIdAsync(id, false, cancellationToken, Includes());
+        }
 
         public async Task<int> CountOwnedByOwnerAsync(
     int ownerUserId,

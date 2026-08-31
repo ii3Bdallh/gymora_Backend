@@ -1,6 +1,6 @@
 {
     "info": {
-        "_postman_id": "ff2edae8-c706-41d5-99e9-5ad5a2574205",
+        "_postman_id": "13bcbd94-6c54-4ec4-8aff-805715997332",
         "name": "Gymora Complete Collection",
         "description": "Complete Gymora Backend Integration Test Suite.\n\n## Structure\n- **00 - Authentication & Setup**: Login, Switch Gym, Token management\n- **API Endpoints**: All 25 controllers, 133 endpoints\n- **01 - CRUD Verification**: Full lifecycle tests\n- **02 - Security & Isolation Boundaries**: Multi-tenant and Ownership tests\n- **03 - Caching & Auditing**: Cache behavior tests\n- **04 - Creative User Stories**: End-to-end business flows\n\n## Prerequisites\n1. Select **Development** environment\n2. Run **00 - Authentication & Setup** first\n3. Run **Switch Gym** requests\n\n## Variables\n- `{{baseUrl}}`: API base URL\n- `{{user1_token}}`, `{{user2_token}}`, `{{superAdmin_token}}`: Auth tokens\n- `{{gymId}}`: Active gym context\n- `last<EntityName>Id`: Auto-captured entity IDs",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1356,7 +1356,7 @@
                         "auth": {
                             "type": "noauth"
                         },
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of subscription plans with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Name` | `string` | Searchable | Plan display name |\n| `Description` | `string` | - | Detailed plan summary |\n| `IsFree` | `bool` | Exact | Free tier indicator |\n| `MaxOwnedGyms` | `int` | Between | Maximum gyms owner can create |\n| `MaxCoaches` | `int` | Between | Max coaches allowed per gym |\n| `MaxMembers` | `int` | Between | Max members allowed per gym |\n| `FeaturesJson` | `string` | - | JSON serialized feature lists |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"IsFree\": [\"false\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"MaxOwnedGyms\": { \"min\": \"1\", \"max\": \"10\" } }`",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of subscription plans with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Name` | `string` | Searchable | Plan display name |\n| `Description` | `string` | - | Detailed plan summary |\n| `IsFree` | `bool` | Exact | Free tier indicator |\n| `MaxOwnedGyms` | `int` | Between | Maximum gyms owner can create |\n| `MaxCoaches` | `int` | Between | Max coaches allowed per gym |\n| `MaxMembers` | `int` | Between | Max members allowed per gym |\n| `FeaturesJson` | `string` | - | JSON serialized feature lists |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"IsFree\": [\"false\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"MaxOwnedGyms\": { \"min\": \"1\", \"max\": \"10\" } }`",
                         "method": "POST",
                         "header": [
                             {
@@ -1366,7 +1366,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/SubscriptionPlan",
@@ -1784,7 +1784,7 @@
                                 }
                             ]
                         },
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of subscription payment requests with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `PlanId` | `int` | Exact | Target subscription plan ID |\n| `PlanPriceId` | `int` | Exact | Target pricing tier ID |\n| `CouponId` | `int` | Exact | Redeemed coupon ID (Nullable) |\n| `CouponCode` | `string` | Searchable | Redeemed coupon code |\n| `OriginalAmount` | `decimal` | Between | Before discount price |\n| `DiscountAmount` | `decimal` | Between | Coupon savings amount |\n| `FinalAmount` | `decimal` | Between | Final price after discount |\n| `CurrencyCode` | `string` | Exact | ISO currency code |\n| `Status` | `Enum (int)` | Exact | `1` = Pending, `2` = Approved, `3` = Rejected |\n| `ReviewNotes` | `string` | - | Admin review notes |\n| `RejectionReason`| `string` | - | Rejection description |\n| `ReviewedBy` | `int` | Exact | Admin user ID |\n| `ReviewedAt` | `DateTime` | Between | ISO admin review date |\n| `FileUrl` | `string` | - | URL of payment receipt receipt |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Requester ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"Status\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"FinalAmount\": { \"min\": \"100\", \"max\": \"500\" } }`",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of subscription payment requests with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `PlanId` | `int` | Exact | Target subscription plan ID |\n| `PlanPriceId` | `int` | Exact | Target pricing tier ID |\n| `CouponId` | `int` | Exact | Redeemed coupon ID (Nullable) |\n| `CouponCode` | `string` | Searchable | Redeemed coupon code |\n| `OriginalAmount` | `decimal` | Between | Before discount price |\n| `DiscountAmount` | `decimal` | Between | Coupon savings amount |\n| `FinalAmount` | `decimal` | Between | Final price after discount |\n| `CurrencyCode` | `string` | Exact | ISO currency code |\n| `Status` | `Enum (int)` | Exact | `1` = Pending, `2` = Approved, `3` = Rejected |\n| `ReviewNotes` | `string` | - | Admin review notes |\n| `RejectionReason`| `string` | - | Rejection description |\n| `ReviewedBy` | `int` | Exact | Admin user ID |\n| `ReviewedAt` | `DateTime` | Between | ISO admin review date |\n| `FileUrl` | `string` | - | URL of payment receipt receipt |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Requester ID |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"Status\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"FinalAmount\": { \"min\": \"100\", \"max\": \"500\" } }`",
                         "method": "POST",
                         "header": [
                             {
@@ -1794,7 +1794,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/PaymentRequest",
@@ -2100,7 +2100,7 @@
                         }
                     ],
                     "request": {
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of coupons with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Code` | `string` | Searchable | Unique promo code |\n| `Name` | `string` | Searchable | Coupon display name |\n| `Description` | `string` | - | Optional description |\n| `DiscountType` | `Enum (int)` | Exact | `1` = Percentage, `2` = FixedAmount |\n| `DiscountValue` | `decimal` | Between | Percentage rate or amount |\n| `MaxDiscountAmount` | `decimal` | - | Maximum discount limit |\n| `MinimumPurchaseAmount`| `decimal` | - | Minimum cart total required |\n| `UsageLimit` | `int` | - | Max times coupon can be redeemed |\n| `UsedCount` | `int` | - | Current redemption count |\n| `ValidFrom` | `DateTime` | Between | ISO format validation start date |\n| `ValidTo` | `DateTime` | Between | ISO format validation expiry date |\n| `IsFirstPurchaseOnly` | `bool` | - | If true, restricted to first purchase |\n| `IsActive` | `bool` | Exact | Activation status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"DiscountType\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"DiscountValue\": { \"min\": \"5\", \"max\": \"50\" } }`",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of coupons with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Code` | `string` | Searchable | Unique promo code |\n| `Name` | `string` | Searchable | Coupon display name |\n| `Description` | `string` | - | Optional description |\n| `DiscountType` | `Enum (int)` | Exact | `1` = Percentage, `2` = FixedAmount |\n| `DiscountValue` | `decimal` | Between | Percentage rate or amount |\n| `MaxDiscountAmount` | `decimal` | - | Maximum discount limit |\n| `MinimumPurchaseAmount`| `decimal` | - | Minimum cart total required |\n| `UsageLimit` | `int` | - | Max times coupon can be redeemed |\n| `UsedCount` | `int` | - | Current redemption count |\n| `ValidFrom` | `DateTime` | Between | ISO format validation start date |\n| `ValidTo` | `DateTime` | Between | ISO format validation expiry date |\n| `IsFirstPurchaseOnly` | `bool` | Exact | If true, restricted to first purchase |\n| \n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"DiscountType\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"DiscountValue\": { \"min\": \"5\", \"max\": \"50\" } }`",
                         "method": "POST",
                         "header": [
                             {
@@ -2110,7 +2110,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/Coupon",
@@ -2412,7 +2412,7 @@
                         }
                     ],
                     "request": {
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of coupon redemptions with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `CouponId` | `int` | Exact | Id of Coupon redeemed |\n| `PaymentRequestId` | `int` | Exact | Associated payment request Id |\n| `DiscountAmount` | `decimal` | Between | Applied discount amount |\n| `CreatedOn` | `DateTime` | Between | ISO format date of creation |\n| `CreatedById` | `int` | Exact | ID of user who created the record |\n| `IsActive` | `bool` | Exact | Activation status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"CouponId\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"DiscountAmount\": { \"min\": \"5\", \"max\": \"50\" } }`",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of coupon redemptions with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `CouponId` | `int` | Exact | Id of Coupon redeemed |\n| `PaymentRequestId` | `int` | Exact | Associated payment request Id |\n| `DiscountAmount` | `decimal` | Between | Applied discount amount |\n| `CreatedOn` | `DateTime` | Between | ISO format date of creation |\n| `CreatedById` | `int` | Exact | ID of user who created the record |\n| \n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"CouponId\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"DiscountAmount\": { \"min\": \"5\", \"max\": \"50\" } }`",
                         "method": "POST",
                         "header": [
                             {
@@ -2422,7 +2422,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/CouponRedemption",
@@ -2536,7 +2536,7 @@
                         ]
                     },
                     "request": {
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of gym owner subscriptions with dynamic sorting and filtering. SuperAdmin only.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `PlanId` | `int` | Exact | Subscribed Plan ID |\n| `PlanPriceId` | `int` | Exact | Plan Price Tier ID |\n| `PaymentRequestId`| `int` | Exact | Approved payment request ID |\n| `AmountPaid` | `decimal` | Between | Cost paid for subscription |\n| `CurrencyCode` | `string` | Exact | ISO currency code (e.g. EGP, USD) |\n| `StartDate` | `DateTime` | Between | ISO start date |\n| `EndDate` | `DateTime` | Between | ISO end date |\n| `Status` | `Enum (int)` | Exact | `1` = Active, `3` = Expired, `4` = Suspended |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Subscriber ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"CurrencyCode\": [\"USD\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"AmountPaid\": { \"min\": \"500\", \"max\": \"2000\" } }`",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of gym owner subscriptions with dynamic sorting and filtering. SuperAdmin only.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `PlanId` | `int` | Exact | Subscribed Plan ID |\n| `PlanPriceId` | `int` | Exact | Plan Price Tier ID |\n| `PaymentRequestId`| `int` | Exact | Approved payment request ID |\n| `AmountPaid` | `decimal` | Between | Cost paid for subscription |\n| `CurrencyCode` | `string` | Exact | ISO currency code (e.g. EGP, USD) |\n| `StartDate` | `DateTime` | Between | ISO start date |\n| `EndDate` | `DateTime` | Between | ISO end date |\n| `Status` | `Enum (int)` | Exact | `1` = Active, `3` = Expired, `4` = Suspended |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Subscriber ID |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"CurrencyCode\": [\"USD\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"AmountPaid\": { \"min\": \"500\", \"max\": \"2000\" } }`",
                         "method": "POST",
                         "header": [
                             {
@@ -2546,7 +2546,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/OwnerSubscription",
@@ -2683,7 +2683,7 @@
                         }
                     ],
                     "request": {
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of gyms with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Name` | `string` | Searchable | Gym name |\n| `Description` | `string` | - | Optional description |\n| `PhoneNumber` | `string` | - | Contact phone |\n| `Email` | `string` | - | Contact email |\n| `AddressLine1` | `string` | - | Main address line |\n| `AddressLine2` | `string` | - | Secondary address line |\n| `City` | `string` | - | City |\n| `State` | `string` | - | State |\n| `PostalCode` | `string` | - | Postal/Zip code |\n| `Latitude` | `decimal` | Between | Geographical latitude |\n| `Longitude` | `decimal` | Between | Geographical longitude |\n| `Status` | `Enum (int)` | Exact | `1` = Active, `2` = Inactive, etc. |\n| `FileUrl` | `string` | - | URL to gym logo/image |\n| `CreatedOn` | `DateTime` | Between | ISO format creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"Status\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"Latitude\": { \"min\": \"30.0\", \"max\": \"31.0\" } }`",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of gyms with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Name` | `string` | Searchable | Gym name |\n| `Description` | `string` | - | Optional description |\n| `PhoneNumber` | `string` | - | Contact phone |\n| `Email` | `string` | - | Contact email |\n| `AddressLine1` | `string` | - | Main address line |\n| `AddressLine2` | `string` | - | Secondary address line |\n| `City` | `string` | - | City |\n| `State` | `string` | - | State |\n| `PostalCode` | `string` | - | Postal/Zip code |\n| `Latitude` | `decimal` | Between | Geographical latitude |\n| `Longitude` | `decimal` | Between | Geographical longitude |\n| `Status` | `Enum (int)` | Exact | `1` = Active, `2` = Inactive, etc. |\n| `FileUrl` | `string` | - | URL to gym logo/image |\n| `CreatedOn` | `DateTime` | Between | ISO format creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"Status\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"Latitude\": { \"min\": \"30.0\", \"max\": \"31.0\" } }`",
                         "method": "POST",
                         "header": [
                             {
@@ -2693,7 +2693,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/Gym",
@@ -3208,11 +3208,11 @@
                 {
                     "name": "Get User Gyms",
                     "request": {
-                        "description": "Fetches the current user's gyms (workspaces) with pagination and a status filter.\n\n### Query Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `pageNumber` | `int` | No | Page number (default `1`) |\n| `pageSize` | `int` | No | Page size (default `10`, max `50`) |\n| `orderBy` | `string` | No | Sort field (default `Id`) |\n| `orderDirection` | `string` | No | `asc` or `desc` |\n| `isActive` | `bool` | No | Filter by active status |\n| `searchTerm` | `string?` | No | Free-text search |\n| `statusFilter` | `string?` | No | Gym status: `Active`, `Expired`, `Locked`, `Blocked` |\n\n### Response\n\nReturns `UserGymsListRDTO` with `gyms`, `hasActivePlatformSubscription`, `totalCount`, `pageNumber`, and `pageSize`. Each gym contains `gymId`, `gymName`, `logoUrl`, `role`, `gymStatus`, `isAccessible`, and `inaccessibleReason`.",
+                        "description": "Fetches the current user's gyms (workspaces) with pagination and a status filter.\n\n### Query Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `pageNumber` | `int` | No | Page number (default `1`) |\n| `pageSize` | `int` | No | Page size (default `10`, max `50`) |\n| `orderBy` | `string` | No | Sort field (default `Id`) |\n| `orderDirection` | `string` | No | `asc` or `desc` |\n| `searchTerm` | `string?` | No | Free-text search |\n| `statusFilter` | `string?` | No | Gym status: `Active`, `Expired`, `Locked`, `Blocked` |\n\n### Response\n\nReturns `UserGymsListRDTO` with `gyms`, `hasActivePlatformSubscription`, `totalCount`, `pageNumber`, and `pageSize`. Each gym contains `gymId`, `gymName`, `logoUrl`, `role`, `gymStatus`, `isAccessible`, and `inaccessibleReason`.",
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/api/Gym/user-gyms?pageNumber=1&pageSize=10&orderBy=Id&orderDirection=asc&isActive=true",
+                            "raw": "{{baseUrl}}/api/Gym/user-gyms?pageNumber=1&pageSize=10&orderBy=Id&orderDirection=asc",
                             "host": [
                                 "{{baseUrl}}"
                             ],
@@ -3237,10 +3237,6 @@
                                 {
                                     "key": "orderDirection",
                                     "value": "asc"
-                                },
-                                {
-                                    "key": "isActive",
-                                    "value": "true"
                                 },
                                 {
                                     "key": "searchTerm",
@@ -3350,14 +3346,14 @@
                                     "pm.test(\"Pagination has items\", function () { var d = pm.response.json(); pm.expect(d.data).to.have.property(\"items\"); });",
                                     "var d = pm.response.json();",
                                     "if (d && d.data && d.data.items && d.data.items.length > 0) { pm.collectionVariables.set(\"last08 - Gym PersonId\", d.data.items[0].id); }",
-                                    "postman.setNextRequest(\"Get Gym Person By Id\");"
+                                    "postman.setNextRequest(\"Get Current Gym Person Profile (Me)\");"
                                 ],
                                 "type": "text/javascript"
                             }
                         }
                     ],
                     "request": {
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of gym persons (staff and members) with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `UserId` | `int` | Exact | Associated User Account ID (Nullable) |\n| `PersonType` | `Enum (int)` | Exact | `0` = Staff, `1` = Member, `2` = StaffMember |\n| `Name` | `string` | Searchable | Full name of the person |\n| `PhoneNumber` | `string` | Searchable | Contact phone |\n| `Email` | `string` | Searchable | Contact email (Nullable) |\n| `Gender` | `string` | - | Gender (Nullable) |\n| `DateOfBirth` | `DateTime` | - | Date of birth (Nullable) |\n| `PhotoUrl` | `string` | - | Photo URL (Nullable) |\n| `InviteCode` | `Guid` | - | Invitation code for linking user accounts |\n| `CreatedOn` | `DateTime` | Between | ISO format creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n| `UpdatedAt` | `DateTime` | - | Last update timestamp |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"PersonType\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym membership with role `Owner`, `Manager`, `Coach`, or `Receptionist`. SuperAdmin bypasses all gym checks.",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of gym persons (staff and members) with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `UserId` | `int` | Exact | Associated User Account ID (Nullable) |\n| `PersonType` | `Enum (int)` | Exact | `0` = Staff, `1` = Member, `2` = StaffMember |\n| `AccessStatus` | `Enum (int)` | Exact | `1` = Active, `2` = Suspended |\n| `Name` | `string` | Searchable | Full name of the person |\n| `PhoneNumber` | `string` | Searchable | Contact phone |\n| `Email` | `string` | Searchable | Contact email (Nullable) |\n| `Gender` | `string` | - | Gender (Nullable) |\n| `DateOfBirth` | `DateTime` | - | Date of birth (Nullable) |\n| `PhotoUrl` | `string` | - | Photo URL (Nullable) |\n| `InviteCode` | `Guid` | - | Invitation code for linking user accounts |\n| `CreatedOn` | `DateTime` | Between | ISO format creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n| `UpdatedAt` | `DateTime` | - | Last update timestamp |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"PersonType\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym membership with role `Owner`, `Manager`, `Coach`, or `Receptionist`. SuperAdmin bypasses all gym checks.",
                         "method": "POST",
                         "header": [
                             {
@@ -3367,7 +3363,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/GymPerson",
@@ -3381,6 +3377,50 @@
                         }
                     },
                     "response": [],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{user1_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Get Current Gym Person Profile (Me)",
+                    "request": {
+                        "description": "Fetches the current authenticated user's GymPerson profile in the active gym context (`/api/GymPerson/me`).\n\nRequires gym membership (`[GymAuthorize]`, any role). SuperAdmin bypasses all gym checks.",
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/GymPerson/me",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "GymPerson",
+                                "me"
+                            ]
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                                    "pm.test(\"Response is valid JSON\", function () { pm.response.to.be.json; });",
+                                    "pm.test(\"IsSuccess is true\", function () { var d = pm.response.json(); pm.expect(d.isSuccess).to.eql(true); });",
+                                    "postman.setNextRequest(\"Get Gym Person By Id\");"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
                     "auth": {
                         "type": "bearer",
                         "bearer": [
@@ -4112,7 +4152,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/Invitation",
@@ -4263,7 +4303,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/Users",
@@ -4474,7 +4514,7 @@
                         }
                     ],
                     "request": {
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of membership plans for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `Name` | `string` | Searchable | Plan name (max 100 chars) |\n| `Description` | `string` | Searchable | Plan description (max 500 chars) |\n| `DurationDays` | `int` | Exact | Membership duration in days |\n| `Price` | `decimal` | Between | Plan price |\n| `FreezeDaysLimit` | `int` | Exact | Allowed freeze days |\n| `AttendanceLimit` | `int` | - | Max attendances (nullable) |\n| `IsActive` | `bool` | Exact | Active status |\n| `CreatedByPersonId` | `int` | Exact | Creator gym person ID |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"DurationDays\": [\"30\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"Price\": { \"min\": \"100\", \"max\": \"1000\" } }`\n\n---\n\n### Authorization\n\nRequires gym membership with role `Owner`, `Manager`, `Receptionist`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of membership plans for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `Name` | `string` | Searchable | Plan name (max 100 chars) |\n| `Description` | `string` | Searchable | Plan description (max 500 chars) |\n| `DurationDays` | `int` | Exact | Membership duration in days |\n| `Price` | `decimal` | Between | Plan price |\n| `FreezeDaysLimit` | `int` | Exact | Allowed freeze days |\n| `AttendanceLimit` | `int` | - | Max attendances (nullable) |\n| `CreatedByPersonId` | `int` | Exact | Creator gym person ID |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"DurationDays\": [\"30\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"Price\": { \"min\": \"100\", \"max\": \"1000\" } }`\n\n---\n\n### Authorization\n\nRequires gym membership with role `Owner`, `Manager`, `Receptionist`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
                         "method": "POST",
                         "header": [
                             {
@@ -4484,7 +4524,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/MembershipPlans",
@@ -4848,7 +4888,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/Attendance/history",
@@ -4887,7 +4927,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/Attendance/member-history",
@@ -4976,7 +5016,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/CoachAssignment/get-assigned-members-for-coach",
@@ -5015,7 +5055,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/CoachAssignment/get-assigned-coaches-for-member",
@@ -5088,7 +5128,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/CoachAssignment/get-gym-coach-assignments",
@@ -5213,7 +5253,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/BodyMeasurements",
@@ -5469,7 +5509,7 @@
                         }
                     ],
                     "request": {
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of revenue records for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `RevenueCategory` | `Enum (int)` | Exact | `0` = MembershipFee, `1` = PersonalTraining, `2` = Merchandise, `3` = Other |\n| `GymMemberId` | `int?` | Exact | Associated gym person ID of the member |\n| `Amount` | `decimal` | Between | Revenue amount |\n| `PaymentMethod` | `Enum (int)` | Exact | `0` = Cash, `1` = CreditCard, `2` = DebitCard, `3` = BankTransfer, `4` = Online, `5` = Other |\n| `ReferenceNumber` | `string` | Searchable | Payment reference number |\n| `Description` | `string` | - | Optional description |\n| `RevenueDate` | `DateTime` | Between | ISO format revenue date |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"RevenueCategory\": [\"0\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"RevenueDate\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of revenue records for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `RevenueCategory` | `Enum (int)` | Exact | `0` = MembershipFee, `1` = PersonalTraining, `2` = Merchandise, `3` = Other |\n| `GymMemberId` | `int?` | Exact | Associated gym person ID of the member |\n| `Amount` | `decimal` | Between | Revenue amount |\n| `PaymentMethod` | `Enum (int)` | Exact | `0` = Cash, `1` = CreditCard, `2` = DebitCard, `3` = BankTransfer, `4` = Online, `5` = Other |\n| `ReferenceNumber` | `string` | Searchable | Payment reference number |\n| `Description` | `string` | - | Optional description |\n| `RevenueDate` | `DateTime` | Between | ISO format revenue date |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"RevenueCategory\": [\"0\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"RevenueDate\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
                         "method": "POST",
                         "header": [
                             {
@@ -5479,7 +5519,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/Revenues",
@@ -5736,7 +5776,7 @@
                         }
                     ],
                     "request": {
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of expense records for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `ExpenseCategory` | `Enum (int)` | Exact | `0` = Rent, `1` = Utilities, `2` = Equipment, `3` = Salaries, `4` = Maintenance, `5` = Marketing, `6` = Other |\n| `GymStaffId` | `int?` | Exact | Associated gym person ID of staff |\n| `Amount` | `decimal` | Between | Expense amount |\n| `PaymentMethod` | `Enum (int)` | Exact | `0` = Cash, `1` = CreditCard, `2` = DebitCard, `3` = BankTransfer, `4` = Online, `5` = Other |\n| `ReferenceNumber` | `string` | Searchable | Payment reference number |\n| `ReceiptUrl` | `string` | - | URL to receipt image |\n| `Description` | `string` | - | Optional description |\n| `ExpenseDate` | `DateTime` | Between | ISO format expense date |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"ExpenseCategory\": [\"0\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"ExpenseDate\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of expense records for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `ExpenseCategory` | `Enum (int)` | Exact | `0` = Rent, `1` = Utilities, `2` = Equipment, `3` = Salaries, `4` = Maintenance, `5` = Marketing, `6` = Other |\n| `GymStaffId` | `int?` | Exact | Associated gym person ID of staff |\n| `Amount` | `decimal` | Between | Expense amount |\n| `PaymentMethod` | `Enum (int)` | Exact | `0` = Cash, `1` = CreditCard, `2` = DebitCard, `3` = BankTransfer, `4` = Online, `5` = Other |\n| `ReferenceNumber` | `string` | Searchable | Payment reference number |\n| `ReceiptUrl` | `string` | - | URL to receipt image |\n| `Description` | `string` | - | Optional description |\n| `ExpenseDate` | `DateTime` | Between | ISO format expense date |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `CreatedById` | `int` | Exact | Creator ID |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"ExpenseCategory\": [\"0\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"ExpenseDate\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
                         "method": "POST",
                         "header": [
                             {
@@ -5746,7 +5786,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/Expenses",
@@ -5981,27 +6021,69 @@
             "response": []
         },
         {
-            "name": "16 - Financial Reports",
+            "name": "16 - Reports",
             "item": [
                 {
-                    "name": "Get Revenue Report",
+                    "name": "Get Attendance Dashboard",
                     "request": {
-                        "description": "Generates a revenue report for a gym within a date range.\n\n### Route Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID (must match `CurrentGymId`) |\n\n### Query Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `fromDate` | `DateTime` | Yes | Report start date (ISO format). Cannot be in the future. |\n| `toDate` | `DateTime` | Yes | Report end date (ISO format). Must be >= `fromDate`. |\n\n### Response (`RevenueReportRDTO`)\n\n| Field | Type | Description |\n| :--- | :--- | :--- |\n| `totalRevenue` | `decimal` | Total revenue in the period |\n| `percentageChangeVsLastPeriod` | `decimal` | % change vs previous equal-length period |\n| `chartDataPoints` | `List<FinancialChartPointRDTO>` | `{ date, amount }` for charting |\n| `recentTransactions` | `List<RevenueRDTO>` | Latest revenue records |\n\n### Validation Rules\n- `fromDate` must not be in the future\n- `toDate` must be >= `fromDate`\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                        "description": "Retrieves the gym attendance dashboard containing statistics and recent check-ins.\n\n### Route Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID (must match `CurrentGymId`) |\n\n### Response (`GymAttendanceDashboardRDTO`)\n\n### Authorization\nRequires gym role `Owner`, `Manager`, `Receptionist`, or `Coach`.",
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/api/v1/gyms/{{gymId}}/finances/reports/revenue?fromDate=2026-01-01T00:00:00Z&toDate=2026-12-31T23:59:59Z",
+                            "raw": "{{baseUrl}}/api/Reports/dashboard/{{gymId}}",
                             "host": [
                                 "{{baseUrl}}"
                             ],
                             "path": [
                                 "api",
-                                "v1",
-                                "gyms",
-                                "{{gymId}}",
-                                "finances",
-                                "reports",
-                                "revenue"
+                                "Reports",
+                                "dashboard",
+                                "{{gymId}}"
+                            ]
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                                    "pm.test(\"Response is valid JSON\", function () { pm.response.to.be.json; });",
+                                    "pm.test(\"IsSuccess is true\", function () { var d = pm.response.json(); pm.expect(d.isSuccess).to.eql(true); });",
+                                    "postman.setNextRequest(\"Get Revenue Report\");"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{user1_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Get Revenue Report",
+                    "request": {
+                        "description": "Generates a revenue report for a gym within a date range.\n\n### Route Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID (must match `CurrentGymId`) |\n\n### Query Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `fromDate` | `DateTime` | Yes | Report start date (ISO format). Cannot be in the future. |\n| `toDate` | `DateTime` | Yes | Report end date (ISO format). Must be >= `fromDate`. |\n\n### Response (`RevenueReportRDTO`)\n\n### Authorization\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/Reports/revenue/{{gymId}}?fromDate=2026-01-01T00:00:00Z&toDate=2026-12-31T23:59:59Z",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Reports",
+                                "revenue",
+                                "{{gymId}}"
                             ],
                             "query": [
                                 {
@@ -6044,22 +6126,74 @@
                 {
                     "name": "Get Expense Report",
                     "request": {
-                        "description": "Generates an expense report for a gym within a date range.\n\n### Route Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID (must match `CurrentGymId`) |\n\n### Query Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `fromDate` | `DateTime` | Yes | Report start date (ISO format). Cannot be in the future. |\n| `toDate` | `DateTime` | Yes | Report end date (ISO format). Must be >= `fromDate`. |\n\n### Response (`ExpenseReportRDTO`)\n\n| Field | Type | Description |\n| :--- | :--- | :--- |\n| `totalExpense` | `decimal` | Total expenses in the period |\n| `percentageChangeVsLastPeriod` | `decimal` | % change vs previous equal-length period |\n| `chartDataPoints` | `List<FinancialChartPointRDTO>` | `{ date, amount }` for charting |\n| `recentTransactions` | `List<ExpenseRDTO>` | Latest expense records |\n\n### Validation Rules\n- `fromDate` must not be in the future\n- `toDate` must be >= `fromDate`\n\n### Authorization\n\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
+                        "description": "Generates an expense report for a gym within a date range.\n\n### Route Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID (must match `CurrentGymId`) |\n\n### Query Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `fromDate` | `DateTime` | Yes | Report start date (ISO format). Cannot be in the future. |\n| `toDate` | `DateTime` | Yes | Report end date (ISO format). Must be >= `fromDate`. |\n\n### Response (`ExpenseReportRDTO`)\n\n### Authorization\nRequires gym role `Owner` or `Manager`. SuperAdmin bypasses all gym checks.",
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/api/v1/gyms/{{gymId}}/finances/reports/expense?fromDate=2026-01-01T00:00:00Z&toDate=2026-12-31T23:59:59Z",
+                            "raw": "{{baseUrl}}/api/Reports/expense/{{gymId}}?fromDate=2026-01-01T00:00:00Z&toDate=2026-12-31T23:59:59Z",
                             "host": [
                                 "{{baseUrl}}"
                             ],
                             "path": [
                                 "api",
-                                "v1",
-                                "gyms",
-                                "{{gymId}}",
-                                "finances",
-                                "reports",
-                                "expense"
+                                "Reports",
+                                "expense",
+                                "{{gymId}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "fromDate",
+                                    "value": "2026-01-01T00:00:00Z"
+                                },
+                                {
+                                    "key": "toDate",
+                                    "value": "2026-12-31T23:59:59Z"
+                                }
+                            ]
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+                                    "pm.test(\"Response is valid JSON\", function () { pm.response.to.be.json; });",
+                                    "pm.test(\"IsSuccess is true\", function () { var d = pm.response.json(); pm.expect(d.isSuccess).to.eql(true); });",
+                                    "postman.setNextRequest(\"Get Attendance Report\");"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{user1_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Get Attendance Report",
+                    "request": {
+                        "description": "Generates an attendance report for a gym within a date range.\n\n### Route Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `gymId` | `int` | Yes | Target gym ID (must match `CurrentGymId`) |\n\n### Query Parameters\n\n| Parameter | Type | Required | Description |\n| :--- | :--- | :--- | :--- |\n| `fromDate` | `DateTime` | Yes | Report start date (ISO format). Cannot be in the future. |\n| `toDate` | `DateTime` | Yes | Report end date (ISO format). Must be >= `fromDate`. |\n\n### Response (`AttendanceReportRDTO`)\n\n### Authorization\nRequires gym role `Owner`, `Manager`, `Receptionist`, or `Coach`.",
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/Reports/attendance/{{gymId}}?fromDate=2026-01-01T00:00:00Z&toDate=2026-12-31T23:59:59Z",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Reports",
+                                "attendance",
+                                "{{gymId}}"
                             ],
                             "query": [
                                 {
@@ -6135,7 +6269,7 @@
                         }
                     ],
                     "request": {
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of exercises for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `Name` | `string` | Searchable | Exercise name (max 100 chars) |\n| `Description` | `string` | Searchable | Exercise description (max 1000 chars) |\n| `PrimaryMuscle` | `Enum (int)` | Exact | `0` = Chest, `1` = Back, `2` = Shoulders, `3` = Biceps, `4` = Triceps, `5` = Forearms, `6` = Abs, `7` = Quads, `8` = Hamstrings, `9` = Glutes, `10` = Calves, `11` = Traps, `12` = Lats, `13` = FullBody |\n| `SecondaryMuscle` | `Enum (int)?` | Exact | Same values as PrimaryMuscle |\n| `Equipment` | `Enum (int)?` | Exact | `0` = Barbell, `1` = Dumbbell, `2` = Machine, `3` = Cable, `4` = Bodyweight, `5` = Kettlebell, `6` = ResistanceBand, `7` = Other |\n| `DifficultyLevel` | `Enum (int)` | Exact | `0` = Beginner, `1` = Intermediate, `2` = Advanced |\n| `VideoUrl` | `string` | - | Tutorial video URL |\n| `IsApproved` | `bool` | - | Approval status |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"PrimaryMuscle\": [\"0\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of exercises for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `Name` | `string` | Searchable | Exercise name (max 100 chars) |\n| `Description` | `string` | Searchable | Exercise description (max 1000 chars) |\n| `PrimaryMuscle` | `Enum (int)` | Exact | `0` = Chest, `1` = Back, `2` = Shoulders, `3` = Biceps, `4` = Triceps, `5` = Forearms, `6` = Abs, `7` = Quads, `8` = Hamstrings, `9` = Glutes, `10` = Calves, `11` = Traps, `12` = Lats, `13` = FullBody |\n| `SecondaryMuscle` | `Enum (int)?` | Exact | Same values as PrimaryMuscle |\n| `Equipment` | `Enum (int)?` | Exact | `0` = Barbell, `1` = Dumbbell, `2` = Machine, `3` = Cable, `4` = Bodyweight, `5` = Kettlebell, `6` = ResistanceBand, `7` = Other |\n| `DifficultyLevel` | `Enum (int)` | Exact | `0` = Beginner, `1` = Intermediate, `2` = Advanced |\n| `VideoUrl` | `string` | - | Tutorial video URL |\n| `IsApproved` | `bool` | - | Approval status |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"PrimaryMuscle\": [\"0\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
                         "method": "POST",
                         "header": [
                             {
@@ -6145,7 +6279,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/Exercises",
@@ -6447,7 +6581,7 @@
                         }
                     ],
                     "request": {
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of workout plans for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `PlanName` | `string` | Searchable | Plan name (max 200 chars) |\n| `Description` | `string` | Searchable | Plan description (max 500 chars) |\n| `IsApproved` | `bool` | - | Platform approval status |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"IsApproved\": [\"true\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of workout plans for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `PlanName` | `string` | Searchable | Plan name (max 200 chars) |\n| `Description` | `string` | Searchable | Plan description (max 500 chars) |\n| `IsApproved` | `bool` | - | Platform approval status |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"IsApproved\": [\"true\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
                         "method": "POST",
                         "header": [
                             {
@@ -6457,7 +6591,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/WorkoutPlans",
@@ -6759,7 +6893,7 @@
                         }
                     ],
                     "request": {
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of member workout plan assignments for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `WorkoutPlanId` | `int` | Exact | Assigned workout plan ID |\n| `MemberId` | `int` | Exact | Gym person ID of the member |\n| `Goal` | `string` | Searchable | Fitness goal (max 200 chars) |\n| `StartDate` | `DateTime` | Between | ISO start date |\n| `EndDate` | `DateTime?` | Between | ISO end date (nullable) |\n| `Status` | `Enum (int)` | Exact | `0` = Active, `1` = Completed, `2` = Cancelled, `3` = Paused |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"Status\": [\"0\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"StartDate\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of member workout plan assignments for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `GymId` | `int` | Exact | Associated Gym ID |\n| `WorkoutPlanId` | `int` | Exact | Assigned workout plan ID |\n| `MemberId` | `int` | Exact | Gym person ID of the member |\n| `Goal` | `string` | Searchable | Fitness goal (max 200 chars) |\n| `StartDate` | `DateTime` | Between | ISO start date |\n| `EndDate` | `DateTime?` | Between | ISO end date (nullable) |\n| `Status` | `Enum (int)` | Exact | `0` = Active, `1` = Completed, `2` = Cancelled, `3` = Paused |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"Status\": [\"0\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"StartDate\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
                         "method": "POST",
                         "header": [
                             {
@@ -6769,7 +6903,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/MemberWorkoutPlans",
@@ -7081,7 +7215,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/UserWorkoutBlocks",
@@ -7381,7 +7515,7 @@
                         }
                     ],
                     "request": {
-                        "description": "### Endpoint Overview\n\nFetches a paginated list of workout sessions for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `WorkoutPlanId` | `int` | Exact | Parent workout plan ID |\n| `SessionName` | `string` | Searchable | Session name (max 100 chars) |\n| `DayNumber` | `int` | Exact | Day number in the plan (1–365) |\n| `IsApproved` | `bool` | - | Platform approval status |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"WorkoutPlanId\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
+                        "description": "### Endpoint Overview\n\nFetches a paginated list of workout sessions for the current gym with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `WorkoutPlanId` | `int` | Exact | Parent workout plan ID |\n| `SessionName` | `string` | Searchable | Session name (max 100 chars) |\n| `DayNumber` | `int` | Exact | Day number in the plan (1–365) |\n| `IsApproved` | `bool` | - | Platform approval status |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"WorkoutPlanId\": [\"1\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"CreatedOn\": { \"min\": \"2026-01-01\", \"max\": \"2026-12-31\" } }`\n\n---\n\n### Authorization\n\nRequires gym role `Owner`, `Manager`, `Coach`, or `Member`. SuperAdmin bypasses all gym checks.",
                         "method": "POST",
                         "header": [
                             {
@@ -7391,7 +7525,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"isActive\": true,\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
+                            "raw": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"searchTerm\": \"\",\n  \"orderBy\": \"Id\",\n  \"orderDirection\": \"asc\",\n  \"filters\": {\n    \"betweenFilters\": {},\n    \"exactFilters\": {}\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/Sessions",

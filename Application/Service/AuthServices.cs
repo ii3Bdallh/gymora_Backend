@@ -80,7 +80,7 @@ namespace Application.Service
                 ExpirationInMinutes = 10
             };
 
-            if (user == null || !user.IsActive)
+            if (user == null )
             {
                 return successDto;
             }
@@ -119,7 +119,7 @@ namespace Application.Service
                 ExpirationInMinutes = 10
             };
 
-            if (user == null || !user.IsActive)
+            if (user == null )
             {
                 return successDto;
             }

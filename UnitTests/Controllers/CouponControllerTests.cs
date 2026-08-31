@@ -125,7 +125,6 @@ public class CouponControllerTests
         {
             Name = "Updated",
             ValidTo = DateTime.UtcNow.AddDays(60),
-            IsActive = true
         };
         var rDto = new CouponRDTO { Id = 1, Name = "Updated" };
 
@@ -134,7 +133,7 @@ public class CouponControllerTests
 
         var result = await _sut.UpdateAsync(1, udto);
 
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value.Should().BeAssignableTo<Result<CouponRDTO>>().Subject;
         response.IsSuccess.Should().BeTrue();
     }
@@ -146,7 +145,7 @@ public class CouponControllerTests
 
         var result = await _sut.UpdateAsync(1, new CouponUDTO { Name = null! });
 
-        result.Should().BeOfType<BadRequestObjectResult>();
+        result.Result.Should().BeOfType<BadRequestObjectResult>();
     }
 
     #endregion
@@ -162,7 +161,7 @@ public class CouponControllerTests
 
         var result = await _sut.DeleteAsync(1);
 
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value.Should().BeAssignableTo<Result<CouponRDTO>>().Subject;
         response.IsSuccess.Should().BeTrue();
     }

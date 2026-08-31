@@ -25,6 +25,10 @@ namespace Application.Interface.Service
             bool trackChanges = false,
             CancellationToken cancellationToken = default);
 
+        Task<RDTO> GetByIdDetailsAsync(
+            int id,
+            CancellationToken cancellationToken = default);
+
         Task<PaginatedRes<RDTO>> GetPageAsync(
             PaginatedSearchReq searchReq,
             bool trackChanges = false,

@@ -39,6 +39,8 @@ namespace Domain.Model
     public byte[]? RowVersion { get; set; }       // ROWVERSION
 
     // Navigation Properties
+    [Filterable(FilterType.Exact)]
+
     public int OwnerUserId { get; set; }
 
     public required ApplicationUser OwnerUser { get; set; }

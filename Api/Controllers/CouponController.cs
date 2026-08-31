@@ -18,16 +18,17 @@ namespace Api.Controllers
 
         [HttpPost]
         [Authorize(Roles = $"{AppRole.SuperAdmin}")]
-        public async Task<ActionResult<IEnumerable<CouponRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
+        public async Task<ActionResult<Result<PaginatedRes<CouponRDTO>>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching all Coupons");
-            PaginatedRes<CouponRDTO> Coupons = await service.GetPageAsync(searchReq, false);
+            PaginatedRes<CouponRDTO> Coupons = await service.GetPageAsync(searchReq, false, cancellationToken);
             logger.LogInformation("Successfully fetched all Coupons");
             return Ok(Result<PaginatedRes<CouponRDTO>>.Success(Coupons));
         }
+
         [HttpGet("{id}")]
         [Authorize(Roles = $"{AppRole.SuperAdmin}")]
-        public async Task<ActionResult<CouponRDTO>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<Result<CouponRDTO>>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching Coupon with Id: {Id}", id);
 
@@ -39,7 +40,7 @@ namespace Api.Controllers
 
         [HttpPost("Create")]
         [Authorize(Roles = $"{AppRole.SuperAdmin}")]
-        public async Task<ActionResult<CouponRDTO>> CreateAsync([FromBody] CouponCDTO CouponDto)
+        public async Task<ActionResult<Result<CouponRDTO>>> CreateAsync([FromBody] CouponCDTO CouponDto, CancellationToken cancellationToken = default)
         {
             if (!ModelState.IsValid)
             {
@@ -49,17 +50,15 @@ namespace Api.Controllers
 
             logger.LogInformation("Creating a new Coupon: {@CouponDto}", CouponDto);
 
-            var createdCoupon = await service.AddAsync(CouponDto);
-
+            var createdCoupon = await service.AddAsync(CouponDto, cancellationToken);
 
             return Ok(Result<CouponRDTO>.Success(createdCoupon));
         }
 
         [HttpPut("{id}")]
         [Authorize(Roles = $"{AppRole.SuperAdmin}")]
-        public async Task<ActionResult> UpdateAsync(int id, [FromBody] CouponUDTO CouponDto)
+        public async Task<ActionResult<Result<CouponRDTO>>> UpdateAsync(int id, [FromBody] CouponUDTO CouponDto, CancellationToken cancellationToken = default)
         {
-
             if (!ModelState.IsValid)
             {
                 logger.LogWarning("Invalid ModelState while updating Coupon Id: {Id}", id);
@@ -68,7 +67,7 @@ namespace Api.Controllers
 
             logger.LogInformation("Updating Coupon with Id: {Id}", id);
 
-            var updatedCoupon = await service.UpdateAsync(id, CouponDto);
+            var updatedCoupon = await service.UpdateAsync(id, CouponDto, cancellationToken);
 
             logger.LogInformation("Successfully updated Coupon with Id: {Id}", id);
             return Ok(Result<CouponRDTO>.Success(updatedCoupon));
@@ -76,19 +75,19 @@ namespace Api.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = $"{AppRole.SuperAdmin}")]
-        public async Task<ActionResult> DeleteAsync(int id)
+        public async Task<ActionResult<Result<CouponRDTO>>> DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Deleting Coupon with Id: {Id}", id);
 
-            var deletedCoupon = await service.DeleteAsync(id);
+            var deletedCoupon = await service.DeleteAsync(id, cancellationToken);
 
             logger.LogInformation("Successfully deleted Coupon with Id: {Id}", id);
             return Ok(Result<CouponRDTO>.Success(deletedCoupon));
         }
 
         [HttpGet("Validate/{code}")]
-        [Authorize(Roles = $"{AppRole.SuperAdmin}")]
-        public async Task<ActionResult<CouponValidationResult>> ValidateCouponAsync(string code, decimal orderAmount, CancellationToken cancellationToken = default)
+        [Authorize]
+        public async Task<ActionResult<Result<CouponValidationResult>>> ValidateCouponAsync(string code, decimal orderAmount, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Validating Coupon with Code: {Code}", code);
 

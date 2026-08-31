@@ -409,4 +409,77 @@ public class SubscriptionPlanRepoTests : IDisposable
     }
 
     #endregion
+
+    #region GetByIdDetailsAsync
+
+    [Fact]
+    public async Task GetByIdDetailsAsync_ShouldReturnEntityWithPrices_WhenExists()
+    {
+        var plan = new SubscriptionPlan
+        {
+            Name = "DetailsPlan",
+            IsFree = false,
+            MaxOwnedGyms = 1,
+            MaxCoaches = 5,
+            MaxMembers = 50,
+            CreatedOn = DateTime.UtcNow
+        };
+        _context.SubscriptionPlan.Add(plan);
+        await _context.SaveChangesAsync();
+
+        var planPrice = new PlanPrice
+        {
+            PlanId = plan.Id,
+            CountryCode = "US",
+            CurrencyCode = "USD",
+            DurationMonths = 1,
+            Amount = 50m,
+            CreatedOn = DateTime.UtcNow,
+        };
+        _context.PlanPrice.Add(planPrice);
+        await _context.SaveChangesAsync();
+
+        var result = await _sut.GetByIdDetailsAsync(plan.Id);
+
+        result.Should().NotBeNull();
+        result!.Prices.Should().HaveCount(1);
+        result.Prices.First().Amount.Should().Be(50m);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ShouldIncludePrices_WhenCalled()
+    {
+        var plan = new SubscriptionPlan
+        {
+            Name = "LightPlan",
+            IsFree = false,
+            MaxOwnedGyms = 1,
+            MaxCoaches = 5,
+            MaxMembers = 50,
+            CreatedOn = DateTime.UtcNow
+        };
+        _context.SubscriptionPlan.Add(plan);
+        await _context.SaveChangesAsync();
+
+        var planPrice = new PlanPrice
+        {
+            PlanId = plan.Id,
+            CountryCode = "US",
+            CurrencyCode = "USD",
+            DurationMonths = 1,
+            Amount = 50m,
+            CreatedOn = DateTime.UtcNow,
+        };
+        _context.PlanPrice.Add(planPrice);
+        await _context.SaveChangesAsync();
+
+        _context.Entry(plan).State = EntityState.Detached;
+
+        var result = await _sut.GetByIdAsync(plan.Id);
+
+        result.Should().NotBeNull();
+        result!.Prices.Should().HaveCount(1);
+    }
+
+    #endregion
 }

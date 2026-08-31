@@ -36,10 +36,15 @@ namespace Infrastructure.Repo.Entity
             return base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
 
-        public override async Task<SubscriptionPlan?> GetByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<SubscriptionPlan>, IQueryable<SubscriptionPlan>>? include = null)
+        public override  Task<SubscriptionPlan?> GetByIdAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<SubscriptionPlan>, IQueryable<SubscriptionPlan>>? include = null)
         {
             include ??= Includes();
-            return await base.GetByIdAsync(id, trackChanges, cancellationToken, include);
+            return  base.GetByIdAsync(id, trackChanges, cancellationToken, include);
+        }
+
+        public override  Task<SubscriptionPlan?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return  base.GetByIdAsync(id, false, cancellationToken, Includes());
         }
 
 

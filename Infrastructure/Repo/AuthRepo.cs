@@ -77,7 +77,6 @@ namespace Infrastructure.Repo
                 UserName = registerReqDto.Email,
                 PersonName = registerReqDto.PersonName.Trim(),
                 Email = registerReqDto.Email,
-                IsActive = true
             };
 
             var result = await _userManager.CreateAsync(user, registerReqDto.Password);
@@ -109,11 +108,6 @@ namespace Infrastructure.Repo
             if (await _userManager.IsLockedOutAsync(user))
             {
                 throw new LockoutException("Account is locked due to multiple failed login attempts.");
-            }
-
-            if (!user.IsActive)
-            {
-                throw new ForbiddenException("Account is disabled. Please contact support.");
             }
 
             bool isValidPassword = await _userManager.CheckPasswordAsync(user, loginReqDto.Password);
@@ -188,9 +182,8 @@ namespace Infrastructure.Repo
                 {
                     UserName = email,
                     Email = email,
-                    PersonName = payload.Name,
+                    PersonName = payload.Picture,
                     EmailConfirmed = true,
-                    IsActive = true
                 };
 
                 var createResult = await _userManager.CreateAsync(user);
@@ -208,10 +201,6 @@ namespace Infrastructure.Repo
                 await _publishEndpoint.Publish(new UserRegisteredViaGoogleEvent(user.Id, user.Email!, user.PersonName), cancellationToken);
             }
 
-            if (!user.IsActive)
-            {
-                throw new ForbiddenException("Account is disabled.");
-            }
             var (plainRefreshToken, tokenHash) = _jwtProvider.GenerateRefreshToken();
             var refreshTokenExpiry = DateTime.UtcNow.AddDays(_refreshTokenDays);
 

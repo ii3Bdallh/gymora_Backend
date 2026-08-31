@@ -58,6 +58,8 @@ namespace Application.DTO.Model
         public RevenueCategory RevenueCategory { get; init; }
         public int? GymMemberId { get; init; }
         public string? GymMemberName { get; init; }
+        public GymPersonRDTO? GymMember { get; init; }
+        public GymPersonRDTO? CreatedByPerson { get; init; }
         public decimal Amount { get; init; }
         public PaymentMethod PaymentMethod { get; init; }
         public string? ReferenceNumber { get; init; }

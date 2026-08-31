@@ -114,9 +114,9 @@ namespace Application.Service
 
         #region Read By Id
         public virtual async Task<RDTO> GetByIdAsync(
-    int id,
-    bool trackChanges = false,
-    CancellationToken cancellationToken = default)
+            int id,
+            bool trackChanges = false,
+            CancellationToken cancellationToken = default)
         {
             var key = CacheKeyGenerator.ById<T>(
                 id,
@@ -133,14 +133,46 @@ namespace Application.Service
                         id);
 
                     var entity = await _repo.GetByIdAsync(
-                        id,
-                        trackChanges,
-                        cancellationToken);
+                         id,
+                         trackChanges,
+                         cancellationToken);
 
                     if (entity is null)
                         throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
 
+                    var dto = _mapper.Map<RDTO>(entity);
 
+                    await AfterMapReadAsync(entity, dto, cancellationToken);
+
+                    return dto;
+                },
+                IsCacheEnabled);
+        }
+
+        public virtual async Task<RDTO> GetByIdDetailsAsync(
+            int id,
+            CancellationToken cancellationToken = default)
+        {
+            var key = CacheKeyGenerator.ById<T>(
+                id,
+                CurrentGymId,
+                CacheUserScope) + ":details";
+
+            return await GetOrCreateCacheAsync(
+                key,
+                async () =>
+                {
+                    _logger.LogInformation(
+                        "Fetching detailed {EntityType} with ID {Id}",
+                        typeof(T).Name,
+                        id);
+
+                    var entity = await _repo.GetByIdDetailsAsync(
+                         id,
+                         cancellationToken);
+
+                    if (entity is null)
+                        throw new NotFoundException($"{typeof(T).Name} with ID {id} was not found.");
 
                     var dto = _mapper.Map<RDTO>(entity);
 
@@ -152,9 +184,9 @@ namespace Application.Service
         }
 
         protected virtual Task AfterMapReadAsync(
-    T entity,
-    RDTO dto,
-    CancellationToken cancellationToken)
+            T entity,
+            RDTO dto,
+            CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
         }
@@ -166,21 +198,32 @@ namespace Application.Service
             bool trackChanges = false,
             CancellationToken cancellationToken = default)
         {
-            var page = await _repo.GetPageAsync(
+            var key = CacheKeyGenerator.ForPage<T>(
                 searchReq,
-                trackChanges,
-                cancellationToken);
+                CurrentGymId,
+                CacheUserScope);
 
-            return new PaginatedRes<RDTO>
-            {
-                PageNumber = page.PageNumber,
-                PageSize = page.PageSize,
-                TotalCount = page.TotalCount,
-                Items = _mapper.Map<List<RDTO>>(page.Items)
-            };
+            return await GetOrCreateCacheAsync(
+                key,
+                async () =>
+                {
+                    var page = await _repo.GetPageAsync(
+                        searchReq,
+                        trackChanges,
+                        cancellationToken);
+
+                    return new PaginatedRes<RDTO>
+                    {
+                        PageNumber = page.PageNumber,
+                        PageSize = page.PageSize,
+                        TotalCount = page.TotalCount,
+                        Items = _mapper.Map<List<RDTO>>(page.Items)
+                    };
+                },
+                IsCacheEnabled);
         }
 
-
+       
     }
 
 

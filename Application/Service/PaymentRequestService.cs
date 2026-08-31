@@ -57,27 +57,27 @@ namespace Application.Service
         {
 
             if (await _paymentRepo.HasPendingRequestAsync(_currentUser.UserId, ct))
-                throw new ApplicationException("You already have a pending payment request.");
+                throw new ConflictException("You already have a pending payment request.");
 
             PlanPrice? planPrice = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(dto.PlanPriceId, false, ct);
 
             if (planPrice == null || planPrice.Plan == null || planPrice.Plan.IsFree == true)
-                throw new ApplicationException("Invalid subscription plan.");
+                throw new BadRequestException("Invalid subscription plan.");
 
 
             CurrentPlanResult existingSubscription = await _currentPlanService.GetCurrentPlanAsync(_currentUser.UserId, ct);
 
             if (existingSubscription.IsFree == false)
-                throw new ApplicationException("You already have an active subscription. You cannot create a new payment request until your current subscription expires.");
+                throw new ConflictException("You already have an active subscription. You cannot create a new payment request until your current subscription expires.");
 
             if (existingSubscription.CurrentCoachCount > planPrice.Plan.MaxCoaches)
-                throw new ApplicationException("You already have more coaches than the new plan allows. Please remove some coaches before upgrading.");
+                throw new BadRequestException("You already have more coaches than the new plan allows. Please remove some coaches before upgrading.");
 
             if (existingSubscription.CurrentGymCount > planPrice.Plan.MaxOwnedGyms)
-                throw new ApplicationException("You already have more gyms than the new plan allows. Please remove some gyms before upgrading.");
+                throw new BadRequestException("You already have more gyms than the new plan allows. Please remove some gyms before upgrading.");
 
             if (existingSubscription.CurrentMemberCount > planPrice.Plan.MaxMembers)
-                throw new ApplicationException("You already have more members than the new plan allows. Please remove some members before upgrading.");
+                throw new BadRequestException("You already have more members than the new plan allows. Please remove some members before upgrading.");
 
 
             decimal discountAmount = 0m;
@@ -92,10 +92,10 @@ namespace Application.Service
                     ct);
 
                 if (!couponResult.IsValid)
-                    throw new ApplicationException(couponResult.Message);
+                    throw new BadRequestException(couponResult.Message!);
 
                 if (await _paymentRepo.HasUsedThisCouponBeforeAsync(_currentUser.UserId, couponResult.CouponId!.Value, ct))
-                    throw new ApplicationException("You have already used this coupon before.");
+                    throw new ConflictException("You have already used this coupon before.");
 
                 discountAmount = couponResult.DiscountAmount;
                 couponId = couponResult.CouponId;
@@ -142,7 +142,7 @@ namespace Application.Service
                 throw new NotFoundException("Payment request not found.");
 
             if (entity.Status != PaymentRequestStatus.Pending)
-                throw new ApplicationException("Only pending payment requests can be approved.");
+                throw new BadRequestException("Only pending payment requests can be approved.");
 
             entity.Status = PaymentRequestStatus.Approved;
             entity.ReviewNotes = dto.ReviewNotes;
@@ -163,7 +163,7 @@ namespace Application.Service
                 throw new NotFoundException("Payment request not found.");
 
             if (entity.Status != PaymentRequestStatus.Pending)
-                throw new ApplicationException("Only pending payment requests can be rejected.");
+                throw new BadRequestException("Only pending payment requests can be rejected.");
 
             try
             {

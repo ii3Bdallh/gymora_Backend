@@ -8,5 +8,11 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
 {
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
+        builder.Property(u => u.PersonName)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder.Property(u => u.ProfileImageUrl)
+            .HasMaxLength(500);
     }
 }

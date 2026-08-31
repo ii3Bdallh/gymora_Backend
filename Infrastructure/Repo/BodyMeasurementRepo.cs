@@ -17,6 +17,9 @@ namespace Infrastructure.Repo
     public class BodyMeasurementRepo(ApplicationDbContext context, ILogger<BodyMeasurementRepo> logger, QueryCache queryCache, CurrentUser currentUser)
         : BaseAuditableRepo<BodyMeasurement>(context, logger, queryCache, currentUser), IBodyMeasurementRepo
     {
+        protected override Func<IQueryable<BodyMeasurement>, IQueryable<BodyMeasurement>>? Includes() => null;
 
+        public override async Task<BodyMeasurement?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+            => await base.GetByIdAsync(id, false, cancellationToken, Includes());
     }
 }

@@ -61,12 +61,30 @@ namespace Application.DTO.Model
     public record GymPersonCDTO : BaseGymCDTO
     {
         public int? UserId { get; set; }
+
+        [Required(ErrorMessage = "PersonType is required")]
         public PersonType PersonType { get; set; }
+
+        [Required(ErrorMessage = "Name is required")]
+        [StringLength(100, ErrorMessage = "Name cannot exceed 100 characters")]
         public string Name { get; set; } = null!;
+
+        [Required(ErrorMessage = "PhoneNumber is required")]
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        [StringLength(50, ErrorMessage = "PhoneNumber cannot exceed 50 characters")]
         public string PhoneNumber { get; set; } = null!;
+
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [StringLength(256, ErrorMessage = "Email cannot exceed 256 characters")]
         public string? Email { get; set; }
+
+        [StringLength(50, ErrorMessage = "Gender cannot exceed 50 characters")]
         public string? Gender { get; set; }
+
         public DateTime? DateOfBirth { get; set; }
+
+        [Url(ErrorMessage = "Invalid PhotoUrl format")]
+        [StringLength(500, ErrorMessage = "PhotoUrl cannot exceed 500 characters")]
         public string? PhotoUrl { get; set; }
 
         public int CreatedById { get; set; }
@@ -77,13 +95,31 @@ namespace Application.DTO.Model
 
     public record GymPersonUDTO : BaseGymUDTO
     {
-        public int? UserId { get; set; }
+ 
+
+        [Required(ErrorMessage = "PersonType is required")]
         public PersonType PersonType { get; set; }
+
+        [Required(ErrorMessage = "Name is required")]
+        [StringLength(100, ErrorMessage = "Name cannot exceed 100 characters")]
         public string Name { get; set; } = null!;
+
+        [Required(ErrorMessage = "PhoneNumber is required")]
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        [StringLength(50, ErrorMessage = "PhoneNumber cannot exceed 50 characters")]
         public string PhoneNumber { get; set; } = null!;
+
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [StringLength(256, ErrorMessage = "Email cannot exceed 256 characters")]
         public string? Email { get; set; }
+
+        [StringLength(50, ErrorMessage = "Gender cannot exceed 50 characters")]
         public string? Gender { get; set; }
+
         public DateTime? DateOfBirth { get; set; }
+
+        [Url(ErrorMessage = "Invalid PhotoUrl format")]
+        [StringLength(500, ErrorMessage = "PhotoUrl cannot exceed 500 characters")]
         public string? PhotoUrl { get; set; }
         public int CreatedById { get; set; }
 
@@ -102,13 +138,13 @@ namespace Application.DTO.Model
         public DateTime? DateOfBirth { get; set; }
         public string? PhotoUrl { get; set; }
         public Guid InviteCode { get; set; }
+        public GymPersonAccessStatus AccessStatus { get; set; }
 
         public GymStaffProfileRDTO? StaffProfile { get; set; }
         public GymMemberProfileRDTO? MemberProfile { get; set; }
 
         public DateTime CreatedOn { get; set; }
         public int CreatedById { get; set; }
-
     }
 
     public record RenewMembershipDTO

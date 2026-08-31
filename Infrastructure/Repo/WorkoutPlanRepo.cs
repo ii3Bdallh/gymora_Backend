@@ -36,24 +36,25 @@ namespace Infrastructure.Repo
             return query.Where(x => x.IsApproved || x.CreatedById == _currentUser.UserId);
         }
 
-        public override async Task<WorkoutPlan?> GetByIdAsync(
+        public override async Task<WorkoutPlan?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+            => await base.GetByIdAsync(id, false, cancellationToken, Includes());
+
+        public override Task<WorkoutPlan?> GetByIdAsync(
             int id,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<WorkoutPlan>, IQueryable<WorkoutPlan>>? include = null)
         {
-            include ??= Includes();
-            return await base.GetByIdAsync(id, trackChanges, cancellationToken, include);
+            return base.GetByIdAsync(id, trackChanges, cancellationToken, include);
         }
 
-        public override async Task<PaginatedRes<WorkoutPlan>> GetPageAsync(
+        public override Task<PaginatedRes<WorkoutPlan>> GetPageAsync(
             PaginatedSearchReq searchReq,
             bool trackChanges = false,
             CancellationToken cancellationToken = default,
             Func<IQueryable<WorkoutPlan>, IQueryable<WorkoutPlan>>? include = null)
         {
-            // include ??= Includes();
-            return await base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
+            return base.GetPageAsync(searchReq, trackChanges, cancellationToken, include);
         }
     }
 }

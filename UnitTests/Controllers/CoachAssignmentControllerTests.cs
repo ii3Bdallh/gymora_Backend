@@ -30,6 +30,52 @@ public class CoachAssignmentControllerTests
     }
 
     [Fact]
+    public async Task GetById_ShouldReturnOk_WhenRecordExists()
+    {
+        // Arrange
+        int id = 1;
+        var rDto = new CoachAssignmentRDTO
+        {
+            Id = id,
+            GymId = 1,
+            MemberId = 10,
+            CoachStaffId = 5,
+            AssignedAt = DateTime.UtcNow,
+            Member = new GymPersonRDTO { Name = "John Member" }
+        };
+
+        _service.Setup(s => s.GetByIdDetailsAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(rDto);
+
+        // Act
+        var result = await _sut.GetById(id, CancellationToken.None);
+
+        // Assert
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<Result<CoachAssignmentRDTO>>().Subject;
+        response.IsSuccess.Should().BeTrue();
+        response.Data!.Id.Should().Be(id);
+        response.Data.Member!.Name.Should().Be("John Member");
+    }
+
+    [Fact]
+    public async Task GetById_ShouldReturnNotFound_WhenRecordDoesNotExist()
+    {
+        // Arrange
+        int id = 99;
+        _service.Setup(s => s.GetByIdDetailsAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CoachAssignmentRDTO?)null);
+
+        // Act
+        var result = await _sut.GetById(id, CancellationToken.None);
+
+        // Assert
+        var notFoundResult = result.Result.Should().BeOfType<NotFoundObjectResult>().Subject;
+        var response = notFoundResult.Value.Should().BeAssignableTo<Result<CoachAssignmentRDTO>>().Subject;
+        response.IsSuccess.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task GetAssignedMembers_ShouldReturnOk_WhenRequestIsValid()
     {
         // Arrange
@@ -54,11 +100,11 @@ public class CoachAssignmentControllerTests
             PageSize = 10
         };
 
-        _service.Setup(s => s.GetPageAsync(req, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+        _service.Setup(s => s.GetPageAsync(req, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(listResult);
 
         // Act
-        var result = await _sut.GetAssignedMembers(req);
+        var result = await _sut.GetAssignedMembers(req, CancellationToken.None);
 
         // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
@@ -91,7 +137,7 @@ public class CoachAssignmentControllerTests
         var result = await _sut.AssignCoach(dto, CancellationToken.None);
 
         // Assert
-        var objectResult = result.Should().BeOfType<ObjectResult>().Subject;
+        var objectResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
         objectResult.StatusCode.Should().Be(201);
         var response = objectResult.Value.Should().BeAssignableTo<Result<CoachAssignmentRDTO>>().Subject;
         response.IsSuccess.Should().BeTrue();

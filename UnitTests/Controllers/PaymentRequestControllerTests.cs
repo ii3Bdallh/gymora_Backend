@@ -80,7 +80,7 @@ public class PaymentRequestControllerTests
             CurrencyCode = "USD",
             Status = PaymentRequestStatus.Pending
         };
-        _service.Setup(s => s.GetByIdAsync(1, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+        _service.Setup(s => s.GetByIdDetailsAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(entity);
 
         var result = await _sut.GetByIdAsync(1);
@@ -154,7 +154,7 @@ public class PaymentRequestControllerTests
 
         var result = await _sut.ApproveAsync(1, new PaymentRequestApprove { ReviewNotes = "Approved" });
 
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value.Should().BeAssignableTo<Result<PaymentRequestRDTO>>().Subject;
         response.IsSuccess.Should().BeTrue();
         response.Data!.Status.Should().Be(PaymentRequestStatus.Approved);
@@ -178,7 +178,7 @@ public class PaymentRequestControllerTests
 
         var result = await _sut.RejectAsync(1, new PaymentRequestReject { RejectionReason = "Invalid proof" });
 
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value.Should().BeAssignableTo<Result<PaymentRequestRDTO>>().Subject;
         response.IsSuccess.Should().BeTrue();
         response.Data!.Status.Should().Be(PaymentRequestStatus.Rejected);
@@ -191,7 +191,7 @@ public class PaymentRequestControllerTests
     [Fact]
     public async Task GetByIdAsync_ShouldThrowNotFoundException_WhenPaymentNotFound()
     {
-        _service.Setup(s => s.GetByIdAsync(999, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+        _service.Setup(s => s.GetByIdDetailsAsync(999, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NotFoundException("Payment request not found."));
 
         var act = async () => await _sut.GetByIdAsync(999);

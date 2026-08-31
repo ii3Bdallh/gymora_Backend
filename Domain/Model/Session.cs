@@ -13,11 +13,14 @@ namespace Domain.Model
         [MaxLength(100)]
         public string SessionName { get; set; } = null!;
 
+        [Filterable(FilterType.Exact)]
         public bool IsApproved { get; set; } = false;
 
+        [Filterable(FilterType.Exact)]
         public int WorkoutPlanId { get; set; }
         public WorkoutPlan WorkoutPlan { get; set; } = null!;
 
+        [Filterable(FilterType.Exact)]
         public int DayNumber { get; set; }
 
         public ICollection<SessionExercise> Exercises { get; set; } = new List<SessionExercise>();

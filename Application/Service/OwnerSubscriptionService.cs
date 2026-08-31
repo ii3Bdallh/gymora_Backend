@@ -52,17 +52,17 @@ namespace Application.Service
         {
             var payment = await _paymentRequestRepo.GetByIdIgnoringSecurityAsync(paymentRequestId, false, ct);
             if (payment == null || payment.Status != PaymentRequestStatus.Approved)
-                throw new ApplicationException("Payment request is not approved.");
+                throw new BadRequestException("Payment request is not approved.");
 
             CurrentPlanResult existingSubscription = await _currentPlanService.GetCurrentPlanAsync(payment.CreatedById, ct);
 
             // التحقق إن مفيش اشتراك نشط
             if (existingSubscription.IsFree == false)
-                throw new ApplicationException("User already has an active subscription.");
+                throw new ConflictException("User already has an active subscription.");
 
             PlanPrice? planPrice = await _subscriptionPlanRepo.GetPlanPriceByIdAsync(payment.PlanPriceId, false, ct);
             if (planPrice == null)
-                throw new ApplicationException("Invalid subscription plan price.");
+                throw new NotFoundException("Invalid subscription plan price.");
 
             var startDate = DateTime.UtcNow;
             var endDate = startDate.AddMonths(planPrice.DurationMonths);

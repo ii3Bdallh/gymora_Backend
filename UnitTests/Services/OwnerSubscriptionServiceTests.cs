@@ -110,7 +110,7 @@ public class OwnerSubscriptionServiceTests
 
         var act = async () => await _sut.CreateFromApprovedPaymentAsync(999);
 
-        await act.Should().ThrowAsync<ApplicationException>()
+        await act.Should().ThrowAsync<BadRequestException>()
             .WithMessage("*not approved*");
     }
 
@@ -124,7 +124,7 @@ public class OwnerSubscriptionServiceTests
 
         var act = async () => await _sut.CreateFromApprovedPaymentAsync(1);
 
-        await act.Should().ThrowAsync<ApplicationException>()
+        await act.Should().ThrowAsync<BadRequestException>()
             .WithMessage("*not approved*");
     }
 
@@ -140,7 +140,7 @@ public class OwnerSubscriptionServiceTests
 
         var act = async () => await _sut.CreateFromApprovedPaymentAsync(1);
 
-        await act.Should().ThrowAsync<ApplicationException>()
+        await act.Should().ThrowAsync<ConflictException>()
             .WithMessage("*active subscription*");
     }
 
@@ -158,7 +158,7 @@ public class OwnerSubscriptionServiceTests
 
         var act = async () => await _sut.CreateFromApprovedPaymentAsync(1);
 
-        await act.Should().ThrowAsync<ApplicationException>()
+        await act.Should().ThrowAsync<NotFoundException>()
             .WithMessage("*Invalid subscription plan price*");
     }
 

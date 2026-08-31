@@ -97,6 +97,10 @@ namespace Application.Service
 
         public async Task ApproveAsync(int id, CancellationToken cancellationToken)
         {
+            if (!CurrentUser.IsSuperAdmin)
+            {
+                throw new ForbiddenException("Only SuperAdmins are allowed to approve workout plans.");
+            }
 
             var entity = await _repo.GetByIdAsync(id, true, cancellationToken);
             if (entity == null)

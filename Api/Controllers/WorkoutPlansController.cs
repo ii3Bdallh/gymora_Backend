@@ -20,19 +20,19 @@ namespace Api.Controllers
     {
         [HttpPost]
         [GymAuthorize(GymRoleString.Owner, GymRoleString.Manager, GymRoleString.Coach, GymRoleString.Member)]
-        public async Task<ActionResult<Result<PaginatedRes<WorkoutPlanRDTO>>>> GetPaged([FromBody] PaginatedSearchReq searchReq)
+        public async Task<ActionResult<Result<PaginatedRes<WorkoutPlanRDTO>>>> GetPaged([FromBody] PaginatedSearchReq searchReq, CancellationToken ct = default)
         {
             logger.LogInformation("Fetching workout plans");
-            var result = await service.GetPageAsync(searchReq, false);
+            var result = await service.GetPageAsync(searchReq, false, ct);
             return Ok(Result<PaginatedRes<WorkoutPlanRDTO>>.Success(result));
         }
 
         [HttpGet("{id}")]
         [GymAuthorize(GymRoleString.Owner, GymRoleString.Manager, GymRoleString.Coach, GymRoleString.Member)]
-        public async Task<ActionResult<Result<WorkoutPlanRDTO>>> GetById(int id, CancellationToken ct)
+        public async Task<ActionResult<Result<WorkoutPlanRDTO>>> GetById(int id, CancellationToken ct = default)
         {
             logger.LogInformation("Fetching workout plan with Id: {Id}", id);
-            var result = await service.GetByIdAsync(id, false, ct);
+            var result = await service.GetByIdDetailsAsync(id, ct);
             return Ok(Result<WorkoutPlanRDTO>.Success(result));
         }
 

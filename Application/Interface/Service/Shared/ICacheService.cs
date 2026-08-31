@@ -8,6 +8,5 @@ public interface ICacheService
 
     Task RemoveAsync(string key);
 
-
-
+    Task RemoveByPrefixAsync(string prefix);
 }

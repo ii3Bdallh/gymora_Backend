@@ -50,8 +50,6 @@ namespace Application.DTO.Model
         public string? Description { get; init; }
         public int DurationDays { get; init; }
         public decimal Price { get; init; }
-        public int FreezeDaysLimit { get; init; }
-        public int? AttendanceLimit { get; init; }
     }
 
     // --- Membership DTOs ---

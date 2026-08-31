@@ -44,6 +44,7 @@ namespace Domain.Model
     public string? ReviewNotes { get; set; }
     public string? RejectionReason { get; set; }
 
+    [Filterable(FilterType.Exact)]
     public int? ReviewedBy { get; set; } // FK added - missing in original SQL
     public ApplicationUser? ReviewedByUser { get; set; }
 
@@ -53,16 +54,22 @@ namespace Domain.Model
 
     // Navigational Properties
 
+    [Filterable(FilterType.Exact)]
     public int PlanId { get; set; }
     public SubscriptionPlan Plan { get; set; } = null!;
 
+    [Filterable(FilterType.Exact)]
     public int PlanPriceId { get; set; }
     public PlanPrice PlanPrice { get; set; } = null!;
 
 
 
+    [Filterable(FilterType.Exact)]
     public int? CouponId { get; set; }
     public Coupon? Coupon { get; set; }
+
+    public virtual ICollection<OwnerSubscription> OwnerSubscriptions { get; set; } = new List<OwnerSubscription>();
+
     [Timestamp]
     public byte[] RowVersion { get; set; } = null!;
 

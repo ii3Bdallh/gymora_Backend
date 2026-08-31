@@ -10,6 +10,7 @@ namespace Domain.Model
     {
 
 
+        [Searchable]
         [Required]
         [MaxLength(200)]
         public string PlanName { get; set; } = null!;
@@ -18,6 +19,7 @@ namespace Domain.Model
         [MaxLength(500)]
         public string? Description { get; set; }
 
+        [Filterable(FilterType.Exact)]
         public bool IsApproved { get; set; } = false;
 
         public ICollection<Session> Sessions { get; set; } = new List<Session>();

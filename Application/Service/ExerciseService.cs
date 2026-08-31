@@ -79,28 +79,19 @@ namespace Application.Service
 
 
 
-        public override async Task<ExerciseRDTO> DeleteAsync(int id, CancellationToken cancellationToken = default)
+        protected override async Task BeforeDeleteAsync(Exercise entity, CancellationToken cancellationToken)
         {
-            var entity = await LoadForUpdateAsync(id, cancellationToken);
-
-            // if (!CurrentUser.IsSuperAdmin)
-            // {
-            //     throw new ForbiddenException("Only SuperAdmins are allowed to delete exercises.");
-            // }
+            await base.BeforeDeleteAsync(entity, cancellationToken);
 
             // Check if exercise is used in sessions
             bool isUsed = await _sessionExerciseRepo.DbSet.AnyAsync(
-                e => e.ExerciseId == id,
+                e => e.ExerciseId == entity.Id,
                 cancellationToken);
 
             if (isUsed)
             {
                 throw new InvalidOperationException("Cannot delete this exercise because it is currently used in workout sessions.");
             }
-
-            await _repo.DeleteAsync(entity, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-            return _mapper.Map<ExerciseRDTO>(entity);
         }
 
         public async Task ApproveAsync(int id, CancellationToken cancellationToken)

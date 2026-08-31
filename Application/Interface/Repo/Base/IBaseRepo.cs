@@ -38,6 +38,10 @@ namespace Application.Interface.Repo
         CancellationToken cancellationToken = default,
         Func<IQueryable<T>, IQueryable<T>>? include = null);
 
+        Task<T?> GetByIdDetailsAsync(
+        int id,
+        CancellationToken cancellationToken = default);
+
         // جلب عنصر واحد بـ ID مع الـ Includes بتوعه
         Task<T?> GetByIdIgnoringSecurityAsync(
         int id,
@@ -52,7 +56,6 @@ namespace Application.Interface.Repo
         // تحديث الـ Parent ومزامنة الـ Children بتوعه (إضافة/تعديل/مسح للـ Children)
         // Task UpdateWithChildrenAsync<TChild>(T parentItem, Expression<Func<T, IEnumerable<TChild>>> childCollectionExpression) where TChild : class;
 
-        // الحذف المؤقت (IsActive = false)
         Task<T> DeleteAsync(T item, CancellationToken cancellationToken = default);
 
         // الحذف المؤقت للـ Parent وكل الـ Children المحددين معاه

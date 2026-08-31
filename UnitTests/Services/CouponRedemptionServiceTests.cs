@@ -49,12 +49,7 @@ public class CouponRedemptionServiceTests
     public async Task AddAsync_ShouldReturnCreatedEntity_WhenDataIsValid()
     {
         var entity = TestData.CreateCouponRedemption();
-        var cdto = new CouponRedemptionCDTO
-        {
-            CouponId = 1,
-            PaymentRequestId = 1,
-            DiscountAmount = 10m
-        };
+        var cdto = new CouponRedemptionCDTO();
         var rDto = new CouponRedemptionRDTO
         {
             Id = 1,

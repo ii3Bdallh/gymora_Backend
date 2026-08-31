@@ -15,6 +15,7 @@ namespace Domain.Model
         public int? GymMemberId { get; set; }
         public GymPerson? GymMember { get; set; }
 
+        [Filterable(FilterType.Between)]
         public decimal Amount { get; set; }
 
         [Filterable(FilterType.Exact)]
@@ -25,6 +26,7 @@ namespace Domain.Model
         public string? ReferenceNumber { get; set; }
 
         [MaxLength(500)]
+        [Searchable]
         public string? Description { get; set; }
 
         [Filterable(FilterType.Between)]

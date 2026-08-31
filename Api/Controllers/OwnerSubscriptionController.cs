@@ -20,7 +20,7 @@ namespace Api.Controllers
 
         [HttpPost]
         [Authorize(Roles = $"{AppRole.SuperAdmin}")]
-        public async Task<ActionResult<IEnumerable<OwnerSubscriptionRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
+        public async Task<ActionResult<Result<PaginatedRes<OwnerSubscriptionRDTO>>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
         {
             logger.LogInformation("Fetching all OwnerSubscriptions");
             PaginatedRes<OwnerSubscriptionRDTO> OwnerSubscriptions = await service.GetPageAsync(searchReq, false);
@@ -29,11 +29,11 @@ namespace Api.Controllers
         }
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<ActionResult<OwnerSubscriptionRDTO>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<Result<OwnerSubscriptionRDTO>>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching OwnerSubscription with Id: {Id}", id);
 
-            var OwnerSubscription = await service.GetByIdAsync(id, false, cancellationToken: cancellationToken);
+            var OwnerSubscription = await service.GetByIdDetailsAsync(id, cancellationToken);
 
             logger.LogInformation("Successfully fetched OwnerSubscription with Id: {Id}", id);
             return Ok(Result<OwnerSubscriptionRDTO>.Success(OwnerSubscription));
@@ -41,7 +41,7 @@ namespace Api.Controllers
 
         [HttpGet("get-my-current-subscription")]
         [Authorize]
-        public async Task<ActionResult<CurrentPlanResult>> GetMySubscriptionsAsync(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<Result<CurrentPlanResult>>> GetMySubscriptionsAsync(CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching my OwnerSubscriptions");
 

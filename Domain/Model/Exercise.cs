@@ -34,7 +34,7 @@ namespace Domain.Model
         [MaxLength(1000)]
         public string? VideoUrl { get; set; }
 
+        [Filterable(FilterType.Exact)]
         public bool IsApproved { get; set; } = false;
-        public bool IsActive { get; set; } = true;
     }
 }

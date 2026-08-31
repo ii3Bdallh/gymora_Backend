@@ -20,9 +20,19 @@ namespace Infrastructure.Repo
     public class PaymentRequestRepo(ApplicationDbContext context, ILogger<PaymentRequestRepo> logger, QueryCache queryCache, CurrentUser currentUser)
     : BaseAuditableRepo<PaymentRequest>(context, logger, queryCache, currentUser), IPaymentRequestRepo
     {
-        public async Task<bool> HasPendingRequestAsync(int UserId, CancellationToken ct = default)
+        protected override Func<IQueryable<PaymentRequest>, IQueryable<PaymentRequest>>? Includes()
         {
-            return await DbSet.AnyAsync(x =>
+            return query => query.Include(x => x.Plan).Include(x => x.PlanPrice).Include(x => x.Coupon);
+        }
+
+        public override  Task<PaymentRequest?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return  base.GetByIdAsync(id, false, cancellationToken, Includes());
+        }
+
+        public  Task<bool> HasPendingRequestAsync(int UserId, CancellationToken ct = default)
+        {
+            return  DbSet.AnyAsync(x =>
                 x.CreatedById == UserId &&
                 x.Status == PaymentRequestStatus.Pending, ct);
         }

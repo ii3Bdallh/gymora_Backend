@@ -17,9 +17,9 @@
                             "    pm.response.to.have.status(200);",
                             "});",
                             "var jsonData = pm.response.json();",
-                            "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.items \u0026\u0026 jsonData.data.items.length \u003e 0) {",
+                            "if (jsonData && jsonData.data && jsonData.data.items && jsonData.data.items.length > 0) {",
                             "    pm.environment.set(\"subscriptionPlanId\", jsonData.data.items[0].id);",
-                            "    if (jsonData.data.items[0].prices \u0026\u0026 jsonData.data.items[0].prices.length \u003e 0) {",
+                            "    if (jsonData.data.items[0].prices && jsonData.data.items[0].prices.length > 0) {",
                             "        pm.environment.set(\"planPriceId\", jsonData.data.items[0].prices[0].id);",
                             "    }",
                             "}"
@@ -32,7 +32,7 @@
                 "auth": {
                     "type": "noauth"
                 },
-                "description": "### Endpoint Overview\n\nFetches a paginated list of subscription plans with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes \u0026 Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Name` | `string` | Searchable | Plan display name |\n| `Description` | `string` | - | Detailed plan summary |\n| `IsFree` | `bool` | Exact | Free tier indicator |\n| `MaxOwnedGyms` | `int` | Between | Maximum gyms owner can create |\n| `MaxCoaches` | `int` | Between | Max coaches allowed per gym |\n| `MaxMembers` | `int` | Between | Max members allowed per gym |\n| `FeaturesJson` | `string` | - | JSON serialized feature lists |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n| `IsActive` | `bool` | Exact | Active status |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"IsFree\": [\"false\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"MaxOwnedGyms\": { \"min\": \"1\", \"max\": \"10\" } }`",
+                "description": "### Endpoint Overview\n\nFetches a paginated list of subscription plans with dynamic sorting and filtering.\n\n---\n\n### Available Domain Attributes & Filter Reference\n\n| Attribute Name | Data Type | Filter Support | Description / Allowed Values |\n| :--- | :--- | :--- | :--- |\n| `Id` | `int` | Exact | Unique Identifier |\n| `Name` | `string` | Searchable | Plan display name |\n| `Description` | `string` | - | Detailed plan summary |\n| `IsFree` | `bool` | Exact | Free tier indicator |\n| `MaxOwnedGyms` | `int` | Between | Maximum gyms owner can create |\n| `MaxCoaches` | `int` | Between | Max coaches allowed per gym |\n| `MaxMembers` | `int` | Between | Max members allowed per gym |\n| `FeaturesJson` | `string` | - | JSON serialized feature lists |\n| `CreatedOn` | `DateTime` | Between | ISO creation date |\n\n---\n\n### Filter Usage Guide (For Request Body)\n\n- **Exact Filters (`exactFilters`):** Pass attribute name with array of string/enum values. Example: `\"exactFilters\": { \"IsFree\": [\"false\"] }`\n- **Between Filters (`betweenFilters`):** Pass attribute name with `min` and `max`. Example: `\"betweenFilters\": { \"MaxOwnedGyms\": { \"min\": \"1\", \"max\": \"10\" } }`",
                 "method": "POST",
                 "header": [
                     {
@@ -90,7 +90,7 @@
                             "    pm.response.to.have.status(200);",
                             "});",
                             "var jsonData = pm.response.json();",
-                            "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
                             "    pm.environment.set(\"subscriptionPlanId\", jsonData.data.id);",
                             "}"
                         ],
@@ -163,7 +163,7 @@
                             "    pm.response.to.have.status(200);",
                             "});",
                             "var jsonData = pm.response.json();",
-                            "if (jsonData \u0026\u0026 jsonData.data \u0026\u0026 jsonData.data.id) {",
+                            "if (jsonData && jsonData.data && jsonData.data.id) {",
                             "    pm.environment.set(\"planPriceId\", jsonData.data.id);",
                             "}"
                         ],

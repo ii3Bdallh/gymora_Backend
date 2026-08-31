@@ -22,7 +22,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Service;
 
-public class CoachAssignmentService : BaseGymService<CoachAssignment, CoachAssignmentRDTO, CoachAssignmentCDTO, CoachAssignmentUDTO>, ICoachAssignmentService
+public class CoachAssignmentService 
+: BaseGymService<CoachAssignment, CoachAssignmentRDTO, CoachAssignmentCDTO, CoachAssignmentUDTO>,
+ ICoachAssignmentService
 {
 
 
@@ -53,6 +55,19 @@ public class CoachAssignmentService : BaseGymService<CoachAssignment, CoachAssig
         GymPerson? coach = await _gymPersonRepo.GetByIdAsync(dto.CoachStaffId, false, cancellationToken);
         if (coach is null || coach.PersonType == PersonType.Member)
             throw new NotFoundException($"Coach with ID {dto.CoachStaffId} was not found.");
+    }
+
+    protected override Task AfterMapAddAsync(CoachAssignment entity, CoachAssignmentCDTO dto, CancellationToken cancellationToken)
+    {
+        if (entity.AssignedById == 0 && _currentUser.CurrentPersonId.HasValue)
+        {
+            entity.AssignedById = _currentUser.CurrentPersonId.Value;
+        }
+        else if (entity.AssignedById == 0)
+        {
+            entity.AssignedById = _currentUser.UserId;
+        }
+        return base.AfterMapAddAsync(entity, dto, cancellationToken);
     }
 
 

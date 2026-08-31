@@ -29,31 +29,6 @@ public class AttendanceControllerTests
     }
 
     [Fact]
-    public async Task GetDashboard_ShouldReturnOk_WhenRequestIsValid()
-    {
-        // Arrange
-        int gymId = 1;
-        var dashboardData = new GymAttendanceDashboardRDTO
-        {
-            GymId = gymId,
-            Stats = new AttendanceDashboardStatsRDTO(5, 3, 20, 2),
-            RecentEntries = new List<RecentCheckInItemRDTO>()
-        };
-
-        _service.Setup(s => s.GetDashboardAsync(gymId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(dashboardData);
-
-        // Act
-        var result = await _sut.GetDashboard(gymId, CancellationToken.None);
-
-        // Assert
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var response = okResult.Value.Should().BeAssignableTo<Result<GymAttendanceDashboardRDTO>>().Subject;
-        response.IsSuccess.Should().BeTrue();
-        response.Data!.Stats.TodayCheckInsCount.Should().Be(5);
-    }
-
-    [Fact]
     public async Task CheckIn_ShouldReturnCreated_WhenDataIsValid()
     {
         // Arrange
@@ -67,9 +42,28 @@ public class AttendanceControllerTests
         var result = await _sut.CheckIn(dto, CancellationToken.None);
 
         // Assert
-        var objectResult = result.Should().BeOfType<ObjectResult>().Subject;
+        var objectResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
         objectResult.StatusCode.Should().Be(201);
-        var response = objectResult.Value.Should().BeAssignableTo<Result<object>>().Subject;
+        var response = objectResult.Value.Should().BeAssignableTo<Result<AttendanceLogItemRDTO>>().Subject;
         response.IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetById_ShouldReturnOk_WhenRecordExists()
+    {
+        // Arrange
+        int id = 5;
+        var rdto = new AttendanceLogItemRDTO { Id = id, MemberId = 12, MemberFullName = "John Doe" };
+        _service.Setup(s => s.GetByIdDetailsAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(rdto);
+
+        // Act
+        var result = await _sut.GetById(id, CancellationToken.None);
+
+        // Assert
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var response = okResult.Value.Should().BeAssignableTo<Result<AttendanceLogItemRDTO>>().Subject;
+        response.IsSuccess.Should().BeTrue();
+        response.Data!.Id.Should().Be(id);
     }
 }

@@ -114,6 +114,14 @@ namespace Infrastructure.Repo.Base
             return await query.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 
+        public virtual Task<T?> GetByIdDetailsAsync(
+            int id,
+
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException($"GetByIdDetailsAsync is not implemented for {typeof(T).Name} repository.");
+        }
+
         public Task<T?> GetByIdIgnoringSecurityAsync(int id, bool trackChanges = false, CancellationToken cancellationToken = default, Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
             IQueryable<T> query = trackChanges ? DbSet : DbSet.AsNoTracking();

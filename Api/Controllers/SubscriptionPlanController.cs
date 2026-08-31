@@ -36,7 +36,7 @@ namespace Api.Controllers
         {
             logger.LogInformation("Fetching SubscriptionPlan with Id: {Id}", id);
 
-            var SubscriptionPlan = await service.GetByIdAsync(id, false, cancellationToken: cancellationToken);
+            var SubscriptionPlan = await service.GetByIdDetailsAsync(id, cancellationToken: cancellationToken);
 
             logger.LogInformation("Successfully fetched SubscriptionPlan with Id: {Id}", id);
             return Ok(Result<SubscriptionPlanRDTO>.Success(SubscriptionPlan));

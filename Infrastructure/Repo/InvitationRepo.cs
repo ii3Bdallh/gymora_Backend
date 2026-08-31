@@ -51,6 +51,16 @@ namespace Infrastructure.Repo
             return base.GetAllQuery(searchReq, trackChanges, cancellationToken, include);
         }
 
+        protected override Func<IQueryable<Invitation>, IQueryable<Invitation>>? Includes()
+        {
+            return query => query.Include(x => x.User);
+        }
+
+        public override async Task<Invitation?> GetByIdDetailsAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return await base.GetByIdAsync(id, false, cancellationToken, Includes());
+        }
+
         public async Task<bool> HasPendingInvitationAsync(int gymId, int userId, CancellationToken ct = default)
         {
             return await DbSet.AnyAsync(x =>

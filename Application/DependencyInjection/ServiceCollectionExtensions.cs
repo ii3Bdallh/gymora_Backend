@@ -31,7 +31,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICurrentPlanService, CurrentPlanService>();
         services.AddScoped<IGymPersonService, GymPersonService>();
         services.AddScoped<IUsersService, UsersService>();
-        services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGymService, GymService>();
         services.AddScoped<ICouponRedemptionService, CouponRedemptionService>();
         services.AddScoped<IOwnerSubscriptionService, OwnerSubscriptionService>();
@@ -43,7 +42,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<IRevenueService, RevenueService>();
         services.AddScoped<IExpenseService, ExpenseService>();
-        services.AddScoped<IFinancialReportService, FinancialReportService>();
+        services.AddScoped<IReportService, ReportService>();
 
         // Workout Feature Services
         services.AddScoped<IExerciseService, ExerciseService>();

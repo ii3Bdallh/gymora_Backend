@@ -18,18 +18,18 @@ namespace Api.Controllers
     public class UserWorkoutBlocksController(IUserWorkoutBlockService service, ILogger<UserWorkoutBlocksController> logger) : ControllerBase
     {
         [HttpPost]
-        public async Task<ActionResult<Result<PaginatedRes<UserWorkoutBlockRDTO>>>> GetPaged([FromBody] PaginatedSearchReq searchReq)
+        public async Task<ActionResult<Result<PaginatedRes<UserWorkoutBlockRDTO>>>> GetPaged([FromBody] PaginatedSearchReq searchReq, CancellationToken ct = default)
         {
             logger.LogInformation("Fetching user workout blocks");
-            var result = await service.GetPageAsync(searchReq, false);
+            var result = await service.GetPageAsync(searchReq, false, ct);
             return Ok(Result<PaginatedRes<UserWorkoutBlockRDTO>>.Success(result));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Result<UserWorkoutBlockRDTO>>> GetById(int id, CancellationToken ct)
+        public async Task<ActionResult<Result<UserWorkoutBlockRDTO>>> GetById(int id, CancellationToken ct = default)
         {
             logger.LogInformation("Fetching user workout block with Id: {Id}", id);
-            var result = await service.GetByIdAsync(id, false, ct);
+            var result = await service.GetByIdDetailsAsync(id, ct);
             return Ok(Result<UserWorkoutBlockRDTO>.Success(result));
         }
 

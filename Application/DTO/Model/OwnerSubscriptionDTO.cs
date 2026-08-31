@@ -30,10 +30,11 @@ namespace Application.DTO.Model
         public string CurrencyCode { get; set; } = null!;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public OwnerSubscriptionStatus Status
-        {
-            get; set;
-        }
+        public OwnerSubscriptionStatus Status { get; set; }
+
+        public SubscriptionPlanRDTO? Plan { get; set; }
+        public PlanPriceRDTO? PlanPrice { get; set; }
+        public PaymentRequestRDTO? PaymentRequest { get; set; }
     }
 
 

@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Threading;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,37 +22,37 @@ namespace Api.Controllers
     {
         [HttpPost]
         [GymAuthorize(GymRoleString.Owner, GymRoleString.Manager)]
-        public async Task<ActionResult<IEnumerable<InvitationRDTO>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq)
+        public async Task<ActionResult<Result<PaginatedRes<InvitationRDTO>>>> GetPagedAsync([FromBody] PaginatedSearchReq searchReq, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching paginated invitations");
-            PaginatedRes<InvitationRDTO> invitations = await service.GetPageAsync(searchReq, false);
+            PaginatedRes<InvitationRDTO> invitations = await service.GetPageAsync(searchReq, false, cancellationToken);
             logger.LogInformation("Successfully fetched paginated invitations");
             return Ok(Result<PaginatedRes<InvitationRDTO>>.Success(invitations));
         }
 
         [HttpPost("my-invitations")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<InvitationRDTO>>> GetMyInvitationsAsync([FromBody] GetMyInvitationsPagedReq searchReq)
+        public async Task<ActionResult<Result<PaginatedRes<InvitationRDTO>>>> GetMyInvitationsAsync([FromBody] GetMyInvitationsPagedReq searchReq, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching paginated invitations");
-            PaginatedRes<InvitationRDTO> invitations = await service.GetPageAsync(searchReq, false);
+            PaginatedRes<InvitationRDTO> invitations = await service.GetPageAsync(searchReq, false, cancellationToken);
             logger.LogInformation("Successfully fetched paginated invitations");
             return Ok(Result<PaginatedRes<InvitationRDTO>>.Success(invitations));
         }
 
         [HttpGet("{id}")]
         [GymAuthorize(GymRoleString.Owner, GymRoleString.Manager)]
-        public async Task<ActionResult<InvitationRDTO>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<Result<InvitationRDTO>>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Fetching Invitation with Id: {Id}", id);
-            var invitation = await service.GetByIdAsync(id, false, cancellationToken: cancellationToken);
+            var invitation = await service.GetByIdDetailsAsync(id, cancellationToken);
             logger.LogInformation("Successfully fetched Invitation with Id: {Id}", id);
             return Ok(Result<InvitationRDTO>.Success(invitation));
         }
 
         [HttpPost("Create")]
         [GymAuthorize(GymRoleString.Owner, GymRoleString.Manager)]
-        public async Task<ActionResult<InvitationRDTO>> CreateAsync([FromBody] InvitationCDTO dto)
+        public async Task<ActionResult<Result<InvitationRDTO>>> CreateAsync([FromBody] InvitationCDTO dto, CancellationToken cancellationToken = default)
         {
             if (!ModelState.IsValid)
             {
@@ -62,13 +61,13 @@ namespace Api.Controllers
             }
 
             logger.LogInformation("Creating a new invitation: {@dto}", dto);
-            var createdInvitation = await service.CreateInvitationAsync(dto);
+            var createdInvitation = await service.CreateInvitationAsync(dto, cancellationToken);
             return Ok(Result<InvitationRDTO>.Success(createdInvitation));
         }
 
         [HttpPost("accept/{id}")]
         [Authorize]
-        public async Task<ActionResult<InvitationRDTO>> AcceptAsync(int id, CancellationToken ct = default)
+        public async Task<ActionResult<Result<InvitationRDTO>>> AcceptAsync(int id, CancellationToken ct = default)
         {
             logger.LogInformation("Accepting invitation with ID: {id}", id);
             var result = await service.AcceptInvitationAsync(id, ct);
@@ -78,7 +77,7 @@ namespace Api.Controllers
 
         [HttpPost("reject/{id}")]
         [Authorize]
-        public async Task<ActionResult<InvitationRDTO>> RejectAsync(int id, CancellationToken ct = default)
+        public async Task<ActionResult<Result<InvitationRDTO>>> RejectAsync(int id, CancellationToken ct = default)
         {
             logger.LogInformation("Rejecting invitation with ID: {id}", id);
             var result = await service.RejectInvitationAsync(id, ct);
@@ -88,7 +87,7 @@ namespace Api.Controllers
 
         [HttpPost("cancel/{id}")]
         [GymAuthorize(GymRoleString.Owner, GymRoleString.Manager)]
-        public async Task<ActionResult<InvitationRDTO>> CancelAsync(int id, CancellationToken ct = default)
+        public async Task<ActionResult<Result<InvitationRDTO>>> CancelAsync(int id, CancellationToken ct = default)
         {
             logger.LogInformation("Cancelling invitation with ID: {id}", id);
             var result = await service.CancelInvitationAsync(id, ct);
