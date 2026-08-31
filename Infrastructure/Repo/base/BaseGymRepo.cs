@@ -31,10 +31,9 @@ namespace Infrastructure.Repo.Base
                 return query.Where(_ => false);
 
             // User Can See Only His Gym
-            return query.Where(x =>
-                EF.Property<int>(x, nameof(IBaseGymEntity.GymId)) == currentUser.CurrentGymId.Value);
+            return query.Where(x => x.GymId == currentUser.CurrentGymId.Value);
         }
 
-        
+
     }
 }

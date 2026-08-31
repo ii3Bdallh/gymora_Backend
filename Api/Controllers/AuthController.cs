@@ -1,7 +1,6 @@
 using Application.DTO;
 using Application.DTO.Auth;
 using Application.DTO.Model;
-using Application.Interface.Repo;
 using Application.Interface.Service;
 using Application.StaticTexts;
 using Gymora.Contracts.Authentication;

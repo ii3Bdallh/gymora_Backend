@@ -31,8 +31,7 @@ namespace Infrastructure.Repo.Base
             if (currentUser.IsSuperAdmin)
                 return query;
 
-            return query.Where(x =>
-                EF.Property<int>(x, nameof(IOnlyMeCanSee.CreatedById)) == currentUser.UserId);
+            return query.Where(x => x.CreatedById == currentUser.UserId);
         }
     }
 }

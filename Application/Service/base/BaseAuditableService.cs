@@ -44,28 +44,22 @@ namespace Application.Service.Base
 
 
 
-        protected override Task AfterMapReadAsync(T entity, RDTO dto, CancellationToken cancellationToken)
+//         protected override Task AfterMapReadAsync(T entity, RDTO dto, CancellationToken cancellationToken)
+//         {
+//             if (entity is IOnlyMeCanSee &&
+//    !CanAccess(entity.CreatedById))
+//             {
+//                 throw new UnauthorizedAccessException(
+//                     "You do not have permission to access this resource.");
+//             }
+//             return base.AfterMapReadAsync(entity, dto, cancellationToken);
+//         }
+
+        protected override Task AfterMapAddAsync(T entity, CDTO dto, CancellationToken cancellationToken)
         {
-            if (entity is IOnlyMeCanSee &&
-   !CanAccess(entity.CreatedById))
-            {
-                throw new UnauthorizedAccessException(
-                    "You do not have permission to access this resource.");
-            }
-            return base.AfterMapReadAsync(entity, dto, cancellationToken);
-        }
+            entity.CreatedById = CurrentUser.UserId;
 
-        protected override Task BeforeAddAsync(CDTO dto, CancellationToken cancellationToken)
-        {
-            base.BeforeAddAsync(dto, cancellationToken);
-            if (dto.CreatedById != 0 && !CanAccess(dto.CreatedById))
-            {
-                throw new ForbiddenException("You are not authorized to perform this action.");
-            }
-
-            dto.CreatedById = CurrentUserId;
-
-            return Task.CompletedTask;
+            return base.AfterMapAddAsync(entity, dto, cancellationToken);
         }
 
 
@@ -77,7 +71,7 @@ namespace Application.Service.Base
             {
                 throw new ForbiddenException("You are not authorized to perform this action.");
             }
-            dto.CreatedById = CurrentUserId;
+
             return Task.CompletedTask;
         }
 
